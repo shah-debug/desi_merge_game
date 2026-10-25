@@ -65,6 +65,35 @@ Output: `Builds/Android/DesiMerge-dev.apk` (keep `Builds/` out of version contro
 - PlayMode: bootstrapper builds services and persists across loads, duplicate guard, missing-config error path,
   flush on application pause, scene-scoped entry point injection.
 
+## Phase 2 coverage
+
+**Deterministic physics.** Gameplay PlayMode tests use `GameplayTestRig`, which switches
+`Physics2D.simulationMode` to `Script`, disables the board's `FixedUpdate`, and drives a manual clock. Each
+`Simulate()` call is exactly one `Physics2D.Simulate(0.02)` followed by `MergeBoard.Step(now)`, so contacts, merges
+and game-over timing don't depend on frame rate or wall-clock delays. The rig restores the simulation mode on dispose.
+
+- EditMode (`MergeLogicTests`, `GameplayRulesTests`, `GameplayConfigTests`):
+  - Merge rules: same level upgrades, different levels never merge, final level per rule, invalid levels ignored.
+  - Resolver: duplicate callbacks merge once, one item touching two equals merges once, consumed/self/null ignored,
+    final clear, items created during resolve wait for the next step, clear drops pending contacts.
+  - Session: score events, ends once, no score after end, restart clears.
+  - Spawn queue: seeded determinism, range, advance, reset.
+  - Drop rules: boundary clamping (incl. item wider than container), `CanDrop` across states and cooldown.
+  - Game-over rule: delay, reset when below the line, spawn grace.
+  - Config validation: missing progression/definition/id/sprite, duplicates, spawnable range, item too wide.
+- PlayMode (`MergeBoardTests`, `GameplayLoopTests`, `GameplayEntryPointTests`), with real Rigidbody2D/Collider2D:
+  - Same-level contact merges exactly once; different levels don't; three touching equals → one merge.
+  - Merge results chain on a later step; final level cleared (ClearBoth) or kept (NoMerge); frozen board doesn't merge.
+  - Danger line raises once after the delay; `Clear()` resets and pooled items work again.
+  - Loop: drop clamped to walls at drop height, queue advance, cooldown, no drop while paused or after game over,
+    score awarded once per merge, final bonus, game over once (single progress submit + flush), restart clears
+    board/score/state and allows a second game over, repeated restarts don't duplicate subscriptions, dispose unsubscribes.
+  - Entry point: missing references and invalid progression log errors and don't start; second initialize ignored.
+- PlayMode smoke (`GameplaySceneSmokeTests`): loads the generated `Gameplay` scene, drops 8 items in real time, ends
+  and restarts; and spawns one item of every level. This checks wiring only. With the environment variable
+  `DESIMERGE_CAPTURE_DIR` set, it saves rendered PNGs (`gameplay-after-drops.png`, `gameplay-game-over.png`,
+  `gameplay-all-levels.png`) for visual review. Skipped (ignored) if the scene isn't in Build Settings.
+
 ## Future
 
 - CI (e.g. GameCI) running both suites and the Android build on each push — once the project is in Git.

@@ -2,7 +2,9 @@
     "name": "DesiMerge.Editor",
     "rootNamespace": "DesiMerge.Editor",
     "references": [
-        "DesiMerge.Runtime"
+        "DesiMerge.Runtime",
+        "Unity.InputSystem",
+        "UnityEngine.UI"
     ],
     "includePlatforms": [
         "Editor"

@@ -1,7 +1,10 @@
 {
     "name": "DesiMerge.Runtime",
     "rootNamespace": "DesiMerge",
-    "references": [],
+    "references": [
+        "Unity.InputSystem",
+        "UnityEngine.UI"
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

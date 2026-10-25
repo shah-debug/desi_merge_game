@@ -18,7 +18,7 @@ Assets/
     Scripts/
       DesiMerge.Runtime.asmdef   Single runtime assembly (namespaces per area below).
       Core/                      Game state machine, service container, composition root, scene entry points.
-      Configuration/             ScriptableObject configuration (GameConfig).
+      Configuration/             ScriptableObject configuration (GameConfig, GameplayConfig, MergeProgression, MergeItemDefinition).
       Persistence/               Local save storage (ISaveStore, FileSaveStore, JsonRepository).
       Progression/               Player progress (high score, coins, games played).
       Settings/                  Player preferences (volumes, haptics).
@@ -26,13 +26,15 @@ Assets/
       Analytics/                 IAnalyticsService and event names (local only).
       Monetization/              IRewardedAdService and result types (no SDK).
       Platform/                  Application lifecycle hooks (pause/resume/quit).
-      Gameplay/                  (Phase 2+) merge items, spawner, physics, scoring.
-      UI/                        (Phase 2+) screens and HUD.
+      Gameplay/                  Drop/merge loop: rules, resolver, session, board, drop input, scene entry point.
+      UI/                        GameplayHud (minimal test HUD). Screens come later.
       Editor/                    DesiMerge.Editor.asmdef — setup and build tooling.
-    Scenes/                      Bootstrap.unity (+ gameplay scenes later).
-    Prefabs/ Art/ Audio/ Animations/
-    ScriptableObjects/           GameConfig.asset and future data assets.
-    Settings/                    Project-owned render/input assets (future).
+    Scenes/                      Bootstrap.unity (build index 0), Gameplay.unity (index 1).
+    Prefabs/                     MergeItem.prefab (pooled physics item).
+    Art/Placeholder/             Generated Circle.png / Square.png placeholder sprites (not final art).
+    Audio/ Animations/
+    ScriptableObjects/           GameConfig, GameplayConfig, MergeProgression, MergeItems/01_patti … 10_bus.
+    Settings/Physics/            MergeItem.physicsMaterial2D.
     Tests/
       EditMode/                  DesiMerge.Tests.EditMode.asmdef
       PlayMode/                  DesiMerge.Tests.PlayMode.asmdef
@@ -46,8 +48,8 @@ Empty folders contain a `.gitkeep` so they survive version control.
 
 | Assembly | Contents | References |
 |---|---|---|
-| `DesiMerge.Runtime` | Everything under `Scripts/` except `Editor/` | Unity only |
-| `DesiMerge.Editor` | Editor tooling (Editor platform only) | Runtime |
+| `DesiMerge.Runtime` | Everything under `Scripts/` except `Editor/` | Unity, `Unity.InputSystem`, `UnityEngine.UI` (both already in the template) |
+| `DesiMerge.Editor` | Editor tooling (Editor platform only) | Runtime, `Unity.InputSystem`, `UnityEngine.UI` |
 | `DesiMerge.Tests.EditMode` | Unit tests (Editor platform only) | Runtime, Test Framework |
 | `DesiMerge.Tests.PlayMode` | Runtime integration tests | Runtime, Test Framework |
 
@@ -121,6 +123,81 @@ of problems, which the bootstrapper logs as errors. Gameplay tuning will get its
 - Monetization and analytics SDKs, if added later, live behind the existing interfaces and are chosen in
   `GameServicesFactory`. Gameplay never references an SDK type.
 
+## Gameplay (Phase 2)
+
+### Data
+
+- **`MergeItemDefinition`** (one asset per level): stable `id`, provisional display name, placeholder sprite + tint,
+  radius (collision and visual), mass, score value (awarded when the item is *created* by a merge).
+- **`MergeProgression`**: the ordered list of definitions. Level = index; the next level is index + 1; the last entry
+  is the final level. This list is the **single source of truth** for the merge chain — definitions deliberately do
+  not hold a separate "next" reference that could disagree with it. Also holds how many low levels can be dropped
+  (default 5: Patti … Roti). `Validate()` reports missing/duplicate/repeated entries, missing ids or sprites,
+  non-positive radii and an invalid spawnable count.
+- **`GameplayConfig`**: board size, drop height and cooldown, spawn seed, danger line, game-over delay and spawn
+  grace, final-level rule and bonus, physics material, gravity scale, damping. `Validate()` includes the
+  progression's checks plus geometry (danger line ≤ container top, drop above danger line, every item fits the width).
+
+Initial progression: Patti → Nimbu → Pyaz → Tamatar → Roti → Aam → Chai → Mango Shake → Rickshaw → Bus
+(provisional names, radii 0.30 → 1.45, scores 1, 3, 6, 10, 15, 21, 28, 36, 45, 55).
+
+### Responsibilities
+
+| Type | Kind | Responsibility |
+|---|---|---|
+| `MergeRules` | static | Decides whether two levels merge and into what, including the final-level rule. |
+| `MergeResolver<T>` | plain C# | Queues contact reports during physics, resolves them once per step in report order. Marks both items consumed *before* the handler runs, so duplicate callbacks and one item touching several equals can only merge once. Items created while resolving wait for the next step (no recursion). |
+| `GameSession` | plain C# | Score, merge count, `IsOver`. Only place score changes. `TryEnd()` succeeds once. |
+| `ScoreRules` | static | Merge awards the created item's score; final clear awards the configured bonus. |
+| `SpawnQueue` | plain C# | Current + next item, seeded `System.Random` (seed 0 = random per session). |
+| `DropRules` | static | Clamp drop x inside the walls for the item's radius; `CanDrop` (not over, state Playing, cooldown elapsed). |
+| `GameOverRule` | static | The game-over condition (below). |
+| `MergeItem` | MonoBehaviour | Pooled body: applies definition (sprite, tint, scale, mass, material), reports `OnCollisionEnter2D` with other items to the board. No rules. |
+| `MergeBoard` | MonoBehaviour | Builds walls/floor/danger line from config, owns the `ObjectPool<MergeItem>` and active list, resolves merges in `FixedUpdate`, checks the danger line, raises `ItemMerged` / `FinalLevelCleared` / `DangerTimeExceeded`. Knows nothing about score, UI or services. |
+| `DropController` | MonoBehaviour | Event-driven pointer input (`<Pointer>/position`, `<Pointer>/press` — mouse and touch, no `Update` polling), clamps aim, shows a **visual-only preview** (SpriteRenderer, no Rigidbody/Collider), raises `DropRequested`. Does not decide whether a drop is allowed. |
+| `GameplayLoop` | plain C# | Orchestrator: drop request → `CanDrop` → spawn → advance queue; board events → score; danger → single game over (freeze board, disable input, submit/flush progress, analytics, state → GameOver, HUD); restart. Subscribes once in its constructor, unsubscribes in `Dispose`. |
+| `IGameplayView` / `GameplayHud` | interface / MonoBehaviour | Score, best, next item, game-over panel, restart button, configuration error text. The loop only talks to the interface. |
+| `GameplayEntryPoint` | MonoBehaviour, `ISceneEntryPoint` | Validates config and scene references, initializes board and drop controller, creates and disposes the loop. The only gameplay type that references a concrete UI type. |
+
+Dependency direction: `GameplayEntryPoint` → `GameplayLoop` → (`MergeBoard`, `DropController`, `IGameplayView`,
+`GameServices`). The board and drop controller never reference each other, the UI, or services.
+
+### Frame flow
+
+1. Pointer release → `DropController.DropRequested(x)` → `GameplayLoop.TryDrop` → `MergeBoard.SpawnLocal`.
+2. Physics step → `MergeItem.OnCollisionEnter2D` → `MergeBoard.ReportContact` → `MergeResolver.Report` (queued only).
+3. Next `MergeBoard.FixedUpdate` → `ResolvePending`: consumed items return to the pool, the next level spawns at the
+   midpoint with the pair's average velocity → `ItemMerged` → `GameSession.AddMergeScore`.
+4. Same `FixedUpdate` → danger-line check → possibly `DangerTimeExceeded` → `GameplayLoop.EndGame` (once).
+
+### Rules chosen for Phase 2 (all configurable in `GameplayConfig`)
+
+- **Game over:** an item whose top edge stays above the danger line (container top, 9 units above the floor) for
+  **2 s continuously** ends the game. Items younger than **1.5 s** (just dropped from above the line, or just created
+  by a merge) are ignored, so a normal drop or merge never ends the game. On game over the board freezes
+  (`Rigidbody2D.simulated = false`), pending merges are discarded, input is disabled, and the event is raised once
+  until restart.
+- **Final level:** `ClearBoth` — two Buses touching are both removed and award a **100**-point bonus.
+  Alternative `NoMerge` keeps them as stacking obstacles.
+- **Drop:** 0.5 s cooldown; x clamped to `±(halfWidth − radius)`; only a press that *started* while input was enabled
+  can drop, so tapping Restart never drops an item.
+- **Pause:** drops are only accepted in `GameState.Playing`; no pause UI exists yet.
+
+### Physics setup
+
+`Rigidbody2D` Dynamic, interpolated, continuous collision detection; `CircleCollider2D` radius 0.5 on a prefab scaled
+to the item diameter; shared `PhysicsMaterial2D` (friction 0.3, bounciness 0.05) on items and walls; gravity from the
+project's Physics 2D settings (−9.81) × gravity scale 1.5. Gravity is never simulated manually. Items are pooled
+(`UnityEngine.Pool.ObjectPool`) so merges don't allocate GameObjects.
+
+### Scene layout (`Gameplay.unity`, generated by `Desi Merge → Setup → Create Gameplay Content`)
+
+Orthographic camera size 8 (16 units tall) at the origin; `Board` at y = −7 (container 6.5 × 9, floor near the
+bottom of the screen); drops at board y = 10.5 (world 3.5); `HUD` Screen Space Overlay canvas with
+`CanvasScaler` 1080 × 1920, match 0.5 (portrait); `EventSystem` with `InputSystemUIInputModule` (the project uses the
+new Input System only). Played directly in the Editor without Bootstrap, the entry point falls back to temporary
+in-memory development services (Editor/development builds only) so the scene is testable on its own.
+
 ## Template content
 
 `Assets/Scenes/SampleScene.unity`, `Assets/Settings/*` (URP pipeline, 2D renderer, Input System actions, volume
@@ -131,7 +208,7 @@ team agrees.
 
 ## Known gaps / next decisions
 
-- No real audio implementation, UI, or gameplay yet (Phase 2+).
-- Starting Play Mode from a non-Bootstrap scene has no services. Options for Phase 2: an editor setting that sets
-  `EditorSceneManager.playModeStartScene` to Bootstrap, or a per-scene dev fallback.
+- No real audio implementation, home screen or final art yet. Placeholder circles with text labels only.
+- Starting Play Mode from the Gameplay scene uses the in-memory development fallback (scores not saved). Start from
+  Bootstrap to use real saves.
 - Player Settings (company name, application identifier, IL2CPP/ARM64, target API) still at template defaults.

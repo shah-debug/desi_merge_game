@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: GameConfig
   m_EditorClassIdentifier: DesiMerge.Runtime::DesiMerge.Configuration.GameConfig
   targetFrameRate: 60
-  firstSceneName: 
+  firstSceneName: Gameplay
   defaultSettings:
     schemaVersion: 1
     musicVolume: 0.8

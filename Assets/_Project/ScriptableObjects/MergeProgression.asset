@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1ee0ac51245fa1f499c1697507df4a2f, type: 3}
+  m_Name: MergeProgression
+  m_EditorClassIdentifier: DesiMerge.Runtime::DesiMerge.Configuration.MergeProgression
+  levels:
+  - {fileID: 11400000, guid: 72371d18d74f8d74db3390a5e49ac96c, type: 2}
+  - {fileID: 11400000, guid: e31d236be91aa6e4aa917d2194c9f8c7, type: 2}
+  - {fileID: 11400000, guid: da0d80b5bf5371944bed3d1a131978af, type: 2}
+  - {fileID: 11400000, guid: 14ea33cfe45a00c4ba576213127b28ed, type: 2}
+  - {fileID: 11400000, guid: ffacbd989c2cec5408c96fb6291ee5c1, type: 2}
+  - {fileID: 11400000, guid: 012fa313798325546ad9cd6be0a8c04f, type: 2}
+  - {fileID: 11400000, guid: 30b749f80158a6f48b2087f0fae9eb17, type: 2}
+  - {fileID: 11400000, guid: e3d29662da2a88a43bfc3e9747a6519c, type: 2}
+  - {fileID: 11400000, guid: 34873409b2b28634b8efab53244e40e0, type: 2}
+  - {fileID: 11400000, guid: 237f174657cbef24a8010ee9b6770316, type: 2}
+  spawnableLevelCount: 5
