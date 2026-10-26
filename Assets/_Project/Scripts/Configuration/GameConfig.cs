@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using DesiMerge.Audio;
 using DesiMerge.Settings;
 using UnityEngine;
 
@@ -18,8 +19,15 @@ namespace DesiMerge.Configuration
         [Tooltip("Scene loaded after bootstrapping. Leave empty to stay in the Bootstrap scene.")]
         [SerializeField] private string firstSceneName = string.Empty;
 
+        [Tooltip("Scene names used by the scene navigator (must be in Build Settings).")]
+        [SerializeField] private string mainMenuSceneName = "MainMenu";
+        [SerializeField] private string gameplaySceneName = "Gameplay";
+
         [Tooltip("Used when the player has no saved settings yet.")]
         [SerializeField] private SettingsData defaultSettings = new SettingsData();
+
+        [Tooltip("Clips for music and sound effects. Empty = silent audio service.")]
+        [SerializeField] private AudioLibrary audioLibrary;
 
         [Header("Development builds only")]
         [SerializeField] private bool simulateRewardedAds = true;
@@ -27,6 +35,9 @@ namespace DesiMerge.Configuration
 
         public int TargetFrameRate => targetFrameRate;
         public string FirstSceneName => firstSceneName;
+        public string MainMenuSceneName => mainMenuSceneName;
+        public string GameplaySceneName => gameplaySceneName;
+        public AudioLibrary AudioLibrary => audioLibrary;
         public SettingsData DefaultSettings => defaultSettings;
         public bool SimulateRewardedAds => simulateRewardedAds;
         public bool LogAnalyticsEvents => logAnalyticsEvents;

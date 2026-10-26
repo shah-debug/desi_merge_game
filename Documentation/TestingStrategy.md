@@ -94,6 +94,27 @@ and game-over timing don't depend on frame rate or wall-clock delays. The rig re
   `DESIMERGE_CAPTURE_DIR` set, it saves rendered PNGs (`gameplay-after-drops.png`, `gameplay-game-over.png`,
   `gameplay-all-levels.png`) for visual review. Skipped (ignored) if the scene isn't in Build Settings.
 
+## Phase 3 coverage
+
+- EditMode (`PresentationLogicTests`): settings mute persistence and v1 → v2 migration, `AudioMix` volume maths,
+  `AudioLibrary` missing-clip handling, safe-area anchor maths (notch, invalid screen), `ResponsiveScaler` and
+  `CameraFit` sizing across 9:16 / 19.5:9 / 3:4, easing curve endpoints.
+- PlayMode:
+  - `PauseAndFlowTests` (rig, injected time scale and fake navigator): pause stops time/input/music and blocks drops;
+    resume restores; repeated pause/resume ignored; no pause after game over; game-over shows the real final score
+    and stops music; restart from pause; Main Menu leaves exactly once, restores time and saves; dispose while paused
+    restores time and unsubscribes; merge feedback once with the awarded points; instructions hide after the first drop;
+    presses on HUD controls never drop; the Resume tap can't drop.
+  - `AudioServiceTests`: fixed source count (no duplicate players), same track not restarted, music volume follows
+    settings and mute, SFX mute, missing clips warn once, dispose unsubscribes.
+  - `SettingsPanelTests`: controls show stored values, write to the existing settings service, follow external changes,
+    persist on close.
+  - `SceneFlowTests` (real generated scenes): MainMenu → Settings → Play (double tap ignored) → Gameplay (real loop,
+    exactly one audio host) → drops → Pause/Resume (time scale) → Game over (final score text = session score) →
+    Main Menu (double request ignored, time restored, no extra audio players).
+- Screenshots (`DESIMERGE_CAPTURE_DIR`): menu, settings, gameplay, pause and game over at 9:16, 19.5:9 with a simulated
+  notch (`SafeAreaFitter.SimulatedSafeArea`), and 3:4. Reviewed by eye; they are not assertions.
+
 ## Future
 
 - CI (e.g. GameCI) running both suites and the Android build on each push — once the project is in Git.

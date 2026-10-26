@@ -1,35 +1,28 @@
 using System.IO;
 using DesiMerge.Configuration;
+using DesiMerge.Editor.Content;
 using DesiMerge.Gameplay;
-using DesiMerge.UI;
 using UnityEditor;
 using UnityEngine;
-using UnityEngine.EventSystems;
-using UnityEngine.InputSystem.UI;
-using UnityEngine.UI;
 
 namespace DesiMerge.Editor
 {
     /// <summary>
-    /// Generates the Phase 2 placeholder content: sprites, physics material, merge item definitions, progression,
-    /// gameplay config, the MergeItem prefab and the Gameplay scene. Existing assets are kept, so tuned values and
-    /// scene edits survive re-running. Also points GameConfig at the Gameplay scene and sets the build scene order.
-    /// Batch mode: -executeMethod DesiMerge.Editor.GameplaySetup.CreateGameplayContent
+    /// Generates the gameplay data: placeholder item sprites, physics material, merge item definitions, progression,
+    /// gameplay config and the MergeItem prefab. Existing assets are kept, so tuned values survive re-running.
+    /// Scenes are built by <see cref="ContentSetup"/>.
     /// </summary>
     public static class GameplaySetup
     {
-        public const string GameplayScenePath = "Assets/_Project/Scenes/Gameplay.unity";
-        public const string GameplaySceneName = "Gameplay";
-
-        private const string PlaceholderArtFolder = "Assets/_Project/Art/Placeholder";
-        private const string CircleSpritePath = PlaceholderArtFolder + "/Circle.png";
-        private const string SquareSpritePath = PlaceholderArtFolder + "/Square.png";
+        public const string PlaceholderArtFolder = "Assets/_Project/Art/Placeholder";
+        public const string CircleSpritePath = PlaceholderArtFolder + "/Circle.png";
+        public const string SquareSpritePath = PlaceholderArtFolder + "/Square.png";
+        public const string GameplayConfigPath = "Assets/_Project/ScriptableObjects/GameplayConfig.asset";
         private const string PhysicsFolder = "Assets/_Project/Settings/Physics";
         private const string ItemMaterialPath = PhysicsFolder + "/MergeItem.physicsMaterial2D";
         private const string ItemsFolder = "Assets/_Project/ScriptableObjects/MergeItems";
         private const string ProgressionPath = "Assets/_Project/ScriptableObjects/MergeProgression.asset";
-        private const string GameplayConfigPath = "Assets/_Project/ScriptableObjects/GameplayConfig.asset";
-        private const string ItemPrefabPath = "Assets/_Project/Prefabs/MergeItem.prefab";
+        private const string ItemPrefabPath = ContentPaths.ItemPrefabPath;
 
         // Provisional progression (id, display name, tint, radius, score when created by a merge).
         private static readonly (string Id, string Name, Color Tint, float Radius, int Score)[] Items =
@@ -48,13 +41,14 @@ namespace DesiMerge.Editor
 
         private const int SpawnableLevelCount = 5;
 
-        [MenuItem("Desi Merge/Setup/Create Gameplay Content")]
-        public static void CreateGameplayContent()
+        /// <summary>Kept for existing batch scripts and docs; same as Desi Merge > Setup > Create All Content.</summary>
+        public static void CreateGameplayContent() => ContentSetup.CreateAllContent();
+
+        public static void EnsureGameplayData()
         {
-            FoundationSetup.CreateFoundationAssets();
-            EnsureFolder(PlaceholderArtFolder);
-            EnsureFolder(PhysicsFolder);
-            EnsureFolder(ItemsFolder);
+            ContentPaths.EnsureFolder(PlaceholderArtFolder);
+            ContentPaths.EnsureFolder(PhysicsFolder);
+            ContentPaths.EnsureFolder(ItemsFolder);
 
             EnsureSprite(CircleSpritePath, GenerateCircle(256), 256, SpriteMeshType.Tight);
             EnsureSprite(SquareSpritePath, GenerateSquare(8), 8, SpriteMeshType.FullRect);
@@ -63,40 +57,6 @@ namespace DesiMerge.Editor
             EnsureProgression();
             EnsureGameplayConfig();
             EnsureItemPrefab();
-            if (AssetDatabase.LoadAssetAtPath<SceneAsset>(GameplayScenePath) == null)
-            {
-                EditorSceneUtility.CreateScene(GameplayScenePath, PopulateGameplayScene);
-            }
-
-            PointGameConfigAtGameplayScene();
-            EditorSceneUtility.SetLeadingBuildScenes(FoundationSetup.BootstrapScenePath, GameplayScenePath);
-            AssetDatabase.SaveAssets();
-            Debug.Log("[Setup] Gameplay content is in place.");
-        }
-
-        [MenuItem("Desi Merge/Setup/Rebuild Gameplay Scene (overwrites)")]
-        public static void RebuildGameplayScene()
-        {
-            if (!Application.isBatchMode && !EditorUtility.DisplayDialog("Rebuild Gameplay scene?",
-                    $"This deletes {GameplayScenePath} and generates it again. Manual edits to that scene are lost.", "Rebuild", "Cancel"))
-            {
-                return;
-            }
-
-            AssetDatabase.DeleteAsset(GameplayScenePath);
-            CreateGameplayContent();
-        }
-
-        private static void EnsureFolder(string path)
-        {
-            if (AssetDatabase.IsValidFolder(path))
-            {
-                return;
-            }
-
-            var parent = Path.GetDirectoryName(path)?.Replace('\\', '/');
-            EnsureFolder(parent);
-            AssetDatabase.CreateFolder(parent, Path.GetFileName(path));
         }
 
         private static void EnsureSprite(string path, Texture2D texture, int pixelsPerUnit, SpriteMeshType meshType)
@@ -222,17 +182,23 @@ namespace DesiMerge.Editor
             AssetDatabase.CreateAsset(config, GameplayConfigPath);
         }
 
-        private static void EnsureItemPrefab()
+        /// <param name="overwrite">Rebuild an existing prefab in place (keeps its asset GUID).</param>
+        internal static void EnsureItemPrefab(bool overwrite = false)
         {
-            if (AssetDatabase.LoadAssetAtPath<GameObject>(ItemPrefabPath) != null)
+            if (!overwrite && AssetDatabase.LoadAssetAtPath<GameObject>(ItemPrefabPath) != null)
             {
                 return;
             }
 
+            // Root: physics only (body, collider, scaled to the item's diameter).
+            // Visual child: sprite + label; merge "pop" animations scale only this child, never the collider.
             var root = new GameObject("MergeItem");
-            var spriteRenderer = root.AddComponent<SpriteRenderer>();
+            var visual = new GameObject("Visual");
+            visual.transform.SetParent(root.transform, false);
+            var spriteRenderer = visual.AddComponent<SpriteRenderer>();
             spriteRenderer.sprite = AssetDatabase.LoadAssetAtPath<Sprite>(CircleSpritePath);
             spriteRenderer.sortingOrder = 1;
+            var punch = UiFactory.Punch(visual, 0.3f, 0.22f, false);
 
             var body = root.AddComponent<Rigidbody2D>();
             body.bodyType = RigidbodyType2D.Dynamic;
@@ -243,7 +209,7 @@ namespace DesiMerge.Editor
             circle.radius = 0.5f;
 
             var labelObject = new GameObject("Label");
-            labelObject.transform.SetParent(root.transform, false);
+            labelObject.transform.SetParent(visual.transform, false);
             var label = labelObject.AddComponent<TextMesh>();
             var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             label.font = font;
@@ -257,189 +223,10 @@ namespace DesiMerge.Editor
             labelRenderer.sortingOrder = 2;
 
             var item = root.AddComponent<MergeItem>();
-            var serialized = new SerializedObject(item);
-            serialized.FindProperty("spriteRenderer").objectReferenceValue = spriteRenderer;
-            serialized.FindProperty("body").objectReferenceValue = body;
-            serialized.FindProperty("label").objectReferenceValue = label;
-            serialized.ApplyModifiedPropertiesWithoutUndo();
+            EditorRefs.Set(item, ("spriteRenderer", spriteRenderer), ("body", body), ("label", label), ("visualPunch", punch));
 
             PrefabUtility.SaveAsPrefabAsset(root, ItemPrefabPath);
             Object.DestroyImmediate(root);
-        }
-
-        private static void PointGameConfigAtGameplayScene()
-        {
-            var config = AssetDatabase.LoadAssetAtPath<GameConfig>(FoundationSetup.GameConfigPath);
-            var serialized = new SerializedObject(config);
-            var firstScene = serialized.FindProperty("firstSceneName");
-            if (string.IsNullOrEmpty(firstScene.stringValue))
-            {
-                firstScene.stringValue = GameplaySceneName;
-                serialized.ApplyModifiedPropertiesWithoutUndo();
-                EditorUtility.SetDirty(config);
-            }
-        }
-
-        private static void PopulateGameplayScene()
-        {
-            var config = AssetDatabase.LoadAssetAtPath<GameplayConfig>(GameplayConfigPath);
-            var itemPrefab = AssetDatabase.LoadAssetAtPath<GameObject>(ItemPrefabPath).GetComponent<MergeItem>();
-            var square = AssetDatabase.LoadAssetAtPath<Sprite>(SquareSpritePath);
-            var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-
-            // Camera: 16 world units tall; the board's floor sits near the bottom and the HUD uses the top.
-            var cameraObject = new GameObject("Main Camera") { tag = "MainCamera" };
-            cameraObject.transform.position = new Vector3(0f, 0f, -10f);
-            var camera = cameraObject.AddComponent<Camera>();
-            camera.orthographic = true;
-            camera.orthographicSize = 8f;
-            camera.clearFlags = CameraClearFlags.SolidColor;
-            camera.backgroundColor = new Color(0.98f, 0.88f, 0.70f);
-
-            var boardObject = new GameObject("Board");
-            boardObject.transform.position = new Vector3(0f, -7f, 0f);
-            var board = boardObject.AddComponent<MergeBoard>();
-            var items = new GameObject("Items").transform;
-            items.SetParent(boardObject.transform, false);
-            SetReferences(board, ("itemPrefab", itemPrefab), ("itemRoot", items), ("blockSprite", square));
-
-            var dropObject = new GameObject("DropController");
-            var drop = dropObject.AddComponent<DropController>();
-            var previewObject = new GameObject("Preview");
-            previewObject.transform.SetParent(dropObject.transform, false);
-            var preview = previewObject.AddComponent<SpriteRenderer>();
-            preview.sortingOrder = 3;
-            preview.enabled = false;
-            SetReferences(drop, ("worldCamera", camera), ("preview", preview));
-
-            var hud = BuildHud(font);
-            BuildEventSystem();
-
-            var entryObject = new GameObject("GameplayEntryPoint");
-            var entry = entryObject.AddComponent<GameplayEntryPoint>();
-            SetReferences(entry, ("gameplayConfig", config), ("board", board), ("dropController", drop), ("hud", hud));
-        }
-
-        private static GameplayHud BuildHud(Font font)
-        {
-            var canvasObject = new GameObject("HUD", typeof(RectTransform));
-            var canvas = canvasObject.AddComponent<Canvas>();
-            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            var scaler = canvasObject.AddComponent<CanvasScaler>();
-            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.referenceResolution = new Vector2(1080f, 1920f);
-            scaler.matchWidthOrHeight = 0.5f;
-            canvasObject.AddComponent<GraphicRaycaster>();
-            var root = canvasObject.transform;
-            var dark = new Color(0.25f, 0.13f, 0.05f);
-
-            var score = CreateText(root, "ScoreText", font, "0", 96, TextAnchor.UpperLeft, dark,
-                new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(60f, -60f), new Vector2(600f, 120f));
-            var best = CreateText(root, "BestText", font, "Best 0", 44, TextAnchor.UpperLeft, dark,
-                new Vector2(0f, 1f), new Vector2(0f, 1f), new Vector2(60f, -180f), new Vector2(600f, 60f));
-
-            CreateText(root, "NextCaption", font, "Next", 40, TextAnchor.UpperCenter, dark,
-                new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-260f, -50f), new Vector2(220f, 50f));
-            var nextImage = CreateRect(root, "NextImage", new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-205f, -110f), new Vector2(110f, 110f))
-                .gameObject.AddComponent<Image>();
-            nextImage.preserveAspect = true;
-            nextImage.raycastTarget = false;
-            var nextLabel = CreateText(root, "NextLabel", font, string.Empty, 34, TextAnchor.UpperCenter, dark,
-                new Vector2(1f, 1f), new Vector2(1f, 1f), new Vector2(-260f, -225f), new Vector2(220f, 50f));
-
-            var panel = CreateRect(root, "GameOverPanel", Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
-            panel.pivot = new Vector2(0.5f, 0.5f);
-            var panelImage = panel.gameObject.AddComponent<Image>();
-            panelImage.color = new Color(0f, 0f, 0f, 0.65f);
-            var gameOverText = CreateText(panel, "GameOverText", font, "Game Over", 80, TextAnchor.MiddleCenter, Color.white,
-                new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-450f, 400f), new Vector2(900f, 500f));
-
-            var buttonRect = CreateRect(panel, "RestartButton", new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-250f, -150f), new Vector2(500f, 150f));
-            var buttonImage = buttonRect.gameObject.AddComponent<Image>();
-            buttonImage.color = new Color(0.9f, 0.45f, 0.1f);
-            var button = buttonRect.gameObject.AddComponent<Button>();
-            button.targetGraphic = buttonImage;
-            CreateText(buttonRect, "Label", font, "Restart", 64, TextAnchor.MiddleCenter, Color.white,
-                Vector2.zero, Vector2.zero, Vector2.zero, new Vector2(500f, 150f));
-
-            var errorText = CreateText(root, "ErrorText", font, string.Empty, 44, TextAnchor.MiddleCenter, new Color(0.8f, 0f, 0f),
-                new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(-480f, 100f), new Vector2(960f, 200f));
-
-            var hud = canvasObject.AddComponent<GameplayHud>();
-            SetReferences(hud,
-                ("scoreText", score), ("bestText", best), ("nextImage", nextImage), ("nextLabel", nextLabel),
-                ("gameOverPanel", panel.gameObject), ("gameOverText", gameOverText), ("restartButton", button), ("errorText", errorText));
-            panel.gameObject.SetActive(false);
-            errorText.gameObject.SetActive(false);
-            return hud;
-        }
-
-        private static void BuildEventSystem()
-        {
-            var eventSystem = new GameObject("EventSystem");
-            eventSystem.AddComponent<EventSystem>();
-            eventSystem.AddComponent<InputSystemUIInputModule>();
-        }
-
-        /// <summary>Creates a RectTransform positioned by its top-left corner (pivot 0,1) relative to the anchor.</summary>
-        private static RectTransform CreateRect(Transform parent, string name, Vector2 anchorMin, Vector2 anchorMax, Vector2 position, Vector2 size)
-        {
-            var rect = new GameObject(name, typeof(RectTransform)).GetComponent<RectTransform>();
-            rect.SetParent(parent, false);
-            rect.anchorMin = anchorMin;
-            rect.anchorMax = anchorMax;
-            rect.pivot = new Vector2(0f, 1f);
-            rect.anchoredPosition = position;
-            rect.sizeDelta = size;
-            if (anchorMin == Vector2.zero && anchorMax == Vector2.one)
-            {
-                rect.offsetMin = Vector2.zero;
-                rect.offsetMax = Vector2.zero;
-            }
-
-            return rect;
-        }
-
-        private static Text CreateText(Transform parent, string name, Font font, string content, int fontSize, TextAnchor alignment, Color color,
-            Vector2 anchorMin, Vector2 anchorMax, Vector2 position, Vector2 size)
-        {
-            var rect = CreateRect(parent, name, anchorMin, anchorMax, position, size);
-            if (anchorMin == Vector2.zero && anchorMax == Vector2.zero && position == Vector2.zero)
-            {
-                // Fill the parent (used for button labels).
-                rect.anchorMax = Vector2.one;
-                rect.offsetMin = Vector2.zero;
-                rect.offsetMax = Vector2.zero;
-            }
-
-            var text = rect.gameObject.AddComponent<Text>();
-            text.font = font;
-            text.text = content;
-            text.fontSize = fontSize;
-            text.alignment = alignment;
-            text.color = color;
-            text.raycastTarget = false;
-            text.horizontalOverflow = HorizontalWrapMode.Overflow;
-            text.verticalOverflow = VerticalWrapMode.Overflow;
-            return text;
-        }
-
-        private static void SetReferences(Object target, params (string Property, Object Value)[] references)
-        {
-            var serialized = new SerializedObject(target);
-            foreach (var (property, value) in references)
-            {
-                var field = serialized.FindProperty(property);
-                if (field == null)
-                {
-                    Debug.LogError($"[Setup] {target.GetType().Name} has no serialized field '{property}'.");
-                    continue;
-                }
-
-                field.objectReferenceValue = value;
-            }
-
-            serialized.ApplyModifiedPropertiesWithoutUndo();
         }
     }
 }

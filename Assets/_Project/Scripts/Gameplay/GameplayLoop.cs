@@ -9,12 +9,14 @@ using UnityEngine;
 namespace DesiMerge.Gameplay
 {
     /// <summary>
-    /// Orchestrates one gameplay scene: turns drop requests into spawns, board events into score,
-    /// and the danger signal into a single game over; resets everything on restart.
+    /// Orchestrates one gameplay scene: turns drop requests into spawns, board events into score and feedback,
+    /// the danger signal into a single game over, and handles pause, resume, restart and leaving to the menu.
     /// Plain C# so its lifetime and subscriptions are explicit. Created and disposed by <see cref="GameplayEntryPoint"/>.
     /// </summary>
     public sealed class GameplayLoop : IDisposable
     {
+        private const float MergePitchStep = 0.06f;
+
         private readonly GameplayConfig _config;
         private readonly MergeProgression _progression;
         private readonly MergeBoard _board;
@@ -22,10 +24,15 @@ namespace DesiMerge.Gameplay
         private readonly IGameplayView _view;
         private readonly GameServices _services;
         private readonly Func<float> _clock;
+        private readonly Action<float> _setTimeScale;
         private float _nextDropAllowedAt;
+        private bool _hasDroppedThisSession;
+        private bool _leaving;
         private bool _disposed;
 
-        public GameplayLoop(GameplayConfig config, MergeBoard board, DropController drop, IGameplayView view, GameServices services, Func<float> clock)
+        /// <param name="setTimeScale">Applies Time.timeScale; injectable for tests. Defaults to the real one.</param>
+        public GameplayLoop(GameplayConfig config, MergeBoard board, DropController drop, IGameplayView view, GameServices services,
+            Func<float> clock, Action<float> setTimeScale = null)
         {
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _board = board ?? throw new ArgumentNullException(nameof(board));
@@ -33,6 +40,7 @@ namespace DesiMerge.Gameplay
             _view = view ?? throw new ArgumentNullException(nameof(view));
             _services = services ?? throw new ArgumentNullException(nameof(services));
             _clock = clock ?? throw new ArgumentNullException(nameof(clock));
+            _setTimeScale = setTimeScale ?? (scale => Time.timeScale = scale);
             _progression = config.Progression;
 
             Session = new GameSession();
@@ -43,23 +51,34 @@ namespace DesiMerge.Gameplay
             _board.FinalLevelCleared += OnFinalLevelCleared;
             _board.DangerTimeExceeded += OnDangerTimeExceeded;
             _drop.DropRequested += OnDropRequested;
-            _view.RestartRequested += Restart;
+            _drop.PointerFilter = _view.BlocksPointer;
+            _view.RestartRequested += OnRestartRequested;
+            _view.PauseRequested += OnPauseRequested;
+            _view.ResumeRequested += OnResumeRequested;
+            _view.MainMenuRequested += OnMainMenuRequested;
         }
 
         public GameSession Session { get; }
         public SpawnQueue Queue { get; }
+        public bool IsPaused => _services.GameState.Current == GameState.Paused;
+        public bool IsLeaving => _leaving;
 
-        /// <summary>Starts the first session. Call once after construction.</summary>
+        /// <summary>Starts a session (first start and every restart).</summary>
         public void Begin()
         {
             EnterPlayingState();
+            _setTimeScale(1f);
             _nextDropAllowedAt = _clock();
+            _hasDroppedThisSession = false;
+            _view.HidePause();
             _view.HideGameOver();
             _view.SetScore(Session.Score);
             _view.SetBestScore(_services.Progress.HighScore);
             _view.SetNextItem(_progression.Get(Queue.Next));
+            _view.SetInstructionsVisible(true);
             _drop.InputEnabled = true;
             _drop.ShowPreview(_progression.Get(Queue.Current));
+            _services.Audio.PlayMusic(MusicTrack.Gameplay);
             _services.Analytics.TrackEvent(AnalyticsEvents.GameStarted);
         }
 
@@ -67,7 +86,7 @@ namespace DesiMerge.Gameplay
         public bool TryDrop(float localX)
         {
             var now = _clock();
-            if (!DropRules.CanDrop(Session.IsOver, _services.GameState.Current, now, _nextDropAllowedAt))
+            if (_leaving || !DropRules.CanDrop(Session.IsOver, _services.GameState.Current, now, _nextDropAllowedAt))
             {
                 return false;
             }
@@ -79,7 +98,42 @@ namespace DesiMerge.Gameplay
 
             _drop.ShowPreviewAfterCooldown(_progression.Get(Queue.Current));
             _view.SetNextItem(_progression.Get(Queue.Next));
+            if (!_hasDroppedThisSession)
+            {
+                _hasDroppedThisSession = true;
+                _view.SetInstructionsVisible(false);
+            }
+
             _services.Audio.PlaySfx(SfxCue.Drop);
+            return true;
+        }
+
+        /// <summary>Pauses play: time stops (physics, merges, game-over timer), drops are disabled, music pauses.</summary>
+        public bool Pause()
+        {
+            if (_leaving || Session.IsOver || !_services.GameState.TryTransitionTo(GameState.Paused))
+            {
+                return false;
+            }
+
+            _setTimeScale(0f);
+            _drop.InputEnabled = false;
+            _services.Audio.SetMusicPaused(true);
+            _view.ShowPause();
+            return true;
+        }
+
+        public bool Resume()
+        {
+            if (_leaving || _services.GameState.Current != GameState.Paused || !_services.GameState.TryTransitionTo(GameState.Playing))
+            {
+                return false;
+            }
+
+            _setTimeScale(1f);
+            _drop.InputEnabled = true;
+            _services.Audio.SetMusicPaused(false);
+            _view.HidePause();
             return true;
         }
 
@@ -104,6 +158,7 @@ namespace DesiMerge.Gameplay
                 { "score", Session.Score },
                 { "merges", Session.MergeCount },
             });
+            _services.Audio.StopMusic();
             _services.Audio.PlaySfx(SfxCue.GameOver);
             _services.GameState.TryTransitionTo(GameState.GameOver);
             _view.ShowGameOver(Session.Score, progress.HighScore, isNewBest);
@@ -111,12 +166,44 @@ namespace DesiMerge.Gameplay
         }
 
         /// <summary>Clears the board and starts a fresh session. Subscriptions are untouched, so nothing is duplicated.</summary>
-        public void Restart()
+        public bool Restart()
         {
+            if (_leaving)
+            {
+                return false;
+            }
+
             _board.Clear();
             Session.Restart();
             Queue.Reset(_config.SpawnSeed);
             Begin();
+            return true;
+        }
+
+        /// <summary>
+        /// Leaves to the main menu once: restores time, stops input, saves, and asks the navigator to load the menu.
+        /// A run abandoned mid-game is not submitted as a final score.
+        /// </summary>
+        public bool ReturnToMainMenu()
+        {
+            if (_leaving)
+            {
+                return false;
+            }
+
+            _leaving = true;
+            _setTimeScale(1f);
+            _drop.InputEnabled = false;
+            _board.SetFrozen(true);
+            _services.Audio.SetMusicPaused(false);
+            _services.FlushAll();
+            _services.GameState.TryTransitionTo(GameState.MainMenu);
+            if (!_services.Navigator.LoadMainMenu())
+            {
+                Debug.LogWarning("[Gameplay] Main menu could not be loaded.");
+            }
+
+            return true;
         }
 
         public void Dispose()
@@ -127,26 +214,44 @@ namespace DesiMerge.Gameplay
             }
 
             _disposed = true;
+            // Never leave the game frozen if this scene is unloaded while paused.
+            _setTimeScale(1f);
             Session.ScoreChanged -= _view.SetScore;
             _board.ItemMerged -= OnItemMerged;
             _board.FinalLevelCleared -= OnFinalLevelCleared;
             _board.DangerTimeExceeded -= OnDangerTimeExceeded;
             _drop.DropRequested -= OnDropRequested;
-            _view.RestartRequested -= Restart;
+            _drop.PointerFilter = null;
+            _view.RestartRequested -= OnRestartRequested;
+            _view.PauseRequested -= OnPauseRequested;
+            _view.ResumeRequested -= OnResumeRequested;
+            _view.MainMenuRequested -= OnMainMenuRequested;
         }
 
         private void OnDropRequested(float localX) => TryDrop(localX);
 
+        private void OnRestartRequested() => Restart();
+
+        private void OnPauseRequested() => Pause();
+
+        private void OnResumeRequested() => Resume();
+
+        private void OnMainMenuRequested() => ReturnToMainMenu();
+
         private void OnItemMerged(int resultLevel, Vector2 position)
         {
-            Session.AddMergeScore(ScoreRules.ForUpgrade(_progression, resultLevel));
-            _services.Audio.PlaySfx(SfxCue.Merge);
+            var points = ScoreRules.ForUpgrade(_progression, resultLevel);
+            Session.AddMergeScore(points);
+            _view.ShowMergeFeedback(position, points, _progression.Get(resultLevel));
+            _services.Audio.PlaySfx(SfxCue.Merge, 1f + resultLevel * MergePitchStep);
         }
 
         private void OnFinalLevelCleared(Vector2 position)
         {
-            Session.AddMergeScore(ScoreRules.ForFinalClear(_config));
-            _services.Audio.PlaySfx(SfxCue.Merge);
+            var points = ScoreRules.ForFinalClear(_config);
+            Session.AddMergeScore(points);
+            _view.ShowMergeFeedback(position, points, _progression.Get(_progression.FinalLevel));
+            _services.Audio.PlaySfx(SfxCue.Merge, 1f + _progression.FinalLevel * MergePitchStep);
         }
 
         private void OnDangerTimeExceeded() => EndGame();
@@ -159,7 +264,7 @@ namespace DesiMerge.Gameplay
                 return;
             }
 
-            // From Boot there is no menu yet (Phase 3), so pass through MainMenu.
+            // Started without the menu (Boot) or from a state without a direct edge: pass through MainMenu.
             state.TryTransitionTo(GameState.MainMenu);
             state.TryTransitionTo(GameState.Playing);
         }

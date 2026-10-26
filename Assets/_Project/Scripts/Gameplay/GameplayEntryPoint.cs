@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using DesiMerge.Configuration;
 using DesiMerge.Core;
-using DesiMerge.Persistence;
 using DesiMerge.UI;
 using UnityEngine;
 
@@ -19,11 +18,17 @@ namespace DesiMerge.Gameplay
         [SerializeField] private DropController dropController;
         [SerializeField] private GameplayHud hud;
 
+        [Tooltip("Editor/development only: config used when this scene is played without Bootstrap.")]
+        [SerializeField] private GameConfig developmentConfig;
+
         private bool _initializeAttempted;
+        private GameServices _ownedServices;
 
         public GameplayLoop Loop { get; private set; }
         public MergeBoard Board => board;
         public GameplayConfig Config => gameplayConfig;
+        public GameplayHud Hud => hud;
+        public GameServices Services { get; private set; }
 
         public void Initialize(GameServices services)
         {
@@ -33,6 +38,7 @@ namespace DesiMerge.Gameplay
             }
 
             _initializeAttempted = true;
+            Services = services;
             var errors = ValidateSetup();
             if (errors.Count > 0)
             {
@@ -56,6 +62,7 @@ namespace DesiMerge.Gameplay
 
             board.Initialize(gameplayConfig, () => Time.time);
             dropController.Configure(gameplayConfig, board.transform);
+            hud.BindAudio(services.Audio);
             Loop = new GameplayLoop(gameplayConfig, board, dropController, hud, services, () => Time.time);
             Loop.Begin();
         }
@@ -64,12 +71,11 @@ namespace DesiMerge.Gameplay
         {
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             // Lets the Gameplay scene be played directly in the Editor without the Bootstrap scene.
-            // Saves go to memory only, so this never touches real player data.
             if (!_initializeAttempted)
             {
                 Debug.LogWarning("[Gameplay] Started without Bootstrap; using temporary in-memory development services.", this);
-                var config = ScriptableObject.CreateInstance<GameConfig>();
-                Initialize(GameServicesFactory.Create(config, new InMemorySaveStore(), isDevelopmentBuild: true));
+                _ownedServices = DevelopmentServices.Create(developmentConfig, gameObject);
+                Initialize(_ownedServices);
             }
 #endif
         }
@@ -78,6 +84,8 @@ namespace DesiMerge.Gameplay
         {
             Loop?.Dispose();
             Loop = null;
+            _ownedServices?.Dispose();
+            _ownedServices = null;
         }
 
         private List<string> ValidateSetup()

@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f2eca8be397691c44869581d6755b4ec, type: 3}
+  m_Name: UITheme
+  m_EditorClassIdentifier: DesiMerge.Runtime::DesiMerge.UI.UITheme
+  background: {r: 1, g: 0.953, b: 0.84, a: 1}
+  primary: {r: 0.85, g: 0.11, b: 0.38, a: 1}
+  secondary: {r: 0, g: 0.54, b: 0.48, a: 1}
+  accent: {r: 1, g: 0.7, b: 0, a: 1}
+  deep: {r: 0.1, g: 0.14, b: 0.49, a: 1}
+  danger: {r: 0.9, g: 0.22, b: 0.21, a: 1}
+  textDark: {r: 0.17, g: 0.11, b: 0.07, a: 1}
+  textLight: {r: 1, g: 1, b: 1, a: 1}
+  overlay: {r: 0.08, g: 0.05, b: 0.12, a: 0.72}
+  roundedPanel: {fileID: 21300000, guid: dda96a57630ad804086496977d001736, type: 3}
+  paintedFrame: {fileID: 21300000, guid: fda62aa36ceccec4aa46f19c136f4901, type: 3}
+  pattern: {fileID: 21300000, guid: 6e8f99671a074944589b784ec65f6776, type: 3}
+  flower: {fileID: 21300000, guid: 50df8919121b0cb4ba39f5b3f8f790c0, type: 3}
+  circle: {fileID: 21300000, guid: 848910c4dd4af6243a85f3300469f9ee, type: 3}
+  pauseIcon: {fileID: 21300000, guid: 892f0db1c5a801c45b5787f3533c2cf5, type: 3}
+  font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
+  titleSize: 150
+  headingSize: 84
+  buttonSize: 64
+  bodySize: 40
+  margin: 40
+  minTouchTarget: 120

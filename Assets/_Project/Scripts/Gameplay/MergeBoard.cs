@@ -144,7 +144,7 @@ namespace DesiMerge.Gameplay
             var velocity = (first.Body.linearVelocity + second.Body.linearVelocity) * 0.5f;
             Release(first);
             Release(second);
-            SpawnWorld(resultLevel, position, velocity, _stepTime);
+            SpawnWorld(resultLevel, position, velocity, _stepTime).PlaySpawnPop();
             ItemMerged?.Invoke(resultLevel, position);
         }
 

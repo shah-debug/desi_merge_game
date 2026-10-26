@@ -59,7 +59,8 @@ namespace DesiMerge.Core
             Application.targetFrameRate = config.TargetFrameRate;
 
             var saveStore = _saveStoreOverride ?? new FileSaveStore(Path.Combine(Application.persistentDataPath, SaveFolderName));
-            Services = GameServicesFactory.Create(config, saveStore, Debug.isDebugBuild);
+            // Audio sources live on this DontDestroyOnLoad object: one music player for the whole session.
+            Services = GameServicesFactory.Create(config, saveStore, Debug.isDebugBuild, gameObject);
 
             _lifecycle = gameObject.AddComponent<AppLifecycleHook>();
             _lifecycle.Paused += Services.FlushAll;
@@ -88,6 +89,7 @@ namespace DesiMerge.Core
             _lifecycle.Paused -= Services.FlushAll;
             _lifecycle.Quitting -= Services.FlushAll;
             Services.FlushAll();
+            Services.Dispose();
             _instance = null;
         }
 

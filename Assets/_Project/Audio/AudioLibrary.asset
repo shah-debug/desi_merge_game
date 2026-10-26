@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 55ec8afc438f67c4ab4061daefa9157e, type: 3}
+  m_Name: AudioLibrary
+  m_EditorClassIdentifier: DesiMerge.Runtime::DesiMerge.Audio.AudioLibrary
+  sfx:
+  - cue: 1
+    clip: {fileID: 8300000, guid: 5fad91ab3e54bb143ac0c30d17128629, type: 3}
+    volume: 0.8
+  - cue: 2
+    clip: {fileID: 8300000, guid: 69a04d6c5c24ed34cb2fe098c7167b83, type: 3}
+    volume: 0.9
+  - cue: 0
+    clip: {fileID: 8300000, guid: 86ca5fc863d89874a9113772a34e4acd, type: 3}
+    volume: 0.6
+  - cue: 3
+    clip: {fileID: 8300000, guid: 0e7c120b9569dd34cb2ecf2b4a5ff45b, type: 3}
+    volume: 1
+  music:
+  - track: 1
+    clip: {fileID: 8300000, guid: cc7c59d63e9d2d44dae1f0069898977f, type: 3}
+    volume: 0.55
+  - track: 2
+    clip: {fileID: 8300000, guid: 5840d678fa5687b4db44f31e3c444753, type: 3}
+    volume: 0.45
+  sfxVoices: 6

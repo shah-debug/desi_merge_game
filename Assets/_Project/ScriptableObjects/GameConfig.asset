@@ -13,11 +13,16 @@ MonoBehaviour:
   m_Name: GameConfig
   m_EditorClassIdentifier: DesiMerge.Runtime::DesiMerge.Configuration.GameConfig
   targetFrameRate: 60
-  firstSceneName: Gameplay
+  firstSceneName: MainMenu
+  mainMenuSceneName: MainMenu
+  gameplaySceneName: Gameplay
   defaultSettings:
     schemaVersion: 1
     musicVolume: 0.8
     sfxVolume: 1
+    musicMuted: 0
+    sfxMuted: 0
     hapticsEnabled: 1
+  audioLibrary: {fileID: 11400000, guid: d95f2ad78b2fb0544b7c7fc78ea047ab, type: 2}
   simulateRewardedAds: 1
   logAnalyticsEvents: 1

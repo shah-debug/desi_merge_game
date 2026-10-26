@@ -1,14 +1,11 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.IO;
 using System.Text.RegularExpressions;
 using DesiMerge.Gameplay;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
-using Object = UnityEngine.Object;
 
 namespace DesiMerge.Tests.PlayMode
 {
@@ -25,6 +22,7 @@ namespace DesiMerge.Tests.PlayMode
         [UnityTearDown]
         public IEnumerator UnloadGameplayScene()
         {
+            Time.timeScale = 1f;
             var scene = SceneManager.GetSceneByName(SceneName);
             if (!scene.isLoaded)
             {
@@ -51,11 +49,9 @@ namespace DesiMerge.Tests.PlayMode
 
             Assert.Greater(entry.Board.ActiveCount, 0);
             Assert.IsFalse(entry.Loop.Session.IsOver);
-            Capture(entry, "gameplay-after-drops.png");
 
             Assert.IsTrue(entry.Loop.EndGame());
             yield return null;
-            Capture(entry, "gameplay-game-over.png");
 
             entry.Loop.Restart();
             yield return null;
@@ -80,14 +76,14 @@ namespace DesiMerge.Tests.PlayMode
 
             yield return new WaitForSeconds(2.5f);
             Assert.AreEqual(progression.Count, entry.Board.ActiveCount, "Different levels must not merge.");
-            Capture(entry, "gameplay-all-levels.png");
+            yield return SceneCapture.Capture(entry.gameObject.scene, "gameplay-all-levels.png", 540, 960);
         }
 
         private static IEnumerator LoadGameplayScene(Action<GameplayEntryPoint> onLoaded)
         {
             if (!Application.CanStreamedLevelBeLoaded(SceneName))
             {
-                Assert.Ignore("Gameplay scene is not in Build Settings. Run Desi Merge > Setup > Create Gameplay Content.");
+                Assert.Ignore("Gameplay scene is not in Build Settings. Run Desi Merge > Setup > Create All Content.");
             }
 
             // Played without Bootstrap, the entry point falls back to in-memory development services.
@@ -95,17 +91,26 @@ namespace DesiMerge.Tests.PlayMode
             yield return SceneManager.LoadSceneAsync(SceneName, LoadSceneMode.Single);
             yield return null;
 
-            var entry = FindInScene<GameplayEntryPoint>();
+            var entry = SceneTestUtility.Find<GameplayEntryPoint>(SceneName);
             Assert.IsNotNull(entry, "Gameplay scene has no GameplayEntryPoint.");
             Assert.IsNotNull(entry.Loop, "Gameplay did not start; check the Console for configuration errors.");
             onLoaded(entry);
         }
+    }
 
-        private static T FindInScene<T>() where T : Component
+    internal static class SceneTestUtility
+    {
+        public static T Find<T>(string sceneName) where T : Component
         {
-            foreach (var root in SceneManager.GetSceneByName(SceneName).GetRootGameObjects())
+            var scene = SceneManager.GetSceneByName(sceneName);
+            if (!scene.isLoaded)
             {
-                var found = root.GetComponentInChildren<T>();
+                return null;
+            }
+
+            foreach (var root in scene.GetRootGameObjects())
+            {
+                var found = root.GetComponentInChildren<T>(true);
                 if (found != null)
                 {
                     return found;
@@ -115,54 +120,21 @@ namespace DesiMerge.Tests.PlayMode
             return null;
         }
 
-        /// <summary>Renders the camera plus the HUD (temporarily switched to camera space) into a PNG.</summary>
-        private static void Capture(GameplayEntryPoint entry, string fileName)
+        public static IEnumerator WaitForScene(string sceneName, float timeoutSeconds = 15f)
         {
-            var directory = Environment.GetEnvironmentVariable("DESIMERGE_CAPTURE_DIR");
-            if (string.IsNullOrEmpty(directory))
+            var deadline = Time.realtimeSinceStartup + timeoutSeconds;
+            while (!SceneManager.GetSceneByName(sceneName).isLoaded)
             {
-                return;
+                if (Time.realtimeSinceStartup > deadline)
+                {
+                    Assert.Fail($"Scene '{sceneName}' did not load within {timeoutSeconds} s.");
+                }
+
+                yield return null;
             }
 
-            var camera = FindInScene<Camera>();
-            var canvases = new List<Canvas>();
-            foreach (var root in entry.gameObject.scene.GetRootGameObjects())
-            {
-                canvases.AddRange(root.GetComponentsInChildren<Canvas>());
-            }
-
-            foreach (var canvas in canvases)
-            {
-                canvas.renderMode = RenderMode.ScreenSpaceCamera;
-                canvas.worldCamera = camera;
-                canvas.planeDistance = 5f;
-            }
-
-            var target = new RenderTexture(540, 960, 24);
-            camera.targetTexture = target;
-            Canvas.ForceUpdateCanvases();
-            // In batch mode nothing has rendered before this point, and the first offscreen render was observed to
-            // bind sprite textures incorrectly (walls drawn with the circle texture). A warm-up render avoids that.
-            camera.Render();
-            camera.Render();
-
-            RenderTexture.active = target;
-            var image = new Texture2D(target.width, target.height, TextureFormat.RGB24, false);
-            image.ReadPixels(new Rect(0, 0, target.width, target.height), 0, 0);
-            image.Apply();
-            RenderTexture.active = null;
-            camera.targetTexture = null;
-
-            Directory.CreateDirectory(directory);
-            File.WriteAllBytes(Path.Combine(directory, fileName), image.EncodeToPNG());
-            Object.Destroy(image);
-            target.Release();
-            Object.Destroy(target);
-
-            foreach (var canvas in canvases)
-            {
-                canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            }
+            // One more frame so entry points' Start (development fallback) has run.
+            yield return null;
         }
     }
 }

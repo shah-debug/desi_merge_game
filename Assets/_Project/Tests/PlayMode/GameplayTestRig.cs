@@ -1,9 +1,14 @@
 using System;
 using System.Collections.Generic;
+using DesiMerge.Analytics;
+using DesiMerge.Audio;
 using DesiMerge.Configuration;
 using DesiMerge.Core;
 using DesiMerge.Gameplay;
+using DesiMerge.Monetization;
 using DesiMerge.Persistence;
+using DesiMerge.Progression;
+using DesiMerge.Settings;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -60,9 +65,23 @@ namespace DesiMerge.Tests.PlayMode
 
             View = new FakeView();
             Store = new InMemorySaveStore();
-            var gameConfig = Track(ScriptableObject.CreateInstance<GameConfig>());
-            Services = GameServicesFactory.Create(gameConfig, Store, isDevelopmentBuild: false);
+            Audio = new SilentAudioService();
+            Navigator = new FakeNavigator();
+            Services = new GameServices(
+                new GameStateMachine(),
+                new PlayerProgressService(Store),
+                new SettingsService(Store, new SettingsData()),
+                Audio,
+                new NullAnalyticsService(),
+                new UnavailableRewardedAdService(),
+                Navigator);
         }
+
+        public SilentAudioService Audio { get; }
+        public FakeNavigator Navigator { get; }
+
+        /// <summary>Last value the loop applied to Time.timeScale (the real one is never touched by the rig).</summary>
+        public float TimeScale { get; private set; } = 1f;
 
         public float Now { get; set; }
         public MergeProgression Progression { get; }
@@ -76,7 +95,7 @@ namespace DesiMerge.Tests.PlayMode
 
         public GameplayLoop CreateLoop()
         {
-            Loop = new GameplayLoop(Config, Board, Drop, View, Services, () => Now);
+            Loop = new GameplayLoop(Config, Board, Drop, View, Services, () => Now, scale => TimeScale = scale);
             Loop.Begin();
             return Loop;
         }
@@ -123,27 +142,87 @@ namespace DesiMerge.Tests.PlayMode
     internal sealed class FakeView : IGameplayView
     {
         public event Action RestartRequested;
+        public event Action PauseRequested;
+        public event Action ResumeRequested;
+        public event Action MainMenuRequested;
 
         public long LastScore = -1;
         public long LastBest = -1;
         public MergeItemDefinition LastNext;
         public int GameOverShown;
         public int GameOverHidden;
+        public long LastFinalScore = -1;
         public bool? LastWasNewBest;
+        public int PauseShown;
+        public int PauseHidden;
+        public bool InstructionsVisible;
+        public int MergeFeedbackCount;
+        public int LastFeedbackPoints;
         public string ConfigurationError;
+
+        /// <summary>Screen positions with y above this value are treated as HUD controls.</summary>
+        public float BlockAboveY = float.MaxValue;
 
         public void SetScore(long score) => LastScore = score;
         public void SetBestScore(long bestScore) => LastBest = bestScore;
         public void SetNextItem(MergeItemDefinition definition) => LastNext = definition;
 
+        public void ShowMergeFeedback(Vector2 worldPosition, int points, MergeItemDefinition createdItem)
+        {
+            MergeFeedbackCount++;
+            LastFeedbackPoints = points;
+        }
+
+        public void SetInstructionsVisible(bool visible) => InstructionsVisible = visible;
+        public void ShowPause() => PauseShown++;
+        public void HidePause() => PauseHidden++;
+
         public void ShowGameOver(long finalScore, long bestScore, bool isNewBest)
         {
             GameOverShown++;
+            LastFinalScore = finalScore;
             LastWasNewBest = isNewBest;
         }
 
         public void HideGameOver() => GameOverHidden++;
         public void ShowConfigurationError(string message) => ConfigurationError = message;
+        public bool BlocksPointer(Vector2 screenPosition) => screenPosition.y > BlockAboveY;
+
         public void ClickRestart() => RestartRequested?.Invoke();
+        public void ClickPause() => PauseRequested?.Invoke();
+        public void ClickResume() => ResumeRequested?.Invoke();
+        public void ClickMainMenu() => MainMenuRequested?.Invoke();
+    }
+
+    internal sealed class FakeNavigator : ISceneNavigator
+    {
+        public int MainMenuLoads;
+        public int GameplayLoads;
+
+        public bool IsLoading { get; set; }
+
+        public bool LoadMainMenu()
+        {
+            if (IsLoading)
+            {
+                return false;
+            }
+
+            IsLoading = true;
+            MainMenuLoads++;
+            return true;
+        }
+
+        public bool LoadGameplay()
+        {
+            if (IsLoading)
+            {
+                return false;
+            }
+
+            IsLoading = true;
+            GameplayLoads++;
+            return true;
+        }
     }
 }

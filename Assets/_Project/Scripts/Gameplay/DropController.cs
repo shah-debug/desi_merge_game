@@ -36,6 +36,9 @@ namespace DesiMerge.Gameplay
         /// <summary>When false, presses are ignored (game over, paused, configuration error).</summary>
         public bool InputEnabled { get; set; }
 
+        /// <summary>Returns true for screen positions owned by UI controls (set from the HUD).</summary>
+        public Func<Vector2, bool> PointerFilter { get; set; }
+
         public float AimX { get; private set; }
 
         public void Configure(GameplayConfig config, Transform board)
@@ -146,23 +149,31 @@ namespace DesiMerge.Gameplay
 
         private void OnPoint(InputAction.CallbackContext context)
         {
-            if (InputEnabled)
+            var position = context.ReadValue<Vector2>();
+            if (InputEnabled && (_pressArmed || PointerFilter == null || !PointerFilter(position)))
             {
-                AimAtScreen(context.ReadValue<Vector2>());
+                AimAtScreen(position);
             }
         }
 
-        private void OnPressStarted(InputAction.CallbackContext context)
+        private void OnPressStarted(InputAction.CallbackContext context) => HandlePressStarted(_pointAction.ReadValue<Vector2>());
+
+        private void OnPressReleased(InputAction.CallbackContext context) => HandlePressReleased();
+
+        /// <summary>
+        /// A press arms a drop only if it began during play and not on a HUD control. This stops taps on Pause,
+        /// Restart or Resume from also aiming or dropping an item. Internal so tests can drive it without devices.
+        /// </summary>
+        internal void HandlePressStarted(Vector2 screenPosition)
         {
-            // Only a press that began during play can drop; this stops the Restart tap from also dropping an item.
-            _pressArmed = InputEnabled;
+            _pressArmed = InputEnabled && (PointerFilter == null || !PointerFilter(screenPosition));
             if (_pressArmed)
             {
-                AimAtScreen(_pointAction.ReadValue<Vector2>());
+                AimAtScreen(screenPosition);
             }
         }
 
-        private void OnPressReleased(InputAction.CallbackContext context)
+        internal void HandlePressReleased()
         {
             var armed = _pressArmed;
             _pressArmed = false;

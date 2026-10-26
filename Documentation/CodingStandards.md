@@ -43,6 +43,18 @@
 - Use `CompareTag`, not `tag ==`.
 - Physics in `FixedUpdate`; input/visuals in `Update`.
 - Unsubscribe events in `OnDisable`/`OnDestroy` symmetrical to where you subscribed.
+- **Never use `?.` or `??` on `UnityEngine.Object` references** (components, assets, serialized fields). Unity's
+  "fake null" objects (destroyed objects, unassigned serialized fields and missing `GetComponent` results in the
+  Editor) bypass C# null operators. Use `!= null`, `TryGetComponent`, or an explicit `if`. `?.` is fine on plain C#
+  objects (services, delegates).
+- Animate visual-only transforms. Never scale or move the transform that owns a `Collider2D`/`Rigidbody2D` for effects.
+- Animation components run `Update` only while animating (enable on start, disable when done). Use unscaled time for
+  anything that must work on the pause screen.
+- UI presents and raises requests; it never decides rules. Gameplay-facing UI goes through an interface
+  (`IGameplayView`) and is driven by events/calls, never by polling score or state.
+- Keep every `Time.timeScale` change in one owner (`GameplayLoop`) and restore it on every exit path.
+- Generated content (scenes, prefabs, placeholder art/audio) is produced by `Editor/Content`; change the generator
+  (or `UITheme`) rather than hand-editing generated scenes, or document the manual edit.
 - Always commit `.meta` files with their assets; never hand-edit GUIDs.
 - Never move or rename assets outside the Unity Editor unless the `.meta` file moves with them.
 

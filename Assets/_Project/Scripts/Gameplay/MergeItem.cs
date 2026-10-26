@@ -1,4 +1,5 @@
 using DesiMerge.Configuration;
+using DesiMerge.UI.Animation;
 using UnityEngine;
 
 namespace DesiMerge.Gameplay
@@ -23,8 +24,19 @@ namespace DesiMerge.Gameplay
         [SerializeField] private SpriteRenderer spriteRenderer;
         [SerializeField] private Rigidbody2D body;
         [SerializeField] private TextMesh label;
+        [Tooltip("Visual-only child (sprite + label). Animations scale this, never the collider's transform.")]
+        [SerializeField] private ScalePunch visualPunch;
 
         private IMergeContactSink _sink;
+
+        /// <summary>Plays the "pop" on the visual child. Safe to call when no animation is set up.</summary>
+        public void PlaySpawnPop()
+        {
+            if (visualPunch != null)
+            {
+                visualPunch.Play();
+            }
+        }
 
         public int Level { get; private set; }
         public MergeItemDefinition Definition { get; private set; }

@@ -3,7 +3,8 @@
     "rootNamespace": "DesiMerge.Tests.PlayMode",
     "references": [
         "DesiMerge.Runtime",
-        "UnityEngine.TestRunner"
+        "UnityEngine.TestRunner",
+        "UnityEngine.UI"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

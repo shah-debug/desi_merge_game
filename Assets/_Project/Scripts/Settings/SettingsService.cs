@@ -30,19 +30,22 @@ namespace DesiMerge.Settings
             set => Set(ref _data.sfxVolume, Mathf.Clamp01(value));
         }
 
+        public bool MusicMuted
+        {
+            get => _data.musicMuted;
+            set => Set(ref _data.musicMuted, value);
+        }
+
+        public bool SfxMuted
+        {
+            get => _data.sfxMuted;
+            set => Set(ref _data.sfxMuted, value);
+        }
+
         public bool HapticsEnabled
         {
             get => _data.hapticsEnabled;
-            set
-            {
-                if (_data.hapticsEnabled == value)
-                {
-                    return;
-                }
-
-                _data.hapticsEnabled = value;
-                MarkChanged();
-            }
+            set => Set(ref _data.hapticsEnabled, value);
         }
 
         public event Action Changed;
@@ -69,6 +72,17 @@ namespace DesiMerge.Settings
             MarkChanged();
         }
 
+        private void Set(ref bool field, bool value)
+        {
+            if (field == value)
+            {
+                return;
+            }
+
+            field = value;
+            MarkChanged();
+        }
+
         private void MarkChanged()
         {
             _dirty = true;
@@ -81,6 +95,8 @@ namespace DesiMerge.Settings
             {
                 musicVolume = source.musicVolume,
                 sfxVolume = source.sfxVolume,
+                musicMuted = source.musicMuted,
+                sfxMuted = source.sfxMuted,
                 hapticsEnabled = source.hapticsEnabled,
             };
         }
