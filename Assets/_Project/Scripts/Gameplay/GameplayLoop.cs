@@ -52,6 +52,9 @@ namespace DesiMerge.Gameplay
             _board.DangerTimeExceeded += OnDangerTimeExceeded;
             _drop.DropRequested += OnDropRequested;
             _drop.PointerFilter = _view.BlocksPointer;
+            _services.Progress.ItemDiscovered += OnItemDiscovered;
+            _services.Achievements.Unlocked += OnAchievementUnlocked;
+            _services.DailyChallenges.Completed += OnDailyChallengeCompleted;
             _view.RestartRequested += OnRestartRequested;
             _view.PauseRequested += OnPauseRequested;
             _view.ResumeRequested += OnResumeRequested;
@@ -94,6 +97,7 @@ namespace DesiMerge.Gameplay
             var level = Queue.Take();
             var x = DropRules.ClampX(localX, _config.HalfWidth, _progression.Get(level).Radius);
             _board.SpawnLocal(level, new Vector2(x, _config.DropHeight));
+            _services.Progress.RecordSeen(_progression.Get(level));
             _nextDropAllowedAt = now + _config.DropCooldownSeconds;
 
             _drop.ShowPreviewAfterCooldown(_progression.Get(Queue.Current));
@@ -151,7 +155,8 @@ namespace DesiMerge.Gameplay
 
             var progress = _services.Progress;
             var isNewBest = progress.SubmitFinalScore(Session.Score);
-            progress.Flush();
+            // Session completion is a save point for everything it touched: stats, achievements, daily challenge.
+            _services.FlushAll();
 
             _services.Analytics.TrackEvent(AnalyticsEvents.GameOver, new Dictionary<string, object>
             {
@@ -226,6 +231,9 @@ namespace DesiMerge.Gameplay
             _view.PauseRequested -= OnPauseRequested;
             _view.ResumeRequested -= OnResumeRequested;
             _view.MainMenuRequested -= OnMainMenuRequested;
+            _services.Progress.ItemDiscovered -= OnItemDiscovered;
+            _services.Achievements.Unlocked -= OnAchievementUnlocked;
+            _services.DailyChallenges.Completed -= OnDailyChallengeCompleted;
         }
 
         private void OnDropRequested(float localX) => TryDrop(localX);
@@ -240,21 +248,41 @@ namespace DesiMerge.Gameplay
 
         private void OnItemMerged(int resultLevel, Vector2 position)
         {
+            if (Session.IsOver)
+            {
+                return;
+            }
+
+            var created = _progression.Get(resultLevel);
             var points = ScoreRules.ForUpgrade(_progression, resultLevel);
             Session.AddMergeScore(points);
-            _view.ShowMergeFeedback(position, points, _progression.Get(resultLevel));
+            // The board raises this exactly once per merge (see MergeResolver), so it is recorded exactly once.
+            _services.Progress.RecordMerge(created);
+            _view.ShowMergeFeedback(position, points, created);
             _services.Audio.PlaySfx(SfxCue.Merge, 1f + resultLevel * MergePitchStep);
         }
 
         private void OnFinalLevelCleared(Vector2 position)
         {
+            if (Session.IsOver)
+            {
+                return;
+            }
+
             var points = ScoreRules.ForFinalClear(_config);
             Session.AddMergeScore(points);
+            _services.Progress.RecordMerge(null);
             _view.ShowMergeFeedback(position, points, _progression.Get(_progression.FinalLevel));
             _services.Audio.PlaySfx(SfxCue.Merge, 1f + _progression.FinalLevel * MergePitchStep);
         }
 
         private void OnDangerTimeExceeded() => EndGame();
+
+        private void OnItemDiscovered(MergeItemDefinition item) => _view.ShowToast($"New discovery: {item.DisplayName}!");
+
+        private void OnAchievementUnlocked(DesiMerge.Progression.AchievementDefinition achievement) => _view.ShowToast($"Achievement: {achievement.title}");
+
+        private void OnDailyChallengeCompleted(DesiMerge.Progression.DailyChallengeDefinition challenge) => _view.ShowToast("Daily challenge complete!");
 
         private void EnterPlayingState()
         {

@@ -1,6 +1,7 @@
 using DesiMerge.Audio;
 using DesiMerge.Configuration;
 using DesiMerge.Gameplay;
+using DesiMerge.Progression;
 using DesiMerge.UI;
 using DesiMerge.UI.Animation;
 using UnityEditor;
@@ -31,6 +32,9 @@ namespace DesiMerge.Editor.Content
             EnsureSparkleMaterial();
             EnsureButtonPrefab();
             EnsureSettingsPanelPrefab();
+            ProgressionContentBuilder.EnsureCatalogs();
+            ProgressionContentBuilder.EnsureCollectionPanelPrefab();
+            ProgressionContentBuilder.EnsureAchievementsPanelPrefab();
             ConfigureGameConfig();
 
             if (AssetDatabase.LoadAssetAtPath<SceneAsset>(ContentPaths.MainMenuScenePath) == null)
@@ -61,6 +65,8 @@ namespace DesiMerge.Editor.Content
             AssetDatabase.DeleteAsset(ContentPaths.MainMenuScenePath);
             AssetDatabase.DeleteAsset(ContentPaths.GameplayScenePath);
             AssetDatabase.DeleteAsset(ContentPaths.SettingsPanelPrefabPath);
+            AssetDatabase.DeleteAsset(ContentPaths.CollectionPanelPrefabPath);
+            AssetDatabase.DeleteAsset(ContentPaths.AchievementsPanelPrefabPath);
             AssetDatabase.DeleteAsset(ContentPaths.ButtonPrefabPath);
             GameplaySetup.EnsureItemPrefab(overwrite: true);
             CreateAllContent();
@@ -151,14 +157,28 @@ namespace DesiMerge.Editor.Content
                 firstScene.stringValue = MainMenuSceneName;
             }
 
-            var library = serialized.FindProperty("audioLibrary");
-            if (library.objectReferenceValue == null)
-            {
-                library.objectReferenceValue = AssetDatabase.LoadAssetAtPath<AudioLibrary>(ContentPaths.AudioLibraryPath);
-            }
+            AssignIfEmpty(serialized, "audioLibrary", AssetDatabase.LoadAssetAtPath<AudioLibrary>(ContentPaths.AudioLibraryPath));
+            AssignIfEmpty(serialized, "itemProgression", AssetDatabase.LoadAssetAtPath<MergeProgression>(ContentPaths.MergeProgressionPath));
+            AssignIfEmpty(serialized, "achievements", AssetDatabase.LoadAssetAtPath<AchievementCatalog>(ContentPaths.AchievementsPath));
+            AssignIfEmpty(serialized, "dailyChallenges", AssetDatabase.LoadAssetAtPath<DailyChallengeCatalog>(ContentPaths.DailyChallengesPath));
 
             serialized.ApplyModifiedPropertiesWithoutUndo();
             EditorUtility.SetDirty(config);
+        }
+
+        private static void AssignIfEmpty(SerializedObject serialized, string property, Object value)
+        {
+            var field = serialized.FindProperty(property);
+            if (field == null)
+            {
+                Debug.LogError($"[Setup] GameConfig has no field '{property}'.");
+                return;
+            }
+
+            if (field.objectReferenceValue == null)
+            {
+                field.objectReferenceValue = value;
+            }
         }
 
         private static void EnsureButtonPrefab()

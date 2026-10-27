@@ -14,7 +14,9 @@ namespace DesiMerge.Settings
         public SettingsService(ISaveStore store, SettingsData defaults)
         {
             _repository = new JsonRepository<SettingsData>(store, SaveKey.Settings);
-            _data = store.TryRead(SaveKey.Settings, out _) ? _repository.Load() : Copy(defaults ?? new SettingsData());
+            var loaded = _repository.Load(out var outcome);
+            // First launch (or unreadable save with no backup): use the designer defaults, not the class defaults.
+            _data = outcome == LoadOutcome.Loaded || outcome == LoadOutcome.RecoveredFromBackup ? loaded : Copy(defaults ?? new SettingsData());
             Sanitize(_data);
         }
 
@@ -57,8 +59,10 @@ namespace DesiMerge.Settings
                 return;
             }
 
-            _repository.Save(_data);
-            _dirty = false;
+            if (_repository.Save(_data))
+            {
+                _dirty = false;
+            }
         }
 
         private void Set(ref float field, float value)

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using DesiMerge.Audio;
+using DesiMerge.Progression;
 using DesiMerge.Settings;
 using UnityEngine;
 
@@ -29,6 +30,12 @@ namespace DesiMerge.Configuration
         [Tooltip("Clips for music and sound effects. Empty = silent audio service.")]
         [SerializeField] private AudioLibrary audioLibrary;
 
+        [Header("Progression content")]
+        [Tooltip("Item definitions used for the collection and to rank discoveries (same asset the gameplay uses).")]
+        [SerializeField] private MergeProgression itemProgression;
+        [SerializeField] private AchievementCatalog achievements;
+        [SerializeField] private DailyChallengeCatalog dailyChallenges;
+
         [Header("Development builds only")]
         [SerializeField] private bool simulateRewardedAds = true;
         [SerializeField] private bool logAnalyticsEvents = true;
@@ -38,6 +45,9 @@ namespace DesiMerge.Configuration
         public string MainMenuSceneName => mainMenuSceneName;
         public string GameplaySceneName => gameplaySceneName;
         public AudioLibrary AudioLibrary => audioLibrary;
+        public MergeProgression ItemProgression => itemProgression;
+        public AchievementCatalog Achievements => achievements;
+        public DailyChallengeCatalog DailyChallenges => dailyChallenges;
         public SettingsData DefaultSettings => defaultSettings;
         public bool SimulateRewardedAds => simulateRewardedAds;
         public bool LogAnalyticsEvents => logAnalyticsEvents;

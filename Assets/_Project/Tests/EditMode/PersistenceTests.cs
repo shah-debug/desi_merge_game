@@ -48,7 +48,7 @@ namespace DesiMerge.Tests.EditMode
         }
 
         [Test]
-        public void FileStore_Overwrite_ReplacesContentsAndLeavesNoTempFiles()
+        public void FileStore_Overwrite_ReplacesContentsKeepsBackupAndLeavesNoTempFiles()
         {
             var store = new FileSaveStore(_directory);
 
@@ -57,7 +57,9 @@ namespace DesiMerge.Tests.EditMode
 
             Assert.IsTrue(store.TryRead("slot", out var contents));
             Assert.AreEqual("second", contents);
-            CollectionAssert.AreEquivalent(new[] { "slot.json" }, Array.ConvertAll(Directory.GetFiles(_directory), Path.GetFileName));
+            Assert.IsTrue(store.TryReadBackup("slot", out var backup));
+            Assert.AreEqual("first", backup);
+            CollectionAssert.AreEquivalent(new[] { "slot.json", "slot.json.bak" }, Array.ConvertAll(Directory.GetFiles(_directory), Path.GetFileName));
         }
 
         [Test]

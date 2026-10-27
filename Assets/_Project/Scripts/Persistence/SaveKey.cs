@@ -6,6 +6,8 @@ namespace DesiMerge.Persistence
     {
         public const string PlayerProgress = "player_progress";
         public const string Settings = "settings";
+        public const string Achievements = "achievements";
+        public const string DailyChallenge = "daily_challenge";
 
         public static void Validate(string key)
         {

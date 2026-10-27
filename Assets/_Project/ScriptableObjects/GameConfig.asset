@@ -24,5 +24,8 @@ MonoBehaviour:
     sfxMuted: 0
     hapticsEnabled: 1
   audioLibrary: {fileID: 11400000, guid: d95f2ad78b2fb0544b7c7fc78ea047ab, type: 2}
+  itemProgression: {fileID: 11400000, guid: 97de2c1449c8f2b488e42566646c76ad, type: 2}
+  achievements: {fileID: 11400000, guid: 34fc65deec6fa2a4eb1576067465092f, type: 2}
+  dailyChallenges: {fileID: 11400000, guid: 09fdbf81a95cc7f4db579da24b44eb95, type: 2}
   simulateRewardedAds: 1
   logAnalyticsEvents: 1

@@ -42,6 +42,7 @@ namespace DesiMerge.UI
         [Header("Feedback")]
         [SerializeField] private ScorePopupLayer popupLayer;
         [SerializeField] private MergeEffects mergeEffects;
+        [SerializeField] private ToastPresenter toast;
 
         [Header("Input")]
         [Tooltip("Screen regions where presses belong to the HUD and must not aim or drop items.")]
@@ -159,6 +160,14 @@ namespace DesiMerge.UI
             if (instructions != null)
             {
                 instructions.SetActive(visible);
+            }
+        }
+
+        public void ShowToast(string message)
+        {
+            if (toast != null)
+            {
+                toast.Show(message);
             }
         }
 

@@ -63,8 +63,9 @@ namespace DesiMerge.Core
             Services = GameServicesFactory.Create(config, saveStore, Debug.isDebugBuild, gameObject);
 
             _lifecycle = gameObject.AddComponent<AppLifecycleHook>();
-            _lifecycle.Paused += Services.FlushAll;
-            _lifecycle.Quitting += Services.FlushAll;
+            _lifecycle.Paused += FlushAll;
+            _lifecycle.FocusLost += FlushAll;
+            _lifecycle.Quitting += FlushAll;
             SceneManager.sceneLoaded += OnSceneLoaded;
 
             Services.Analytics.TrackEvent(AnalyticsEvents.AppStarted);
@@ -86,12 +87,16 @@ namespace DesiMerge.Core
             }
 
             SceneManager.sceneLoaded -= OnSceneLoaded;
-            _lifecycle.Paused -= Services.FlushAll;
-            _lifecycle.Quitting -= Services.FlushAll;
+            _lifecycle.Paused -= FlushAll;
+            _lifecycle.FocusLost -= FlushAll;
+            _lifecycle.Quitting -= FlushAll;
             Services.FlushAll();
             Services.Dispose();
             _instance = null;
         }
+
+        /// <summary>Saves pending data; each service only writes if it changed, so repeated calls are cheap.</summary>
+        private void FlushAll() => Services.FlushAll();
 
         private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
         {

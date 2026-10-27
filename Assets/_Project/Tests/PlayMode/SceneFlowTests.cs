@@ -64,6 +64,32 @@ namespace DesiMerge.Tests.PlayMode
             yield return new WaitForSecondsRealtime(0.3f);
             Assert.IsFalse(menu.Settings.IsOpen);
 
+            // --- Collection and Awards (seeded through the same service calls gameplay makes) ---
+            var progress = menu.Services.Progress;
+            var items = menu.Services.ItemContent;
+            Assert.IsNotNull(items, "The menu must know the item content for the collection.");
+            for (var level = 0; level < 6; level++)
+            {
+                progress.RecordMerge(items.Get(level));
+            }
+
+            progress.SubmitFinalScore(420);
+            menu.CollectionButton.onClick.Invoke();
+            yield return new WaitForSecondsRealtime(0.4f);
+            Assert.IsTrue(menu.Collection.IsOpen);
+            Assert.AreEqual($"6 / {items.Count} discovered", menu.Collection.CounterText);
+            yield return SceneCapture.Capture(SceneManager.GetSceneByName(MenuScene), "menu-collection-9x16.png", 540, 960);
+            menu.Collection.Close();
+            yield return new WaitForSecondsRealtime(0.3f);
+
+            menu.AchievementsButton.onClick.Invoke();
+            yield return new WaitForSecondsRealtime(0.4f);
+            Assert.IsTrue(menu.Achievements.IsOpen);
+            StringAssert.StartsWith("420\n1\n6\n", menu.Achievements.StatsText);
+            yield return SceneCapture.Capture(SceneManager.GetSceneByName(MenuScene), "menu-achievements-9x16.png", 540, 960);
+            menu.Achievements.Close();
+            yield return new WaitForSecondsRealtime(0.3f);
+
             // --- Play (double tap) ---
             LogAssert.Expect(LogType.Warning, new Regex(@"\[Gameplay\] Started without Bootstrap"));
             menu.PlayButton.onClick.Invoke();

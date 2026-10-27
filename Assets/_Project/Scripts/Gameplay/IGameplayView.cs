@@ -26,6 +26,9 @@ namespace DesiMerge.Gameplay
 
         void SetInstructionsVisible(bool visible);
 
+        /// <summary>Short, non-blocking message (discoveries, achievements, daily challenge). Queued if one is showing.</summary>
+        void ShowToast(string message);
+
         void ShowPause();
 
         void HidePause();

@@ -7,8 +7,8 @@ using UnityEngine.UI;
 namespace DesiMerge.Editor.Content
 {
     /// <summary>
-    /// MainMenu.unity: truck-art background, title plate, the merge chain (a real preview of the game's items),
-    /// Play and Settings. No buttons for features that don't exist yet (collection, shop).
+    /// MainMenu.unity: truck-art background, title plate, today's challenge card, Play, Collection, Awards and
+    /// Settings, best score and a save-recovery notice. No buttons for features that don't exist (e.g. a shop).
     /// </summary>
     internal static class MainMenuSceneBuilder
     {
@@ -16,7 +16,6 @@ namespace DesiMerge.Editor.Content
         {
             var factory = new UiFactory(ContentSetup.LoadTheme());
             var theme = factory.Theme;
-            var gameplayConfig = AssetDatabase.LoadAssetAtPath<GameplayConfig>(GameplaySetup.GameplayConfigPath);
 
             var cameraObject = new GameObject("Main Camera") { tag = "MainCamera" };
             cameraObject.transform.position = new Vector3(0f, 0f, -10f);
@@ -38,44 +37,63 @@ namespace DesiMerge.Editor.Content
 
             // Title plate with flower motifs at its corners.
             var plate = factory.FramedPanel(content, "TitlePlate", theme.deep, theme.accent).rectTransform;
-            UiFactory.Place(plate, new Vector2(0.5f, 0.5f), new Vector2(0f, 560f), new Vector2(900f, 340f));
+            UiFactory.Place(plate, new Vector2(0.5f, 0.5f), new Vector2(0f, 620f), new Vector2(900f, 310f));
             var title = factory.Text(plate, "Title", "<color=#FFB300>Desi</color> Merge", theme.titleSize, theme.textLight, TextAnchor.MiddleCenter, outline: true);
-            UiFactory.Stretch(title.rectTransform, 20f, 20f, 30f, 90f);
+            UiFactory.Stretch(title.rectTransform, 20f, 20f, 24f, 84f);
             var tagline = factory.Text(plate, "Tagline", "Milao  •  Barhao  •  Jeeto", theme.bodySize + 4, theme.accent);
-            UiFactory.Place(tagline.rectTransform, new Vector2(0.5f, 0f), new Vector2(0f, 40f), new Vector2(820f, 60f));
+            UiFactory.Place(tagline.rectTransform, new Vector2(0.5f, 0f), new Vector2(0f, 34f), new Vector2(820f, 60f));
             AddFlower(factory, plate, new Vector2(0f, 1f), new Vector2(-30f, 30f), theme.primary);
             AddFlower(factory, plate, new Vector2(1f, 1f), new Vector2(30f, 30f), theme.secondary);
             AddFlower(factory, plate, new Vector2(0f, 0f), new Vector2(-30f, -30f), theme.secondary);
             AddFlower(factory, plate, new Vector2(1f, 0f), new Vector2(30f, -30f), theme.primary);
             UiFactory.Entrance(plate.gameObject, 0f, new Vector2(0f, 220f));
 
-            var chain = BuildMergeChain(factory, content, gameplayConfig != null ? gameplayConfig.Progression : null);
-            UiFactory.Entrance(chain.gameObject, 0.12f, new Vector2(0f, -60f));
+            var daily = BuildDailyChallengeCard(factory, content);
+            UiFactory.Entrance(daily.gameObject, 0.12f, new Vector2(0f, -60f));
 
-            var play = factory.Button(content, "PlayButton", "PLAY", theme.primary, new Vector2(640f, 210f), 100);
-            UiFactory.Place((RectTransform)play.transform, new Vector2(0.5f, 0.5f), new Vector2(0f, -260f), new Vector2(640f, 210f));
+            var play = factory.Button(content, "PlayButton", "PLAY", theme.primary, new Vector2(640f, 200f), 100);
+            UiFactory.Place((RectTransform)play.transform, new Vector2(0.5f, 0.5f), new Vector2(0f, -60f), new Vector2(640f, 200f));
             UiFactory.Record(play.transform);
-            UiFactory.Entrance(play.gameObject, 0.25f, new Vector2(0f, -80f));
+            UiFactory.Entrance(play.gameObject, 0.22f, new Vector2(0f, -80f));
 
-            var settings = factory.Button(content, "SettingsButton", "SETTINGS", theme.secondary, new Vector2(520f, 150f), 56);
-            UiFactory.Place((RectTransform)settings.transform, new Vector2(0.5f, 0.5f), new Vector2(0f, -480f), new Vector2(520f, 150f));
+            var collection = factory.Button(content, "CollectionButton", "COLLECTION", theme.deep, new Vector2(440f, 140f), 46);
+            UiFactory.Place((RectTransform)collection.transform, new Vector2(0.5f, 0.5f), new Vector2(-235f, -270f), new Vector2(440f, 140f));
+            UiFactory.Record(collection.transform);
+            UiFactory.Entrance(collection.gameObject, 0.3f, new Vector2(0f, -80f));
+
+            var achievements = factory.Button(content, "AchievementsButton", "AWARDS", theme.deep, new Vector2(440f, 140f), 46);
+            UiFactory.Place((RectTransform)achievements.transform, new Vector2(0.5f, 0.5f), new Vector2(235f, -270f), new Vector2(440f, 140f));
+            UiFactory.Record(achievements.transform);
+            UiFactory.Entrance(achievements.gameObject, 0.34f, new Vector2(0f, -80f));
+
+            var settings = factory.Button(content, "SettingsButton", "SETTINGS", theme.secondary, new Vector2(440f, 130f), 46);
+            UiFactory.Place((RectTransform)settings.transform, new Vector2(0.5f, 0.5f), new Vector2(0f, -445f), new Vector2(440f, 130f));
             UiFactory.Record(settings.transform);
-            UiFactory.Entrance(settings.gameObject, 0.35f, new Vector2(0f, -80f));
+            UiFactory.Entrance(settings.gameObject, 0.4f, new Vector2(0f, -80f));
 
             var best = factory.Text(content, "BestScore", string.Empty, theme.bodySize + 8, theme.textDark);
-            UiFactory.Place(best.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0f, -640f), new Vector2(800f, 70f));
-            UiFactory.Entrance(best.gameObject, 0.45f, new Vector2(0f, -40f));
+            UiFactory.Place(best.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0f, -575f), new Vector2(800f, 70f));
+            UiFactory.Entrance(best.gameObject, 0.46f, new Vector2(0f, -40f));
 
-            var settingsPanel = (GameObject)PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(ContentPaths.SettingsPanelPrefabPath), root);
-            UiFactory.Stretch((RectTransform)settingsPanel.transform);
-            UiFactory.Record(settingsPanel.transform);
+            var notice = factory.Text(content, "SaveNotice", string.Empty, 32, theme.danger);
+            notice.horizontalOverflow = HorizontalWrapMode.Wrap;
+            UiFactory.Place(notice.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0f, -680f), new Vector2(940f, 120f));
+            notice.gameObject.SetActive(false);
+
+            var settingsPanel = InstantiatePanel(ContentPaths.SettingsPanelPrefabPath, root);
+            var collectionPanel = InstantiatePanel(ContentPaths.CollectionPanelPrefabPath, root);
+            var achievementsPanel = InstantiatePanel(ContentPaths.AchievementsPanelPrefabPath, root);
 
             UiFactory.EventSystem();
 
             var entry = new GameObject("MainMenuEntryPoint").AddComponent<MainMenuEntryPoint>();
             EditorRefs.Set(entry,
-                ("playButton", play), ("settingsButton", settings), ("bestScoreText", best),
+                ("playButton", play), ("settingsButton", settings), ("collectionButton", collection),
+                ("achievementsButton", achievements), ("bestScoreText", best), ("saveNoticeText", notice),
                 ("settingsPanel", settingsPanel.GetComponent<SettingsPanel>()),
+                ("collectionPanel", collectionPanel.GetComponent<CollectionPanel>()),
+                ("achievementsPanel", achievementsPanel.GetComponent<AchievementsPanel>()),
+                ("dailyChallengeCard", daily),
                 ("developmentConfig", AssetDatabase.LoadAssetAtPath<GameConfig>(FoundationSetup.GameConfigPath)));
         }
 
@@ -114,32 +132,59 @@ namespace DesiMerge.Editor.Content
             UiFactory.Place(flower.rectTransform, anchor, offset, new Vector2(110f, 110f));
         }
 
-        /// <summary>The ten merge levels in two rows, read from the real progression asset.</summary>
-        private static RectTransform BuildMergeChain(UiFactory factory, Transform parent, MergeProgression progression)
+        private static GameObject InstantiatePanel(string prefabPath, Transform parent)
+        {
+            var panel = (GameObject)PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath), parent);
+            UiFactory.Stretch((RectTransform)panel.transform);
+            UiFactory.Record(panel.transform);
+            return panel;
+        }
+
+        /// <summary>Today's challenge: objective, progress bar, status and streak. Data comes from the daily service at runtime.</summary>
+        private static DailyChallengeCard BuildDailyChallengeCard(UiFactory factory, Transform parent)
         {
             var theme = factory.Theme;
-            var chain = UiFactory.Place(UiFactory.Rect("MergeChain", parent), new Vector2(0.5f, 0.5f), new Vector2(0f, 150f), new Vector2(1000f, 380f));
-            var heading = factory.Text(chain, "Heading", "Merge chain", theme.bodySize, theme.textDark);
-            UiFactory.Place(heading.rectTransform, new Vector2(0.5f, 1f), Vector2.zero, new Vector2(800f, 56f));
-            if (progression == null)
-            {
-                return chain;
-            }
+            var card = factory.FramedPanel(parent, "DailyChallengeCard", theme.secondary, theme.accent).rectTransform;
+            UiFactory.Place(card, new Vector2(0.5f, 0.5f), new Vector2(0f, 250f), new Vector2(920f, 340f));
 
-            for (var level = 0; level < progression.Count; level++)
-            {
-                var definition = progression.Get(level);
-                var column = level % 5;
-                var row = level / 5;
-                var position = new Vector2(-400f + column * 200f, 50f - row * 160f);
-                var size = Mathf.Lerp(70f, 120f, level / (float)Mathf.Max(1, progression.Count - 1));
-                var icon = factory.Image(chain, $"Item{level + 1:00}", definition.Sprite, definition.Tint);
-                UiFactory.Place(icon.rectTransform, new Vector2(0.5f, 0.5f), position + new Vector2(0f, 10f), new Vector2(size, size));
-                var label = factory.Text(chain, $"Label{level + 1:00}", definition.DisplayName, 26, theme.textDark);
-                UiFactory.Place(label.rectTransform, new Vector2(0.5f, 0.5f), position + new Vector2(0f, -66f), new Vector2(190f, 36f));
-            }
+            var caption = factory.Text(card, "Caption", "TODAY'S CHALLENGE", 32, theme.accent);
+            UiFactory.Place(caption.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -24f), new Vector2(700f, 44f));
+            var title = factory.Text(card, "Title", string.Empty, 48, theme.textLight, TextAnchor.MiddleCenter, outline: true);
+            UiFactory.Place(title.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -70f), new Vector2(820f, 60f));
+            var description = factory.Text(card, "Description", string.Empty, 34, theme.textLight);
+            description.fontStyle = FontStyle.Normal;
+            UiFactory.Place(description.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -132f), new Vector2(820f, 46f));
 
-            return chain;
+            var bar = factory.Image(card, "ProgressBar", theme.roundedPanel, new Color(0f, 0f, 0f, 0.3f));
+            UiFactory.Place(bar.rectTransform, new Vector2(0.5f, 1f), new Vector2(-60f, -196f), new Vector2(620f, 40f));
+            var fill = factory.Image(bar.transform, "Fill", theme.roundedPanel, theme.accent);
+            fill.type = Image.Type.Filled;
+            fill.fillMethod = Image.FillMethod.Horizontal;
+            fill.fillOrigin = (int)Image.OriginHorizontal.Left;
+            fill.fillAmount = 0f;
+            UiFactory.Stretch(fill.rectTransform);
+            var progress = factory.Text(card, "Progress", string.Empty, 34, theme.textLight, TextAnchor.MiddleLeft);
+            UiFactory.Place(progress.rectTransform, new Vector2(0.5f, 1f), new Vector2(330f, -196f), new Vector2(200f, 46f));
+
+            var status = factory.Text(card, "Status", string.Empty, 32, theme.accent, TextAnchor.MiddleLeft);
+            UiFactory.Place(status.rectTransform, new Vector2(0f, 0f), new Vector2(50f, 34f), new Vector2(400f, 46f));
+            var streak = factory.Text(card, "Streak", string.Empty, 28, theme.textLight, TextAnchor.MiddleRight);
+            UiFactory.Place(streak.rectTransform, new Vector2(1f, 0f), new Vector2(-50f, 34f), new Vector2(440f, 46f));
+
+            var mark = factory.Image(card, "CompletedMark", theme.flower, theme.accent);
+            UiFactory.Place(mark.rectTransform, new Vector2(1f, 1f), new Vector2(20f, 20f), new Vector2(90f, 90f));
+            mark.gameObject.SetActive(false);
+
+            var claim = factory.Button(card, "ClaimButton", "CLAIM", theme.primary, new Vector2(260f, 90f), 38);
+            UiFactory.Place((RectTransform)claim.transform, new Vector2(1f, 0f), new Vector2(-30f, 20f), new Vector2(260f, 90f));
+            UiFactory.Record(claim.transform);
+            claim.gameObject.SetActive(false);
+
+            var component = card.gameObject.AddComponent<DailyChallengeCard>();
+            EditorRefs.Set(component,
+                ("titleText", title), ("descriptionText", description), ("progressText", progress), ("progressFill", fill),
+                ("statusText", status), ("streakText", streak), ("completedMark", mark.gameObject), ("claimButton", claim));
+            return component;
         }
     }
 }

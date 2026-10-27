@@ -1,0 +1,78 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 000ba70f47e0ea84480310b4d8c78712, type: 3}
+  m_Name: DailyChallenges
+  m_EditorClassIdentifier: DesiMerge.Runtime::DesiMerge.Progression.DailyChallengeCatalog
+  challenges:
+  - id: daily_merges_20
+    title: Merge Mela
+    description: Merge 20 times today
+    type: 0
+    target: 20
+    itemId: 
+    reward:
+      type: 0
+      amount: 0
+  - id: daily_score_300
+    title: Score Chase
+    description: Score 300 in one game
+    type: 1
+    target: 300
+    itemId: 
+    reward:
+      type: 0
+      amount: 0
+  - id: daily_create_aam
+    title: Aam Season
+    description: Create an Aam (or better)
+    type: 2
+    target: 1
+    itemId: aam
+    reward:
+      type: 0
+      amount: 0
+  - id: daily_games_3
+    title: Three Rounds
+    description: Finish 3 games today
+    type: 3
+    target: 3
+    itemId: 
+    reward:
+      type: 0
+      amount: 0
+  - id: daily_merges_40
+    title: Busy Bazaar
+    description: Merge 40 times today
+    type: 0
+    target: 40
+    itemId: 
+    reward:
+      type: 0
+      amount: 0
+  - id: daily_score_600
+    title: Big Score
+    description: Score 600 in one game
+    type: 1
+    target: 600
+    itemId: 
+    reward:
+      type: 0
+      amount: 0
+  - id: daily_create_chai
+    title: Chai Break
+    description: Create a Chai (or better)
+    type: 2
+    target: 1
+    itemId: chai
+    reward:
+      type: 0
+      amount: 0

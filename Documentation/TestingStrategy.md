@@ -115,6 +115,28 @@ and game-over timing don't depend on frame rate or wall-clock delays. The rig re
 - Screenshots (`DESIMERGE_CAPTURE_DIR`): menu, settings, gameplay, pause and game over at 9:16, 19.5:9 with a simulated
   notch (`SafeAreaFitter.SimulatedSafeArea`), and 3:4. Reviewed by eye; they are not assertions.
 
+## Phase 4 coverage
+
+All Phase 4 tests use `InMemorySaveStore` or a unique temp folder, and `ManualClock` for dates; none touch real saves.
+
+- EditMode (`ProgressionTests`):
+  - Save/load: new player defaults; file round-trip across a simulated restart; corrupt save recovered from backup
+    (corrupt copy kept); unrecoverable save → defaults with nothing overwritten at load; write failure keeps changes
+    and retries; v1 → v2 migration; settings and progress sharing one store.
+  - Statistics: best score non-regression; one event and one count per merge / completed game.
+  - Collection: discovery once and persisted; removed content IDs kept but ignored; highest item repaired.
+  - Streak: same day / next day / missed day / broken display; clock moved backwards; UTC day boundaries.
+  - Daily: progress and single completion; survives restart; resets next day; clock moved back doesn't reopen a day;
+    reward claimable exactly once (also after restart); no-reward challenge isn't claimable; invalid/unknown content skipped.
+  - Achievements: unlock + notify + reward once and persisted (no re-notify after restart); silent unlock from existing
+    stats; progress from real statistics; unknown item / duplicate IDs skipped.
+- PlayMode (`ProgressionIntegrationTests`, `ProgressionUiTests`): physics merge recorded once; drop discovers; game
+  over counts once with best score and streak; restart keeps records; leaving to menu doesn't finalize; toasts once
+  per discovery / achievement / daily completion; simulated app restart restores progress, achievements and daily;
+  settings persist alongside. UI: collection discovered/locked/counter from saved data, sprite placeholder, achievement
+  rows and stats, daily card updates from events and hides Claim without a reward.
+- Changed expectation: `FileStore_Overwrite_...` now also expects `slot.json.bak` (intentional: backups).
+
 ## Future
 
 - CI (e.g. GameCI) running both suites and the Android build on each push — once the project is in Git.

@@ -10,6 +10,7 @@ namespace DesiMerge.Platform
         public event Action Paused;
         public event Action Resumed;
         public event Action Quitting;
+        public event Action FocusLost;
 
         private void OnApplicationPause(bool paused)
         {
@@ -20,6 +21,14 @@ namespace DesiMerge.Platform
             else
             {
                 Resumed?.Invoke();
+            }
+        }
+
+        private void OnApplicationFocus(bool hasFocus)
+        {
+            if (!hasFocus)
+            {
+                FocusLost?.Invoke();
             }
         }
 

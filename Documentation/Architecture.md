@@ -294,6 +294,95 @@ replace the WAV files at the same paths to upgrade without code changes.
 (no second storage). Changes apply immediately through the audio service and are saved on close. There is no haptics
 toggle because haptic feedback is not implemented.
 
+## Persistence and progression (Phase 4)
+
+### Storage
+
+All player data is local: `Application.persistentDataPath/saves/` (app-private internal storage on Android), one
+JSON file per area, each with a `schemaVersion`:
+
+| File | Owner | Contents |
+|---|---|---|
+| `player_progress.json` | `PlayerProgressService` (schema 2) | best score, coins (unused), completed games, total merges, discovered item IDs, highest item ID, current/best streak, last played day |
+| `achievements.json` | `AchievementService` (schema 1) | unlocked achievement IDs, rewarded achievement IDs |
+| `daily_challenge.json` | `DailyChallengeService` (schema 1) | day number, challenge ID, progress, completed, claimed, latest day seen |
+| `settings.json` | `SettingsService` (schema 2, unchanged system) | volumes, mute, haptics |
+
+Content is referenced only by stable IDs (`MergeItemDefinition.Id`, achievement/challenge `id`), never by display
+name or list position.
+
+**Write path (`FileSaveStore`)**: write `key.json.tmp` → atomic `File.Replace` into `key.json`, keeping the replaced
+file as `key.json.bak` (copy-then-swap fallback where `Replace` isn't supported). A crash mid-write leaves the previous
+save intact.
+
+**Read path (`JsonRepository`)**: current file → if unreadable, copy it to `key_corrupt.json` and try `key.json.bak`
+→ if that also fails, defaults. Outcome is reported as `LoadOutcome` (NoSave / Loaded / RecoveredFromBackup /
+ResetToDefaults); the main menu shows a notice for the last two. **Nothing is written during load**, so a damaged
+file is only replaced once the player actually makes new progress, and a copy is always kept. Load never resets a
+readable save.
+
+**Failures**: `Save` never throws; it logs once, returns false, and the service keeps its dirty data for the next
+flush. Gameplay continues.
+
+**When data is written** (never per frame, never per UI refresh; services only write when dirty):
+game over (`FlushAll`), leaving gameplay for the menu, settings panel close, daily reward claim, and app
+pause / focus loss / quit via the bootstrapper's `AppLifecycleHook`.
+
+**Migrations**: each service's load step upgrades in place. New fields get safe defaults automatically (JsonUtility
+keeps initializer values for fields missing from older files); invalid values are clamped; blank IDs dropped.
+v1 → v2 progress needs no conversion. To change a schema: bump the constant, add defaulted fields, add a
+conversion step only for renamed/restructured data, and add a test that loads the previous version's JSON.
+
+### Statistics and events
+
+Gameplay reports facts; the progression services decide what they mean:
+
+| Gameplay event (GameplayLoop) | Progress call | Guarantee |
+|---|---|---|
+| Item dropped | `RecordSeen(item)` | discovery once per ID |
+| Merge resolved (board event, once per merge) | `RecordMerge(created)` | total merges +1, discovery once; final-level clear counts as a merge with no item |
+| Game over (session `TryEnd`, once per session) | `SubmitFinalScore(score)` | completed games +1, best only if beaten, streak |
+| Restart / Main Menu | nothing | a run abandoned via Main Menu is not a completed game; restart never clears records |
+
+`IPlayerProgressService` raises `ItemDiscovered`, `MergeRecorded`, `GameCompleted` and `Changed`;
+`AchievementService` and `DailyChallengeService` subscribe to those (no polling) and the loop forwards
+discoveries / unlocks / daily completion to the HUD as toasts.
+
+### Collection
+
+Every `MergeProgression` level is shown; discovered items use their sprite, tint and name, others a dark silhouette
+with "???". Items count as discovered when first dropped or created. IDs no longer present in the content are kept in
+the save (in case content returns) but not shown or ranked; the highest item is re-derived from current content on
+load. A missing sprite uses a placeholder.
+
+### Daily challenge and streak rules
+
+- **Day** = UTC calendar day (`DayKey`): changes at 00:00 UTC = 05:00 Pakistan time, independent of device time zone.
+- **Today's challenge** = catalog entry at (day number mod count): offline, deterministic, same for everyone.
+- **Effective day** = max(today, latest day seen): moving the device clock **back** never resets or repeats a day.
+  Moving it **forward** is believed (a local clock cannot be secured against manipulation; documented, not hidden).
+- Progress comes only from real events; resets when the effective day changes or the stored challenge ID is no
+  longer in the catalog. Completed once per day (`Completed` event once).
+- **Rewards**: `RewardDefinition` (type + amount) per challenge/achievement, granted exactly once and recorded by ID.
+  Shipped content uses `None` because no economy is designed; `Coins` maps to the existing (unused) coin balance.
+  The Claim button appears only when a challenge actually has a reward.
+- **Streak** = consecutive UTC days with at least one completed game: first game 1; same day no change; next day +1;
+  a missed day resets to 1 on the next game; a clock earlier than the last played day is ignored. Displayed as 0 once
+  more than a day has been missed.
+
+### Achievements
+
+Data-driven (`AchievementCatalog`): `CompleteGames`, `TotalMerges`, `BestScore`, `DiscoverItem`, `DayStreak`.
+Progress is derived from the persisted statistics (so it can't drift); only unlocked/rewarded IDs are stored.
+Unlocks happen once, notify once (during play), and achievements already satisfied by existing stats unlock silently
+at startup. Invalid definitions (missing/duplicate ID, unknown item, non-positive target) are skipped with a warning.
+
+### UI
+
+Main menu: today's challenge card (progress bar, status, day streak, Claim only with a reward), Play, Collection,
+Awards, Settings, best score and a save-recovery notice. `CollectionPanel` and `AchievementsPanel` (prefabs) read
+services when opened; the card refreshes from the daily service's `Changed` event. None of them touch save files.
+
 ## Template content
 
 `Assets/Scenes/SampleScene.unity`, `Assets/Settings/*` (URP pipeline, 2D renderer, Input System actions, volume

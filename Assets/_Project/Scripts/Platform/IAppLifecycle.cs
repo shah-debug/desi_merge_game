@@ -11,5 +11,8 @@ namespace DesiMerge.Platform
         event Action Paused;
         event Action Resumed;
         event Action Quitting;
+
+        /// <summary>The app lost focus (e.g. notification shade, system dialog). Often precedes a pause.</summary>
+        event Action FocusLost;
     }
 }

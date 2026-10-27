@@ -24,6 +24,25 @@ namespace DesiMerge.Configuration
 
         public bool IsValidLevel(int level) => level >= 0 && level < levels.Count;
 
+        /// <summary>Level of the item with this stable ID, or -1 if no current definition has it (e.g. removed content).</summary>
+        public int IndexOf(string id)
+        {
+            if (string.IsNullOrEmpty(id))
+            {
+                return -1;
+            }
+
+            for (var i = 0; i < levels.Count; i++)
+            {
+                if (levels[i] != null && levels[i].Id == id)
+                {
+                    return i;
+                }
+            }
+
+            return -1;
+        }
+
         public bool IsFinalLevel(int level) => level == FinalLevel;
 
         /// <summary>Returns false for the final level (it has no next item) or an invalid level.</summary>

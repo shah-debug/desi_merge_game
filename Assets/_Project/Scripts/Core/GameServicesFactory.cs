@@ -15,8 +15,11 @@ namespace DesiMerge.Core
         /// <param name="audioHost">
         /// GameObject that will own the AudioSources. Null (or no AudioLibrary in the config) gives silent audio.
         /// </param>
-        public static GameServices Create(GameConfig config, ISaveStore saveStore, bool isDevelopmentBuild, GameObject audioHost = null)
+        /// <param name="clock">Time source for daily challenges and streaks; defaults to the system clock.</param>
+        public static GameServices Create(GameConfig config, ISaveStore saveStore, bool isDevelopmentBuild, GameObject audioHost = null, IClock clock = null)
         {
+            clock = clock ?? new SystemClock();
+
             IAnalyticsService analytics = isDevelopmentBuild && config.LogAnalyticsEvents
                 ? new LogAnalyticsService()
                 : new NullAnalyticsService();
@@ -30,14 +33,24 @@ namespace DesiMerge.Core
                 ? new AudioService(audioHost, config.AudioLibrary, settings)
                 : new SilentAudioService();
 
+            var content = config.ItemProgression;
+            var progress = new PlayerProgressService(saveStore, content, clock);
+            var rewards = new ProgressRewardGranter(progress);
+            var achievements = new AchievementService(saveStore, config.Achievements, progress, content, rewards);
+            var daily = new DailyChallengeService(saveStore, config.DailyChallenges, progress, content, clock, rewards);
+
             return new GameServices(
                 new GameStateMachine(),
-                new PlayerProgressService(saveStore),
+                progress,
                 settings,
                 audio,
                 analytics,
                 rewardedAds,
-                new SceneNavigator(config.MainMenuSceneName, config.GameplaySceneName));
+                new SceneNavigator(config.MainMenuSceneName, config.GameplaySceneName),
+                achievements,
+                daily,
+                clock,
+                content);
         }
     }
 }

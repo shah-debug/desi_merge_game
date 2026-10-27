@@ -12,6 +12,12 @@ namespace DesiMerge.Editor.Content
         public const string UiPrefabsFolder = "Assets/_Project/Prefabs/UI";
         public const string ButtonPrefabPath = UiPrefabsFolder + "/ThemedButton.prefab";
         public const string SettingsPanelPrefabPath = UiPrefabsFolder + "/SettingsPanel.prefab";
+        public const string CollectionPanelPrefabPath = UiPrefabsFolder + "/CollectionPanel.prefab";
+        public const string AchievementsPanelPrefabPath = UiPrefabsFolder + "/AchievementsPanel.prefab";
+        public const string ProgressionFolder = "Assets/_Project/ScriptableObjects/Progression";
+        public const string AchievementsPath = ProgressionFolder + "/Achievements.asset";
+        public const string DailyChallengesPath = ProgressionFolder + "/DailyChallenges.asset";
+        public const string MergeProgressionPath = "Assets/_Project/ScriptableObjects/MergeProgression.asset";
         public const string ItemPrefabPath = "Assets/_Project/Prefabs/MergeItem.prefab";
         public const string ThemePath = "Assets/_Project/Settings/UI/UITheme.asset";
         public const string AudioLibraryPath = "Assets/_Project/Audio/AudioLibrary.asset";

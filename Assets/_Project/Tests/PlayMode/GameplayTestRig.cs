@@ -65,20 +65,50 @@ namespace DesiMerge.Tests.PlayMode
 
             View = new FakeView();
             Store = new InMemorySaveStore();
+            Clock = new ManualClock(new DateTime(2026, 10, 27, 12, 0, 0, DateTimeKind.Utc));
+
+            Achievements = Track(ScriptableObject.CreateInstance<AchievementCatalog>());
+            Achievements.Set(new[]
+            {
+                new AchievementDefinition { id = "first_game", title = "First Game", type = AchievementType.CompleteGames, target = 1 },
+                new AchievementDefinition { id = "merges_2", title = "Two Merges", type = AchievementType.TotalMerges, target = 2 },
+                new AchievementDefinition { id = "discover_l2", title = "Level 2", type = AchievementType.DiscoverItem, itemId = "l2" },
+            });
+            DailyChallenges = Track(ScriptableObject.CreateInstance<DailyChallengeCatalog>());
+            DailyChallenges.Set(new[]
+            {
+                new DailyChallengeDefinition { id = "daily_merges_2", title = "Merge twice", type = DailyChallengeType.MergesInDay, target = 2 },
+            });
+
+            Services = BuildServices();
+        }
+
+        public SilentAudioService Audio { get; private set; }
+        public FakeNavigator Navigator { get; private set; }
+        public ManualClock Clock { get; }
+        public AchievementCatalog Achievements { get; }
+        public DailyChallengeCatalog DailyChallenges { get; }
+
+        /// <summary>Builds fresh services over the same storage, as if the app had been closed and reopened.</summary>
+        public GameServices BuildServices()
+        {
             Audio = new SilentAudioService();
             Navigator = new FakeNavigator();
-            Services = new GameServices(
+            var progress = new PlayerProgressService(Store, Progression, Clock);
+            var rewards = new ProgressRewardGranter(progress);
+            return new GameServices(
                 new GameStateMachine(),
-                new PlayerProgressService(Store),
+                progress,
                 new SettingsService(Store, new SettingsData()),
                 Audio,
                 new NullAnalyticsService(),
                 new UnavailableRewardedAdService(),
-                Navigator);
+                Navigator,
+                new AchievementService(Store, Achievements, progress, Progression, rewards),
+                new DailyChallengeService(Store, DailyChallenges, progress, Progression, Clock, rewards),
+                Clock,
+                Progression);
         }
-
-        public SilentAudioService Audio { get; }
-        public FakeNavigator Navigator { get; }
 
         /// <summary>Last value the loop applied to Time.timeScale (the real one is never touched by the rig).</summary>
         public float TimeScale { get; private set; } = 1f;
@@ -90,7 +120,7 @@ namespace DesiMerge.Tests.PlayMode
         public DropController Drop { get; }
         public FakeView View { get; }
         public InMemorySaveStore Store { get; }
-        public GameServices Services { get; }
+        public GameServices Services { get; set; }
         public GameplayLoop Loop { get; private set; }
 
         public GameplayLoop CreateLoop()
@@ -120,6 +150,7 @@ namespace DesiMerge.Tests.PlayMode
         public void Dispose()
         {
             Loop?.Dispose();
+            Services?.Dispose();
             foreach (var created in _created)
             {
                 if (created != null)
@@ -174,6 +205,8 @@ namespace DesiMerge.Tests.PlayMode
         }
 
         public void SetInstructionsVisible(bool visible) => InstructionsVisible = visible;
+        public readonly List<string> Toasts = new List<string>();
+        public void ShowToast(string message) => Toasts.Add(message);
         public void ShowPause() => PauseShown++;
         public void HidePause() => PauseHidden++;
 

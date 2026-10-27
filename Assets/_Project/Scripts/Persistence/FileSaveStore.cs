@@ -1,17 +1,21 @@
+using System;
 using System.IO;
 using System.Text;
 
 namespace DesiMerge.Persistence
 {
     /// <summary>
-    /// Stores each key as a UTF-8 JSON file in a single directory (normally under Application.persistentDataPath).
-    /// Writes go to a temporary file first and are then swapped in, so an interrupted write
-    /// (app killed, battery dies) leaves the previous save intact.
+    /// Stores each key as a UTF-8 JSON file in a single directory (normally Application.persistentDataPath/saves,
+    /// which is app-private internal storage on Android).
+    /// Writes go to "key.json.tmp" first and are then swapped in, keeping the replaced file as "key.json.bak",
+    /// so an interrupted write (app killed, battery dies) leaves the previous save intact and one older version
+    /// is always available for recovery.
     /// </summary>
     public sealed class FileSaveStore : ISaveStore
     {
         private const string Extension = ".json";
         private const string TempExtension = ".tmp";
+        private const string BackupExtension = ".bak";
 
         private static readonly Encoding Utf8NoBom = new UTF8Encoding(false);
 
@@ -25,15 +29,13 @@ namespace DesiMerge.Persistence
         public bool TryRead(string key, out string contents)
         {
             SaveKey.Validate(key);
-            var path = PathFor(key);
-            if (!File.Exists(path))
-            {
-                contents = null;
-                return false;
-            }
+            return TryReadFile(PathFor(key), out contents);
+        }
 
-            contents = File.ReadAllText(path, Utf8NoBom);
-            return true;
+        public bool TryReadBackup(string key, out string contents)
+        {
+            SaveKey.Validate(key);
+            return TryReadFile(PathFor(key) + BackupExtension, out contents);
         }
 
         public void Write(string key, string contents)
@@ -43,14 +45,24 @@ namespace DesiMerge.Persistence
 
             var path = PathFor(key);
             var tempPath = path + TempExtension;
+            var backupPath = path + BackupExtension;
             File.WriteAllText(tempPath, contents, Utf8NoBom);
 
-            if (File.Exists(path))
+            if (!File.Exists(path))
             {
-                File.Replace(tempPath, path, null);
+                File.Move(tempPath, path);
+                return;
             }
-            else
+
+            try
             {
+                File.Replace(tempPath, path, backupPath);
+            }
+            catch (PlatformNotSupportedException)
+            {
+                // Fallback for platforms without an atomic replace: keep a backup copy, then swap.
+                File.Copy(path, backupPath, true);
+                File.Delete(path);
                 File.Move(tempPath, path);
             }
         }
@@ -63,6 +75,18 @@ namespace DesiMerge.Persistence
             {
                 File.Delete(path);
             }
+        }
+
+        private static bool TryReadFile(string path, out string contents)
+        {
+            if (!File.Exists(path))
+            {
+                contents = null;
+                return false;
+            }
+
+            contents = File.ReadAllText(path, Utf8NoBom);
+            return true;
         }
 
         private string PathFor(string key) => Path.Combine(_directory, key + Extension);

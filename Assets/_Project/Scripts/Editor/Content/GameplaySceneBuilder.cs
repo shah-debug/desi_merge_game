@@ -178,6 +178,15 @@ namespace DesiMerge.Editor.Content
             // On short screens (tablets) the top bar shrinks so it doesn't cover the board.
             EditorRefs.Set(safe.gameObject.AddComponent<ResponsiveScaler>(), ("targets", new Object[] { topBar, instructions.rectTransform }));
 
+            // Toasts for discoveries / achievements / daily challenge: below the top bar, never take input.
+            var toastImage = factory.Image(safe, "Toast", theme.roundedPanel, theme.accent);
+            UiFactory.Place(toastImage.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -410f), new Vector2(840f, 100f));
+            var toastText = factory.Text(toastImage.transform, "Text", string.Empty, 40, theme.textDark);
+            UiFactory.Stretch(toastText.rectTransform, 20f, 20f);
+            toastImage.gameObject.AddComponent<CanvasGroup>();
+            var toast = toastImage.gameObject.AddComponent<ToastPresenter>();
+            EditorRefs.Set(toast, ("label", toastText));
+
             // Popups sit under the modal panels so a game-over card is never covered.
             var popupLayer = UiFactory.Stretch(UiFactory.Rect("ScorePopups", root)).gameObject.AddComponent<ScorePopupLayer>();
             var popupTemplate = factory.Text(popupLayer.transform, "PopupTemplate", "+0", 68, theme.textLight, TextAnchor.MiddleCenter, outline: true);
@@ -227,7 +236,7 @@ namespace DesiMerge.Editor.Content
                 ("gameOverPanel", gameOverPanel), ("gameOverScoreText", finalScore), ("gameOverBestText", gameOverBest),
                 ("newBestBadge", newBest.gameObject), ("gameOverTitlePunch", titlePunch),
                 ("restartButton", restart), ("gameOverMenuButton", gameOverMenu),
-                ("popupLayer", popupLayer), ("mergeEffects", effects),
+                ("popupLayer", popupLayer), ("mergeEffects", effects), ("toast", toast),
                 ("pointerBlockers", new Object[] { topBar }), ("errorText", errorText));
             return hud;
         }

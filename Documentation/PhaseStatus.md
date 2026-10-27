@@ -4,8 +4,103 @@
 |---|---|---|
 | 1 — Foundation | Structure, service interfaces, persistence, tests, docs, build check | Complete (approved, committed `eb25fdb`) |
 | 2 — Core gameplay | Drop/merge loop, physics, scoring, game over, test HUD | Complete (committed `3216c75`) |
-| 3 — UI, art, animation, audio | Main menu, HUD, pause/game over, settings, feedback, audio | **Complete — awaiting review** |
-| 4 | Not defined yet | Not started |
+| 3 — UI, art, animation, audio | Main menu, HUD, pause/game over, settings, feedback, audio | Complete (committed `24b863f`) |
+| 4 — Persistence & progression | Robust saves, stats, collection, daily challenges, streaks, achievements | **Complete — awaiting review** |
+| 5 | Not defined yet | Not started |
+
+## Phase 4 — Persistence, Collection, Daily Challenges and Progression (2026-10-27)
+
+### Audit (before editing)
+
+- Git clean at `24b863f` (Phase 3, committed by the user; contents identical to the Phase 3 output). Unity closed, so
+  work and verification ran on the real project in batch mode. Last Editor compile: success.
+- Existing persistence: atomic temp-file writes; corrupt data → defaults + `_corrupt` copy; progress v1
+  (best, coins, games); settings v2. **Gaps found:** no backup file (a corrupt save became defaults and the next
+  save overwrote the original file), a failed write **threw** (would have broken the game-over flow), no save on
+  focus loss, no statistics/discovery/achievements/daily/streak. Coins existed only as an unused Phase 1 API and no
+  economy is designed, so none was introduced.
+
+### Implemented
+
+- **Persistence hardening:** `.bak` of the previous version on every write; load order current → backup → defaults
+  with `LoadOutcome`; nothing written at load; `Save` never throws (failures logged once, retried on the next flush);
+  flush on focus loss added; game over now flushes all services.
+- **Progress v2** (`player_progress.json`): completed games, total merges, discovered item IDs, highest item,
+  current/best/last-day streak; v1 migrates automatically.
+- **Statistics from real events:** drop → discovery; each resolved merge → +1 merge and discovery; game over →
+  +1 completed game, best only if beaten, streak. Restart and Main Menu never finalize a game.
+- **Collection:** panel with all configured items, discovered vs locked ("???" silhouette), counter, placeholder
+  sprite for missing art; unknown/removed IDs preserved but ignored.
+- **Daily challenges:** data-driven catalog (7 challenges: merges, score in one game, create item, finish games),
+  UTC day key, effective day = max(today, latest seen), progress from events, completion once, optional reward
+  claimable exactly once. Card on the main menu.
+- **Streaks:** consecutive UTC days with a completed game (rules in Architecture.md).
+- **Achievements:** data-driven catalog (8 achievements), unlock/notify/reward once, silent catch-up at startup,
+  progress derived from statistics. Awards panel with statistics.
+- **Feedback:** in-game toasts for new discoveries, achievement unlocks, daily completion; save-recovery notice on
+  the main menu.
+
+### Files
+
+Created — runtime: `Core/IClock.cs` (IClock, SystemClock, ManualClock, DayKey);
+`Progression/{Rewards, StreakRules, AchievementDefinition, AchievementCatalog, AchievementService, DailyChallengeDefinition, DailyChallengeCatalog, DailyChallengeService}.cs`;
+`UI/{ToastPresenter, CollectionSlot, CollectionPanel, AchievementRow, AchievementsPanel, DailyChallengeCard}.cs`.
+
+Created — editor: `Editor/Content/ProgressionContentBuilder.cs`.
+Created — tests: `EditMode/ProgressionTests.cs`, `PlayMode/ProgressionIntegrationTests.cs`.
+Created — assets: `ScriptableObjects/Progression/{Achievements, DailyChallenges}.asset`,
+`Prefabs/UI/{CollectionPanel, AchievementsPanel}.prefab`.
+
+Modified — runtime: `Persistence/{ISaveStore (+TryReadBackup), FileSaveStore (.bak), InMemorySaveStore, JsonRepository (LoadOutcome, non-throwing Save), SaveKey}.cs`;
+`Progression/{PlayerProgressData (v2), IPlayerProgressService, PlayerProgressService}.cs`;
+`Settings/SettingsService.cs` (uses load outcome; keeps changes if a write fails);
+`Configuration/{GameConfig (content refs), MergeProgression (IndexOf)}.cs`;
+`Core/{GameServices (+achievements, daily, clock, item content; FlushAll returns success), GameServicesFactory, GameBootstrapper (focus-loss flush)}.cs`;
+`Platform/{IAppLifecycle, AppLifecycleHook}.cs` (FocusLost);
+`Gameplay/{GameplayLoop (records drops/merges, flushes all at game over, toasts), IGameplayView (ShowToast)}.cs`;
+`UI/{GameplayHud (toast), MainMenuEntryPoint (new panels, daily card, save notice)}.cs`.
+**Unchanged:** merge resolution, physics, scoring rules, session, game-over rule.
+
+Modified — editor: `Editor/Content/{ContentSetup, ContentPaths, MainMenuSceneBuilder, GameplaySceneBuilder}.cs`.
+Modified — tests: `PlayMode/{GameplayTestRig, SceneFlowTests}.cs`; `EditMode/PersistenceTests.cs` (one assertion
+intentionally updated: overwrites now leave `slot.json.bak`).
+Regenerated: `Scenes/{MainMenu, Gameplay}.unity`, UI prefabs. `GameConfig.asset` gained the content references.
+
+### Save format and storage
+
+See Architecture.md → "Persistence and progression": four JSON files under `persistentDataPath/saves`, each with a
+schema version, atomic writes with one backup, stable IDs only. No database, backend, cloud, account or package.
+
+### Verification actually run (real project, batch mode)
+
+| Check | Result |
+|---|---|
+| Compile | First attempt: 1 test-file error (ambiguous `Object` alias) — fixed. Final: 0 errors, 0 project warnings |
+| Content rebuild | Exit 0, all references resolved |
+| EditMode | **139 / 139 passed** (115 existing + 24 new) |
+| PlayMode | **70 / 70 passed** (58 existing + 12 new) — first run 67/70: 3 failures from a bug in my new test helper (added a second RectTransform), not in game code; fixed and re-run |
+| Screenshots | Menu (9:16, 3:4), Collection and Awards reviewed. Awards rows initially had the progress bar crossing the description text; moved under the progress number, rebuilt, re-tested (139/139, 70/70) and re-captured. Saved as `Documentation/Screenshots/phase4-*.png` |
+| Android build / device | **Not run** |
+
+### Known limitations
+
+- Dates use the device clock; moving it **forward** gives new daily challenges early (documented; can't be prevented
+  offline). Daily reset is 00:00 UTC (05:00 PKT), not local midnight.
+- No reward economy: shipped challenges/achievements have no rewards, so there's no Claim button in practice.
+- Merges in an abandoned run count toward totals and daily merges (they happened); the run itself isn't a completed game.
+- A changed daily catalog order on the same day restarts that day's challenge.
+- Playing MainMenu/Gameplay directly in the Editor uses in-memory saves (nothing persists between scenes); start from
+  Bootstrap to test persistence.
+
+### Manual test instructions
+
+1. Open `Bootstrap.unity` → Play. First launch: menu shows today's challenge, "Finish a game to start a streak".
+2. Play a game to Game Over. Watch the toasts ("New discovery …", "Achievement: First Game"). Main Menu → the
+   challenge card and Best score update; **Collection** shows discovered items; **Awards** shows stats and unlocks.
+3. Stop Play, press Play again (= app restart): everything above is restored.
+4. Save files are in `%USERPROFILE%\AppData\LocalLow\DefaultCompany\DesiMerge\saves` (Editor/Windows). To test
+   recovery: with Unity stopped, put garbage in `player_progress.json` → next launch restores from `.bak` and the
+   menu says so. Delete both `player_progress.json` and `.bak` to start fresh.
 
 ## Phase 3 — UI, Art, Animation and Audio (2026-10-26)
 
