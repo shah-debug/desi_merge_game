@@ -30,6 +30,11 @@ namespace DesiMerge.UI
         [SerializeField] private PanelTransition pausePanel;
         [SerializeField] private Button resumeButton;
         [SerializeField] private Button pauseMenuButton;
+        [SerializeField] private Button pauseRestartButton;
+        [SerializeField] private GameObject pauseActions;
+        [SerializeField] private GameObject restartConfirm;
+        [SerializeField] private Button confirmRestartButton;
+        [SerializeField] private Button cancelRestartButton;
 
         [Header("Game over")]
         [SerializeField] private PanelTransition gameOverPanel;
@@ -77,12 +82,20 @@ namespace DesiMerge.UI
         public string ReviveStatus => reviveStatusText != null && reviveStatusText.gameObject.activeSelf ? reviveStatusText.text : string.Empty;
         public bool TargetingVisible => targetingBanner != null && targetingBanner.activeSelf;
         public PowerUpButton[] PowerUpButtons => powerUpButtons;
+        public bool RestartConfirmVisible => restartConfirm != null && restartConfirm.activeSelf;
+        public Sprite NextItemSprite => nextImage != null ? nextImage.sprite : null;
+        internal Button PauseRestartButton => pauseRestartButton;
+        internal Button ConfirmRestartButton => confirmRestartButton;
+        internal Button CancelRestartButton => cancelRestartButton;
 
         private void Awake()
         {
             AddListener(pauseButton, OnPauseClicked);
             AddListener(resumeButton, OnResumeClicked);
             AddListener(pauseMenuButton, OnMainMenuClicked);
+            AddListener(pauseRestartButton, OnPauseRestartClicked);
+            AddListener(confirmRestartButton, OnConfirmRestartClicked);
+            AddListener(cancelRestartButton, OnCancelRestartClicked);
             AddListener(restartButton, OnRestartClicked);
             AddListener(gameOverMenuButton, OnMainMenuClicked);
             AddListener(continueButton, OnContinueClicked);
@@ -97,6 +110,7 @@ namespace DesiMerge.UI
 
             SetTargeting(false, string.Empty);
             SetReviveOffer(ReviveOfferState.Hidden);
+            SetRestartConfirm(false);
 
             if (pausePanel != null)
             {
@@ -119,6 +133,9 @@ namespace DesiMerge.UI
             RemoveListener(pauseButton, OnPauseClicked);
             RemoveListener(resumeButton, OnResumeClicked);
             RemoveListener(pauseMenuButton, OnMainMenuClicked);
+            RemoveListener(pauseRestartButton, OnPauseRestartClicked);
+            RemoveListener(confirmRestartButton, OnConfirmRestartClicked);
+            RemoveListener(cancelRestartButton, OnCancelRestartClicked);
             RemoveListener(restartButton, OnRestartClicked);
             RemoveListener(gameOverMenuButton, OnMainMenuClicked);
             RemoveListener(continueButton, OnContinueClicked);
@@ -169,7 +186,7 @@ namespace DesiMerge.UI
             if (nextImage != null)
             {
                 nextImage.sprite = definition.Sprite;
-                nextImage.color = definition.Tint;
+                nextImage.color = definition.SpriteColor;
             }
 
             if (nextLabel != null)
@@ -215,6 +232,7 @@ namespace DesiMerge.UI
 
         public void ShowPause()
         {
+            SetRestartConfirm(false);
             if (pausePanel != null)
             {
                 pausePanel.Show();
@@ -370,6 +388,29 @@ namespace DesiMerge.UI
         private void OnMainMenuClicked() => MainMenuRequested?.Invoke();
 
         private void OnContinueClicked() => ReviveRequested?.Invoke();
+
+        private void OnPauseRestartClicked() => SetRestartConfirm(true);
+
+        private void OnCancelRestartClicked() => SetRestartConfirm(false);
+
+        private void OnConfirmRestartClicked()
+        {
+            SetRestartConfirm(false);
+            RestartRequested?.Invoke();
+        }
+
+        private void SetRestartConfirm(bool visible)
+        {
+            if (restartConfirm != null)
+            {
+                restartConfirm.SetActive(visible);
+            }
+
+            if (pauseActions != null)
+            {
+                pauseActions.SetActive(!visible);
+            }
+        }
 
         private void OnTargetingCancelClicked() => PowerUpCancelRequested?.Invoke();
 

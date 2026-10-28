@@ -9,6 +9,7 @@ namespace DesiMerge.UI
     public sealed class MergeEffects : MonoBehaviour
     {
         [SerializeField] private ParticleSystem sparkles;
+        [SerializeField] private ParticleSystem ring;
         [SerializeField, Range(0, 64)] private int particlesPerMerge = 14;
         [SerializeField] private bool effectsEnabled = true;
 
@@ -38,6 +39,11 @@ namespace DesiMerge.UI
             emit.startColor = Color.white;
             emit.startSize *= 0.6f;
             sparkles.Emit(emit, particlesPerMerge / 3);
+
+            if (ring != null)
+            {
+                ring.Emit(new ParticleSystem.EmitParams { position = worldPosition, startColor = color, startSize = radius * 3.2f }, 1);
+            }
         }
     }
 }

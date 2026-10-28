@@ -14,8 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: DesiMerge.Runtime::DesiMerge.Configuration.MergeItemDefinition
   id: mango_shake
   displayName: Mango Shake
-  sprite: {fileID: 21300000, guid: 848910c4dd4af6243a85f3300469f9ee, type: 3}
+  sprite: {fileID: 21300000, guid: 5f5ec1bbb37f3d84aa0d587f529b6aaf, type: 3}
   tint: {r: 1, g: 0.6, b: 0, a: 1}
+  tintSprite: 0
   radius: 1.15
   mass: 3.145
   scoreValue: 36

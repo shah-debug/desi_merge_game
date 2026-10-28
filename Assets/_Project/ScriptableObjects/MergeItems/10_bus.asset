@@ -14,8 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: DesiMerge.Runtime::DesiMerge.Configuration.MergeItemDefinition
   id: bus
   displayName: Bus
-  sprite: {fileID: 21300000, guid: 848910c4dd4af6243a85f3300469f9ee, type: 3}
+  sprite: {fileID: 21300000, guid: 17db748e68e59b2448e7b6e1902fef32, type: 3}
   tint: {r: 0.25, g: 0.32, b: 0.71, a: 1}
+  tintSprite: 0
   radius: 1.45
   mass: 4.7050004
   scoreValue: 55

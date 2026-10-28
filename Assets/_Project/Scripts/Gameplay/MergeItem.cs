@@ -75,7 +75,7 @@ namespace DesiMerge.Gameplay
             if (spriteRenderer != null)
             {
                 spriteRenderer.sprite = definition.Sprite;
-                spriteRenderer.color = definition.Tint;
+                spriteRenderer.color = definition.SpriteColor;
             }
 
             if (label != null)

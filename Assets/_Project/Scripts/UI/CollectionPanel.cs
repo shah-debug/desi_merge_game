@@ -111,7 +111,7 @@ namespace DesiMerge.UI
                 if (_progress.IsDiscovered(definition.Id))
                 {
                     discovered++;
-                    slot.Show(sprite, definition.Tint, definition.DisplayName, true);
+                    slot.Show(sprite, definition.SpriteColor, definition.DisplayName, true);
                 }
                 else
                 {

@@ -14,8 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: DesiMerge.Runtime::DesiMerge.Configuration.MergeItemDefinition
   id: aam
   displayName: Aam
-  sprite: {fileID: 21300000, guid: 848910c4dd4af6243a85f3300469f9ee, type: 3}
+  sprite: {fileID: 21300000, guid: 6eca4fdab16eac149bba28b936b0e961, type: 3}
   tint: {r: 1, g: 0.76, b: 0.03, a: 1}
+  tintSprite: 0
   radius: 0.85
   mass: 1.945
   scoreValue: 21

@@ -62,14 +62,12 @@ namespace DesiMerge.Editor.Content
             var theme = factory.Theme;
             var host = UiFactory.Rect("Host", null);
             host.sizeDelta = new Vector2(1080f, 1920f);
-            var (transition, card) = factory.Modal(host, "CollectionPanel", new Vector2(960f, 980f), theme.deep);
+            var (transition, card) = factory.Modal(host, "CollectionPanel", new Vector2(960f, 1080f), "COLLECTION");
 
-            var title = factory.Text(card, "Title", "Collection", theme.headingSize, theme.accent, TextAnchor.MiddleCenter, outline: true);
-            UiFactory.Place(title.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -40f), new Vector2(800f, 110f));
-            var counter = factory.Text(card, "Counter", "0 / 0 discovered", theme.bodySize, theme.textLight);
-            UiFactory.Place(counter.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -150f), new Vector2(800f, 56f));
+            var counter = factory.Text(card, "Counter", "0 / 0 discovered", theme.bodySize, theme.mutedText);
+            UiFactory.Place(counter.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -196f), new Vector2(800f, 56f));
 
-            var grid = UiFactory.Place(UiFactory.Rect("Grid", card), new Vector2(0.5f, 1f), new Vector2(0f, -230f), new Vector2(910f, 540f));
+            var grid = UiFactory.Place(UiFactory.Rect("Grid", card), new Vector2(0.5f, 1f), new Vector2(0f, -266f), new Vector2(910f, 540f));
             var layout = grid.gameObject.AddComponent<GridLayoutGroup>();
             layout.cellSize = new Vector2(170f, 250f);
             layout.spacing = new Vector2(10f, 24f);
@@ -79,24 +77,25 @@ namespace DesiMerge.Editor.Content
 
             var slotRoot = UiFactory.Rect("SlotTemplate", grid);
             slotRoot.sizeDelta = layout.cellSize;
-            var slotBackground = factory.Image(slotRoot, "Background", theme.roundedPanel, new Color(1f, 1f, 1f, 0.1f));
+            var slotBackground = factory.Image(slotRoot, "Background", theme.panel, Color.white);
+            GameplaySceneBuilder.AddShadow(slotBackground.gameObject, theme, 0.12f, 6f);
             UiFactory.Stretch(slotBackground.rectTransform);
             var icon = factory.Image(slotRoot, "Icon", theme.circle, Color.white);
             UiFactory.Place(icon.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -20f), new Vector2(130f, 130f));
             icon.preserveAspect = true;
-            var lockedMark = factory.Text(slotRoot, "LockedMark", "?", 72, theme.textLight, TextAnchor.MiddleCenter, outline: true);
-            UiFactory.Place(lockedMark.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -40f), new Vector2(130f, 90f));
-            var label = factory.Text(slotRoot, "Label", "???", 28, theme.textLight);
+            var lockedMark = factory.Image(slotRoot, "LockedMark", GameArtGenerator.Icon("Lock"), new Color(1f, 1f, 1f, 0.9f));
+            UiFactory.Place(lockedMark.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -55f), new Vector2(60f, 60f));
+            var label = factory.Text(slotRoot, "Label", "???", 28, theme.textDark);
             UiFactory.Place(label.rectTransform, new Vector2(0.5f, 0f), new Vector2(0f, 22f), new Vector2(170f, 60f));
             var slot = slotRoot.gameObject.AddComponent<CollectionSlot>();
             EditorRefs.Set(slot, ("icon", icon), ("label", label), ("lockedMark", lockedMark.gameObject));
 
-            var empty = factory.Text(card, "EmptyText", "No items configured", theme.bodySize, theme.textLight);
+            var empty = factory.Text(card, "EmptyText", "No items configured", theme.bodySize, theme.mutedText, body: true);
             UiFactory.Place(empty.rectTransform, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(800f, 80f));
             empty.gameObject.SetActive(false);
 
-            var close = factory.Button(card, "CloseButton", "DONE", theme.primary, new Vector2(480f, 150f));
-            UiFactory.Place((RectTransform)close.transform, new Vector2(0.5f, 0f), new Vector2(0f, 50f), new Vector2(480f, 150f));
+            var close = factory.Button(card, "CloseButton", "DONE", theme.primary, new Vector2(480f, 150f), icon: GameArtGenerator.Icon("Check"));
+            UiFactory.Place((RectTransform)close.transform, new Vector2(0.5f, 0f), new Vector2(0f, 56f), new Vector2(480f, 150f));
             UiFactory.Record(close.transform);
 
             var panel = transition.gameObject.AddComponent<CollectionPanel>();
@@ -119,22 +118,19 @@ namespace DesiMerge.Editor.Content
             var theme = factory.Theme;
             var host = UiFactory.Rect("Host", null);
             host.sizeDelta = new Vector2(1080f, 1920f);
-            var (transition, card) = factory.Modal(host, "AchievementsPanel", new Vector2(960f, 1280f), theme.deep);
+            var (transition, card) = factory.Modal(host, "AchievementsPanel", new Vector2(960f, 1400f), "AWARDS");
 
-            var title = factory.Text(card, "Title", "Achievements", theme.headingSize, theme.accent, TextAnchor.MiddleCenter, outline: true);
-            UiFactory.Place(title.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -36f), new Vector2(860f, 110f));
-
-            var statsLabels = factory.Text(card, "StatsLabels", "Best score\nGames completed\nTotal merges\nHighest item\nDay streak", 34, theme.textLight, TextAnchor.UpperLeft);
-            UiFactory.Place(statsLabels.rectTransform, new Vector2(0.5f, 1f), new Vector2(-200f, -160f), new Vector2(400f, 240f));
+            var statsLabels = factory.Text(card, "StatsLabels", "Best score\nGames completed\nTotal merges\nHighest item\nDay streak", 34, theme.mutedText, TextAnchor.UpperLeft, body: true);
+            UiFactory.Place(statsLabels.rectTransform, new Vector2(0.5f, 1f), new Vector2(-200f, -206f), new Vector2(400f, 240f));
             statsLabels.lineSpacing = 1.1f;
-            var statsValues = factory.Text(card, "StatsValues", string.Empty, 34, theme.accent, TextAnchor.UpperRight);
-            UiFactory.Place(statsValues.rectTransform, new Vector2(0.5f, 1f), new Vector2(200f, -160f), new Vector2(400f, 240f));
+            var statsValues = factory.Text(card, "StatsValues", string.Empty, 34, theme.textDark, TextAnchor.UpperRight, body: true);
+            UiFactory.Place(statsValues.rectTransform, new Vector2(0.5f, 1f), new Vector2(200f, -206f), new Vector2(400f, 240f));
             statsValues.lineSpacing = 1.1f;
 
-            var summary = factory.Text(card, "Summary", string.Empty, 34, theme.textLight);
-            UiFactory.Place(summary.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -415f), new Vector2(860f, 50f));
+            var summary = factory.Text(card, "Summary", string.Empty, 36, theme.primary);
+            UiFactory.Place(summary.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -462f), new Vector2(860f, 50f));
 
-            var list = UiFactory.Place(UiFactory.Rect("List", card), new Vector2(0.5f, 1f), new Vector2(0f, -475f), new Vector2(880f, 620f));
+            var list = UiFactory.Place(UiFactory.Rect("List", card), new Vector2(0.5f, 1f), new Vector2(0f, -522f), new Vector2(880f, 640f));
             var layout = list.gameObject.AddComponent<VerticalLayoutGroup>();
             layout.spacing = 8f;
             layout.childAlignment = TextAnchor.UpperCenter;
@@ -145,14 +141,14 @@ namespace DesiMerge.Editor.Content
 
             var rowRoot = UiFactory.Rect("RowTemplate", list);
             rowRoot.sizeDelta = new Vector2(880f, 70f);
-            var background = factory.Image(rowRoot, "Background", theme.roundedPanel, new Color(0f, 0f, 0f, 0.25f));
+            var background = factory.Image(rowRoot, "Background", theme.panel, Color.white);
             UiFactory.Stretch(background.rectTransform);
-            var rowTitle = factory.Text(rowRoot, "Title", "Title", 30, theme.textLight, TextAnchor.UpperLeft);
+            var rowTitle = factory.Text(rowRoot, "Title", "Title", 30, theme.textDark, TextAnchor.UpperLeft);
             UiFactory.Place(rowTitle.rectTransform, new Vector2(0f, 1f), new Vector2(24f, -6f), new Vector2(560f, 36f));
-            var rowDescription = factory.Text(rowRoot, "Description", "Description", 22, new Color(1f, 1f, 1f, 0.75f), TextAnchor.UpperLeft);
+            var rowDescription = factory.Text(rowRoot, "Description", "Description", 22, theme.mutedText, TextAnchor.UpperLeft, body: true);
             rowDescription.fontStyle = FontStyle.Normal;
             UiFactory.Place(rowDescription.rectTransform, new Vector2(0f, 1f), new Vector2(24f, -40f), new Vector2(600f, 28f));
-            var rowProgress = factory.Text(rowRoot, "Progress", "0 / 1", 28, theme.accent, TextAnchor.MiddleRight);
+            var rowProgress = factory.Text(rowRoot, "Progress", "0 / 1", 28, theme.secondary, TextAnchor.MiddleRight);
             UiFactory.Place(rowProgress.rectTransform, new Vector2(1f, 0.5f), new Vector2(-80f, 6f), new Vector2(220f, 40f));
             var fill = factory.Image(rowRoot, "ProgressFill", theme.roundedPanel, theme.accent);
             fill.type = Image.Type.Filled;
@@ -160,18 +156,19 @@ namespace DesiMerge.Editor.Content
             fill.fillOrigin = (int)Image.OriginHorizontal.Left;
             // Under the progress number (right side), clear of the description text.
             UiFactory.Place(fill.rectTransform, new Vector2(1f, 0f), new Vector2(-80f, 8f), new Vector2(220f, 6f));
-            var mark = factory.Image(rowRoot, "UnlockedMark", theme.flower, theme.accent);
+            var mark = factory.Image(rowRoot, "UnlockedMark", GameArtGenerator.Icon("Star"), theme.accent);
             UiFactory.Place(mark.rectTransform, new Vector2(1f, 0.5f), new Vector2(-16f, 0f), new Vector2(54f, 54f));
             var row = rowRoot.gameObject.AddComponent<AchievementRow>();
             EditorRefs.Set(row,
                 ("title", rowTitle), ("description", rowDescription), ("progress", rowProgress), ("progressFill", fill),
-                ("unlockedMark", mark.gameObject), ("background", background));
+                ("unlockedMark", mark.gameObject), ("background", background),
+                ("lockedColor", new Color(theme.deep.r, theme.deep.g, theme.deep.b, 0.07f)), ("unlockedColor", new Color(theme.accent.r, theme.accent.g, theme.accent.b, 0.3f)));
 
-            var empty = factory.Text(card, "EmptyText", "No achievements configured", theme.bodySize, theme.textLight);
+            var empty = factory.Text(card, "EmptyText", "No achievements configured", theme.bodySize, theme.mutedText, body: true);
             UiFactory.Place(empty.rectTransform, new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(800f, 80f));
             empty.gameObject.SetActive(false);
 
-            var close = factory.Button(card, "CloseButton", "DONE", theme.primary, new Vector2(480f, 140f));
+            var close = factory.Button(card, "CloseButton", "DONE", theme.primary, new Vector2(480f, 140f), icon: GameArtGenerator.Icon("Check"));
             UiFactory.Place((RectTransform)close.transform, new Vector2(0.5f, 0f), new Vector2(0f, 40f), new Vector2(480f, 140f));
             UiFactory.Record(close.transform);
 

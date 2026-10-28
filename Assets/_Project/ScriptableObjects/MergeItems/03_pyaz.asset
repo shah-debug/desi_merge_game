@@ -14,8 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: DesiMerge.Runtime::DesiMerge.Configuration.MergeItemDefinition
   id: pyaz
   displayName: Pyaz
-  sprite: {fileID: 21300000, guid: 848910c4dd4af6243a85f3300469f9ee, type: 3}
+  sprite: {fileID: 21300000, guid: 0d6d6bdce98ea254eb71483e76f6b53d, type: 3}
   tint: {r: 0.61, g: 0.35, b: 0.71, a: 1}
+  tintSprite: 0
   radius: 0.5
   mass: 1
   scoreValue: 6

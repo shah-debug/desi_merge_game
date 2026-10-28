@@ -22,6 +22,7 @@ namespace DesiMerge.UI
         [SerializeField] private Button collectionButton;
         [SerializeField] private Button achievementsButton;
         [SerializeField] private Text bestScoreText;
+        [SerializeField] private GameObject bestScoreBadge;
         [SerializeField] private Text saveNoticeText;
         [SerializeField] private SettingsPanel settingsPanel;
         [SerializeField] private CollectionPanel collectionPanel;
@@ -69,6 +70,11 @@ namespace DesiMerge.UI
             if (bestScoreText != null)
             {
                 bestScoreText.text = services.Progress.HighScore > 0 ? $"Best  {services.Progress.HighScore}" : string.Empty;
+            }
+
+            if (bestScoreBadge != null)
+            {
+                bestScoreBadge.SetActive(services.Progress.HighScore > 0);
             }
 
             ShowSaveNotice(services.Progress.LoadOutcome);

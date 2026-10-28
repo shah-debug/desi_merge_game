@@ -14,8 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: DesiMerge.Runtime::DesiMerge.Configuration.MergeItemDefinition
   id: nimbu
   displayName: Nimbu
-  sprite: {fileID: 21300000, guid: 848910c4dd4af6243a85f3300469f9ee, type: 3}
+  sprite: {fileID: 21300000, guid: 00efb09307e621f45bd21b9a4b2e43d3, type: 3}
   tint: {r: 0.8, g: 0.86, b: 0.22, a: 1}
+  tintSprite: 0
   radius: 0.4
   mass: 0.82
   scoreValue: 3

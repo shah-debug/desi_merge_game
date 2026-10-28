@@ -14,8 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: DesiMerge.Runtime::DesiMerge.Configuration.MergeItemDefinition
   id: roti
   displayName: Roti
-  sprite: {fileID: 21300000, guid: 848910c4dd4af6243a85f3300469f9ee, type: 3}
+  sprite: {fileID: 21300000, guid: 9cd9b608ab6850640ad6cb4ba138b4c0, type: 3}
   tint: {r: 0.87, g: 0.72, b: 0.53, a: 1}
+  tintSprite: 0
   radius: 0.72
   mass: 1.5368
   scoreValue: 15

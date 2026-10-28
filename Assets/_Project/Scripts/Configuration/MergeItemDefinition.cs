@@ -20,6 +20,9 @@ namespace DesiMerge.Configuration
 
         [SerializeField] private Color tint = Color.white;
 
+        [Tooltip("Multiply the sprite by the tint (single-colour placeholder art). Off for full-colour artwork; the tint is then only the accent colour for effects.")]
+        [SerializeField] private bool tintSprite = true;
+
         [Tooltip("Collision and visual radius in world units.")]
         [SerializeField, Min(0.05f)] private float radius = 0.5f;
 
@@ -33,6 +36,7 @@ namespace DesiMerge.Configuration
         public string DisplayName => displayName;
         public Sprite Sprite => sprite;
         public Color Tint => tint;
+        public Color SpriteColor => tintSprite ? tint : Color.white;
         public float Radius => radius;
         public float Mass => mass;
         public int ScoreValue => scoreValue;

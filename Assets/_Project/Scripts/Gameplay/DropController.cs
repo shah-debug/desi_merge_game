@@ -78,7 +78,7 @@ namespace DesiMerge.Gameplay
             if (preview != null)
             {
                 preview.sprite = definition.Sprite;
-                var tint = definition.Tint;
+                var tint = definition.SpriteColor;
                 tint.a = PreviewAlpha;
                 preview.color = tint;
                 preview.transform.localScale = Vector3.one * (definition.Radius * 2f);

@@ -23,6 +23,7 @@ namespace DesiMerge.Editor.Content
         public const string ThemePath = "Assets/_Project/Settings/UI/UITheme.asset";
         public const string AudioLibraryPath = "Assets/_Project/Audio/AudioLibrary.asset";
         public const string SparkleMaterialPath = "Assets/_Project/Art/Materials/Sparkle.mat";
+        public const string RingMaterialPath = "Assets/_Project/Art/Materials/MergeRing.mat";
 
         public static void EnsureFolder(string path)
         {

@@ -13,6 +13,7 @@ namespace DesiMerge.UI.Animation
         [SerializeField] private float duration = 0.25f;
         [Tooltip("Use for UI that must animate while the game is paused (Time.timeScale = 0).")]
         [SerializeField] private bool unscaledTime;
+        [SerializeField] private float squash;
 
         private Vector3 _baseScale = Vector3.one;
         private float _elapsed;
@@ -45,7 +46,11 @@ namespace DesiMerge.UI.Animation
                 return;
             }
 
-            transform.localScale = _baseScale * (1f + _currentAmplitude * Ease.Punch(t));
+            var punch = Ease.Punch(t);
+            var scale = _baseScale * (1f + _currentAmplitude * punch);
+            scale.x *= 1f + squash * punch;
+            scale.y *= 1f - squash * punch;
+            transform.localScale = scale;
         }
 
         private void OnDisable()

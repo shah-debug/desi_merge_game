@@ -197,8 +197,8 @@ namespace DesiMerge.Editor
             visual.transform.SetParent(root.transform, false);
             var spriteRenderer = visual.AddComponent<SpriteRenderer>();
             spriteRenderer.sprite = AssetDatabase.LoadAssetAtPath<Sprite>(CircleSpritePath);
-            spriteRenderer.sortingOrder = 1;
-            var punch = UiFactory.Punch(visual, 0.3f, 0.22f, false);
+            spriteRenderer.sortingOrder = 8;
+            var punch = UiFactory.Punch(visual, 0.22f, 0.26f, false, 0.12f);
 
             var body = root.AddComponent<Rigidbody2D>();
             body.bodyType = RigidbodyType2D.Dynamic;
@@ -208,22 +208,8 @@ namespace DesiMerge.Editor
             var circle = root.AddComponent<CircleCollider2D>();
             circle.radius = 0.5f;
 
-            var labelObject = new GameObject("Label");
-            labelObject.transform.SetParent(visual.transform, false);
-            var label = labelObject.AddComponent<TextMesh>();
-            var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            label.font = font;
-            label.fontSize = 64;
-            label.characterSize = 0.03f;
-            label.anchor = TextAnchor.MiddleCenter;
-            label.alignment = TextAlignment.Center;
-            label.color = new Color(0.1f, 0.08f, 0.06f);
-            var labelRenderer = labelObject.GetComponent<MeshRenderer>();
-            labelRenderer.sharedMaterial = font.material;
-            labelRenderer.sortingOrder = 2;
-
             var item = root.AddComponent<MergeItem>();
-            EditorRefs.Set(item, ("spriteRenderer", spriteRenderer), ("body", body), ("label", label), ("visualPunch", punch));
+            EditorRefs.Set(item, ("spriteRenderer", spriteRenderer), ("body", body), ("label", null), ("visualPunch", punch));
 
             PrefabUtility.SaveAsPrefabAsset(root, ItemPrefabPath);
             Object.DestroyImmediate(root);

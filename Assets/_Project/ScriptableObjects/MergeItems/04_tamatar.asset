@@ -14,8 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: DesiMerge.Runtime::DesiMerge.Configuration.MergeItemDefinition
   id: tamatar
   displayName: Tamatar
-  sprite: {fileID: 21300000, guid: 848910c4dd4af6243a85f3300469f9ee, type: 3}
+  sprite: {fileID: 21300000, guid: 29086a15a3d6e7841a1671cd67037b6c, type: 3}
   tint: {r: 0.9, g: 0.22, b: 0.21, a: 1}
+  tintSprite: 0
   radius: 0.6
   mass: 1.22
   scoreValue: 10

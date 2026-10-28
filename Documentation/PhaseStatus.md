@@ -6,9 +6,31 @@
 | 2 — Core gameplay | Drop/merge loop, physics, scoring, game over, test HUD | Complete (committed `3216c75`) |
 | 3 — UI, art, animation, audio | Main menu, HUD, pause/game over, settings, feedback, audio | Complete (committed `24b863f`) |
 | 4 — Persistence & progression | Robust saves, stats, collection, daily challenges, streaks, achievements | Complete (committed `f93f0bd`) |
-| 5 — Power-ups, rewarded ads, monetization foundation | Hammer, Shuffle, rewarded-ad revive, ad boundary, cosmetics foundation | Complete (not yet committed) |
-| 6 — QA hardening & RC validation | Audit, bug fixes, tests, builds, measurements | **Complete — awaiting review** (see `Phase6-QA-Report.md`) |
+| 5 — Power-ups, rewarded ads, monetization foundation | Hammer, Shuffle, rewarded-ad revive, ad boundary, cosmetics foundation | Complete (committed `8ae6060`) |
+| 6 — QA hardening & RC validation | Audit, bug fixes, tests, builds, measurements | Complete (committed `8ae6060`; see `Phase6-QA-Report.md`) |
+| 6.5 — Visual redesign & polish | Original item art, design system, HUD, screens, playfield, game feel, icon | **Complete — awaiting review** (see `VisualRedesignTestReport.md`) |
 | 7 | Not defined yet | Not started |
+
+## Phase 6.5 — Visual Redesign and Game Polish (2026-10-28)
+
+Docs: [`VisualRedesignAudit.md`](VisualRedesignAudit.md), [`VisualDesignSystem.md`](VisualDesignSystem.md),
+[`VisualAssetManifest.md`](VisualAssetManifest.md), [`VisualRedesignTestReport.md`](VisualRedesignTestReport.md).
+Screenshots: `Screenshots/phase6.5-*.png`.
+
+- **Art:** 10 original illustrated items (paan leaf → truck-art bus) drawn by Editor code, sized inside each collider
+  circle. 17 icons, panels, buttons, truck-art ornament and border strip, patterned walls, dashed danger line, background
+  gradient, and a launcher icon. Display font: Lilita One (SIL OFL, license included).
+- **Screens:** new top bar (score, best, next-item well, pause); icon power-up buttons with selected and unavailable
+  states; pause card with Resume / Restart (with confirmation) / Main Menu; game-over card; main menu; Settings,
+  Collection and Awards panels.
+- **Feel:** merge pop with squash-and-stretch on the visual child only, merge ring burst, plus the existing sparkles,
+  popups, button press and panel transitions.
+- **Unchanged:** merge order, IDs, sizes, masses, scores, physics, saves and services. Board decorations have no
+  colliders, and items always draw above them.
+- **Fixed on the way:** the toast overlapped the board on 3:4 tablets (Phase 5 F12).
+- **Tests:** EditMode **180/180**, PlayMode **103/103**, 0 skipped. No device testing.
+- **Android build:** release-config APK **succeeded** (32.3 MB, debug-signed). Not installed on a phone.
+- **Regenerate:** `Desi Merge > Setup > Apply Visual Redesign` (overwrites generated art, scenes and UI prefabs; keeps data).
 
 ## Phase 6 — QA Hardening and Release-Candidate Validation (2026-10-28)
 

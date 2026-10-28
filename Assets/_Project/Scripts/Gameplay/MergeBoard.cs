@@ -25,6 +25,11 @@ namespace DesiMerge.Gameplay
         [SerializeField] private Color wallColor = new Color(0.55f, 0.3f, 0.15f);
         [SerializeField] private Color backgroundColor = new Color(1f, 0.95f, 0.85f, 0.35f);
         [SerializeField] private Color dangerLineColor = new Color(0.9f, 0.15f, 0.15f, 0.8f);
+        [SerializeField] private Sprite wallSprite;
+        [SerializeField] private Sprite fieldSprite;
+        [SerializeField] private Sprite dangerLineSprite;
+        [SerializeField] private Sprite capSprite;
+        [SerializeField] private float dangerLineThickness = 0.06f;
 
         private readonly List<MergeItem> _active = new List<MergeItem>();
         /// <summary>Items merged away during the current step; pooled only after the step (see RetireMerged).</summary>
@@ -338,34 +343,63 @@ namespace DesiMerge.Gameplay
             var walls = new GameObject("Walls").transform;
             walls.SetParent(transform, false);
 
-            CreateBlock(walls, "Floor", new Vector2(0f, -WallThickness * 0.5f), new Vector2(width + WallThickness * 2f, WallThickness), wallColor, 5, true);
-            CreateBlock(walls, "LeftWall", new Vector2(-halfWidth - WallThickness * 0.5f, wallHeight * 0.5f), new Vector2(WallThickness, wallHeight), wallColor, 5, true);
-            CreateBlock(walls, "RightWall", new Vector2(halfWidth + WallThickness * 0.5f, wallHeight * 0.5f), new Vector2(WallThickness, wallHeight), wallColor, 5, true);
-            CreateBlock(walls, "Background", new Vector2(0f, _config.ContainerHeight * 0.5f), new Vector2(width, _config.ContainerHeight), backgroundColor, -10, false);
-            CreateBlock(walls, "DangerLine", new Vector2(0f, _config.DangerLineHeight), new Vector2(width, 0.06f), dangerLineColor, 4, false);
+            CreateSolid(walls, "Floor", new Vector2(0f, -WallThickness * 0.5f), new Vector2(width + WallThickness * 2f, WallThickness));
+            CreateSolid(walls, "LeftWall", new Vector2(-halfWidth - WallThickness * 0.5f, wallHeight * 0.5f), new Vector2(WallThickness, wallHeight));
+            CreateSolid(walls, "RightWall", new Vector2(halfWidth + WallThickness * 0.5f, wallHeight * 0.5f), new Vector2(WallThickness, wallHeight));
+
+            var art = new GameObject("Art").transform;
+            art.SetParent(transform, false);
+            var wallArt = wallSprite != null ? wallSprite : blockSprite;
+            var wallMode = wallSprite != null ? SpriteDrawMode.Tiled : SpriteDrawMode.Sliced;
+            var visualTop = wallSprite != null ? Mathf.Min(wallHeight, _config.DangerLineHeight + WallThickness * 2.5f) : wallHeight;
+            var wallArtHeight = visualTop + WallThickness;
+            CreateArt(art, "Background", fieldSprite != null ? fieldSprite : blockSprite, SpriteDrawMode.Sliced,
+                new Vector2(0f, _config.ContainerHeight * 0.5f), new Vector2(width, _config.ContainerHeight), 0f, backgroundColor, -10);
+            CreateArt(art, "LeftWall", wallArt, wallMode, new Vector2(-halfWidth - WallThickness * 0.5f, wallArtHeight * 0.5f - WallThickness), new Vector2(WallThickness, wallArtHeight), 0f, wallColor, 5);
+            CreateArt(art, "RightWall", wallArt, wallMode, new Vector2(halfWidth + WallThickness * 0.5f, wallArtHeight * 0.5f - WallThickness), new Vector2(WallThickness, wallArtHeight), 0f, wallColor, 5);
+            CreateArt(art, "Floor", wallArt, wallMode, new Vector2(0f, -WallThickness * 0.5f), new Vector2(WallThickness, width + WallThickness * 2f), 90f, wallColor, 6);
+            CreateArt(art, "DangerLine", dangerLineSprite != null ? dangerLineSprite : blockSprite, dangerLineSprite != null ? SpriteDrawMode.Tiled : SpriteDrawMode.Sliced,
+                new Vector2(0f, _config.DangerLineHeight), new Vector2(width, dangerLineThickness), 0f, dangerLineColor, 4);
+            foreach (var x in new[] { -halfWidth - WallThickness * 0.5f, halfWidth + WallThickness * 0.5f })
+            {
+                CreateArt(art, "Cap", capSprite, SpriteDrawMode.Simple, new Vector2(x, visualTop), Vector2.one * (WallThickness * 2f), 0f, Color.white, 7);
+                CreateArt(art, "Cap", capSprite, SpriteDrawMode.Simple, new Vector2(x, -WallThickness * 0.5f), Vector2.one * (WallThickness * 2f), 0f, Color.white, 7);
+            }
         }
 
-        private void CreateBlock(Transform parent, string blockName, Vector2 localCenter, Vector2 size, Color color, int sortingOrder, bool solid)
+        private void CreateSolid(Transform parent, string blockName, Vector2 localCenter, Vector2 size)
         {
             var block = new GameObject(blockName);
             block.transform.SetParent(parent, false);
             block.transform.localPosition = localCenter;
+            var blockCollider = block.AddComponent<BoxCollider2D>();
+            blockCollider.size = size;
+            blockCollider.sharedMaterial = _config.ItemMaterial;
+        }
 
-            if (blockSprite != null)
+        private static void CreateArt(Transform parent, string artName, Sprite sprite, SpriteDrawMode mode, Vector2 localCenter, Vector2 size, float rotation, Color color, int sortingOrder)
+        {
+            if (sprite == null)
             {
-                var blockRenderer = block.AddComponent<SpriteRenderer>();
-                blockRenderer.sprite = blockSprite;
-                blockRenderer.color = color;
-                blockRenderer.sortingOrder = sortingOrder;
-                blockRenderer.drawMode = SpriteDrawMode.Sliced;
-                blockRenderer.size = size;
+                return;
             }
 
-            if (solid)
+            var art = new GameObject(artName);
+            art.transform.SetParent(parent, false);
+            art.transform.localPosition = localCenter;
+            art.transform.localRotation = Quaternion.Euler(0f, 0f, rotation);
+            var artRenderer = art.AddComponent<SpriteRenderer>();
+            artRenderer.sprite = sprite;
+            artRenderer.color = color;
+            artRenderer.sortingOrder = sortingOrder;
+            artRenderer.drawMode = mode;
+            if (mode == SpriteDrawMode.Simple)
             {
-                var blockCollider = block.AddComponent<BoxCollider2D>();
-                blockCollider.size = size;
-                blockCollider.sharedMaterial = _config.ItemMaterial;
+                art.transform.localScale = new Vector3(size.x / sprite.bounds.size.x, size.y / sprite.bounds.size.y, 1f);
+            }
+            else
+            {
+                artRenderer.size = size;
             }
         }
 

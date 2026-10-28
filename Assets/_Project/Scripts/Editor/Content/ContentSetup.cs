@@ -20,6 +20,7 @@ namespace DesiMerge.Editor.Content
     public static class ContentSetup
     {
         private const string MainMenuSceneName = "MainMenu";
+        private const string DisplayFontPath = "Assets/_Project/Art/Fonts/LilitaOne-Regular.ttf";
 
         [MenuItem("Desi Merge/Setup/Create All Content")]
         public static void CreateAllContent()
@@ -27,10 +28,13 @@ namespace DesiMerge.Editor.Content
             FoundationSetup.CreateFoundationAssets();
             GameplaySetup.EnsureGameplayData();
             UiArtGenerator.EnsureAll();
+            GameArtGenerator.EnsureAll(overwrite: false);
+            ItemArtGenerator.EnsureAll(overwrite: false);
             AudioSynth.EnsureAll();
             EnsureTheme();
             EnsureAudioLibrary();
-            EnsureSparkleMaterial();
+            EnsureEffectMaterial(ContentPaths.SparkleMaterialPath, UiArtGenerator.SparklePath);
+            EnsureEffectMaterial(ContentPaths.RingMaterialPath, GameArtGenerator.RingPath);
             EnsureButtonPrefab();
             EnsureSettingsPanelPrefab();
             ProgressionContentBuilder.EnsureCatalogs();
@@ -75,6 +79,51 @@ namespace DesiMerge.Editor.Content
             CreateAllContent();
         }
 
+        [MenuItem("Desi Merge/Setup/Apply Visual Redesign (regenerates art, scenes and prefabs)")]
+        public static void ApplyVisualRedesign()
+        {
+            if (!Application.isBatchMode && !EditorUtility.DisplayDialog("Apply visual redesign?",
+                    "This regenerates the generated art, the UI theme values, the UI prefabs, MergeItem.prefab, MainMenu.unity and Gameplay.unity. " +
+                    "Gameplay data, saves, configs and audio are kept.", "Apply", "Cancel"))
+            {
+                return;
+            }
+
+            GameArtGenerator.EnsureAll(overwrite: true);
+            ItemArtGenerator.EnsureAll(overwrite: true);
+            EnsureTheme();
+            ApplyDesignSystem(LoadTheme());
+            AssetDatabase.SaveAssets();
+            RebuildGeneratedScenesAndPrefabs();
+        }
+
+        internal static void ApplyDesignSystem(UITheme theme)
+        {
+            theme.background = ArtCanvas.Hex("#FFF4DE");
+            theme.primary = ArtCanvas.Hex("#E0218A");
+            theme.secondary = ArtCanvas.Hex("#0E9F8A");
+            theme.accent = ArtCanvas.Hex("#FFB627");
+            theme.deep = ArtCanvas.Hex("#1B1F4B");
+            theme.danger = ArtCanvas.Hex("#FF5E57");
+            theme.textDark = ArtCanvas.Hex("#2A1A33");
+            theme.textLight = Color.white;
+            theme.overlay = new Color(0.07f, 0.05f, 0.14f, 0.7f);
+            theme.card = ArtCanvas.Hex("#FFF9EE");
+            theme.mutedText = ArtCanvas.Hex("#5C5473");
+            theme.panel = GameArtGenerator.Load(GameArtGenerator.PanelPath);
+            theme.button = GameArtGenerator.Load(GameArtGenerator.ButtonPath);
+            theme.pill = GameArtGenerator.Load(GameArtGenerator.PillPath);
+            theme.disc = GameArtGenerator.Load(GameArtGenerator.DiscPath);
+            theme.glow = GameArtGenerator.Load(GameArtGenerator.GlowPath);
+            theme.ornament = GameArtGenerator.Load(GameArtGenerator.OrnamentPath);
+            theme.borderStrip = GameArtGenerator.Load(GameArtGenerator.BorderStripPath);
+            theme.backgroundGradient = GameArtGenerator.Load(GameArtGenerator.BackgroundPath);
+            theme.pauseIcon = GameArtGenerator.Icon("Pause");
+            theme.font = AssetDatabase.LoadAssetAtPath<Font>(DisplayFontPath);
+            theme.bodyFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            EditorUtility.SetDirty(theme);
+        }
+
         internal static UITheme LoadTheme() => AssetDatabase.LoadAssetAtPath<UITheme>(ContentPaths.ThemePath);
 
         private static void EnsureTheme()
@@ -93,6 +142,7 @@ namespace DesiMerge.Editor.Content
             theme.circle = AssetDatabase.LoadAssetAtPath<Sprite>(GameplaySetup.CircleSpritePath);
             theme.pauseIcon = AssetDatabase.LoadAssetAtPath<Sprite>(UiArtGenerator.PauseIconPath);
             theme.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            ApplyDesignSystem(theme);
             AssetDatabase.CreateAsset(theme, ContentPaths.ThemePath);
         }
 
@@ -121,9 +171,9 @@ namespace DesiMerge.Editor.Content
             AssetDatabase.CreateAsset(library, ContentPaths.AudioLibraryPath);
         }
 
-        private static void EnsureSparkleMaterial()
+        private static void EnsureEffectMaterial(string materialPath, string texturePath)
         {
-            if (AssetDatabase.LoadAssetAtPath<Material>(ContentPaths.SparkleMaterialPath) != null)
+            if (AssetDatabase.LoadAssetAtPath<Material>(materialPath) != null)
             {
                 return;
             }
@@ -145,8 +195,8 @@ namespace DesiMerge.Editor.Content
             }
 
             ContentPaths.EnsureFolder("Assets/_Project/Art/Materials");
-            var material = new Material(shader) { mainTexture = AssetDatabase.LoadAssetAtPath<Texture2D>(UiArtGenerator.SparklePath) };
-            AssetDatabase.CreateAsset(material, ContentPaths.SparkleMaterialPath);
+            var material = new Material(shader) { mainTexture = AssetDatabase.LoadAssetAtPath<Texture2D>(texturePath) };
+            AssetDatabase.CreateAsset(material, materialPath);
         }
 
         private static void ConfigureGameConfig()
@@ -198,25 +248,32 @@ namespace DesiMerge.Editor.Content
             var root = UiFactory.Rect("ThemedButton", null);
             root.sizeDelta = new Vector2(600f, 160f);
             var image = root.gameObject.AddComponent<Image>();
-            image.sprite = theme.roundedPanel;
+            image.sprite = theme.button;
             image.type = Image.Type.Sliced;
             image.color = theme.primary;
             var shadow = root.gameObject.AddComponent<Shadow>();
-            shadow.effectColor = new Color(0f, 0f, 0f, 0.35f);
-            shadow.effectDistance = new Vector2(0f, -10f);
+            shadow.effectColor = new Color(theme.textDark.r, theme.textDark.g, theme.textDark.b, 0.22f);
+            shadow.effectDistance = new Vector2(0f, -8f);
 
-            var frame = factory.Image(root, "Frame", theme.paintedFrame, theme.accent);
-            UiFactory.Stretch(frame.rectTransform);
-            var label = factory.Text(root, "Label", "BUTTON", theme.buttonSize, theme.textLight, TextAnchor.MiddleCenter, outline: true);
-            UiFactory.Stretch(label.rectTransform, 20f, 20f, 10f, 10f);
+            var icon = factory.Image(root, "Icon", null, Color.white);
+            icon.preserveAspect = true;
+            UiFactory.Place(icon.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0f, theme.buttonLip * 0.5f), new Vector2(72f, 72f));
+            icon.gameObject.SetActive(false);
+            var label = factory.Text(root, "Label", "BUTTON", theme.buttonSize, theme.textLight);
+            var labelShadow = label.gameObject.AddComponent<Shadow>();
+            labelShadow.effectColor = new Color(theme.textDark.r, theme.textDark.g, theme.textDark.b, 0.35f);
+            labelShadow.effectDistance = new Vector2(0f, -4f);
+            UiFactory.Stretch(label.rectTransform, 20f, 20f, 6f, 6f + theme.buttonLip);
 
             var button = root.gameObject.AddComponent<Button>();
             button.targetGraphic = image;
             var colors = button.colors;
-            colors.pressedColor = new Color(0.85f, 0.85f, 0.85f);
-            colors.disabledColor = new Color(0.6f, 0.6f, 0.6f, 0.7f);
+            colors.highlightedColor = new Color(0.97f, 0.97f, 0.97f);
+            colors.pressedColor = new Color(0.84f, 0.84f, 0.84f);
+            colors.selectedColor = Color.white;
+            colors.disabledColor = new Color(0.62f, 0.62f, 0.68f, 0.8f);
             button.colors = colors;
-            root.gameObject.AddComponent<ButtonFeedback>();
+            EditorRefs.Set(root.gameObject.AddComponent<ButtonFeedback>(), ("pressedScale", theme.pressedScale));
 
             PrefabUtility.SaveAsPrefabAsset(root.gameObject, ContentPaths.ButtonPrefabPath);
             Object.DestroyImmediate(root.gameObject);
@@ -233,23 +290,24 @@ namespace DesiMerge.Editor.Content
             var theme = factory.Theme;
             var host = UiFactory.Rect("Host", null);
             host.sizeDelta = new Vector2(1080f, 1920f);
-            var (transition, card) = factory.Modal(host, "SettingsPanel", new Vector2(920f, 1000f), theme.deep);
+            var (transition, card) = factory.Modal(host, "SettingsPanel", new Vector2(920f, 980f), "SETTINGS");
 
-            var title = factory.Text(card, "Title", "Settings", theme.headingSize, theme.accent, TextAnchor.MiddleCenter, outline: true);
-            UiFactory.Place(title.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -50f), new Vector2(800f, 120f));
+            var musicIcon = factory.Image(card, "MusicIcon", GameArtGenerator.Icon("Music"), theme.primary);
+            UiFactory.Place(musicIcon.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(-370f, 205f), new Vector2(64f, 64f));
+            var musicLabel = factory.Text(card, "MusicLabel", "Music", theme.bodySize + 6, theme.textDark, TextAnchor.MiddleLeft);
+            UiFactory.Place(musicLabel.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(-30f, 205f), new Vector2(600f, 70f));
+            var musicSlider = factory.Slider(card, "MusicSlider", new Vector2(-120f, 110f), 540f);
+            var musicMute = factory.Toggle(card, "MusicMute", "Mute", new Vector2(300f, 110f));
 
-            var musicLabel = factory.Text(card, "MusicLabel", "Music", theme.bodySize + 6, theme.textLight, TextAnchor.MiddleLeft);
-            UiFactory.Place(musicLabel.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(-60f, 250f), new Vector2(680f, 70f));
-            var musicSlider = factory.Slider(card, "MusicSlider", new Vector2(-130f, 160f), 520f);
-            var musicMute = factory.Toggle(card, "MusicMute", "Mute", new Vector2(290f, 160f));
+            var sfxIcon = factory.Image(card, "SfxIcon", GameArtGenerator.Icon("Speaker"), theme.secondary);
+            UiFactory.Place(sfxIcon.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(-370f, -15f), new Vector2(64f, 64f));
+            var sfxLabel = factory.Text(card, "SfxLabel", "Sound Effects", theme.bodySize + 6, theme.textDark, TextAnchor.MiddleLeft);
+            UiFactory.Place(sfxLabel.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(-30f, -15f), new Vector2(600f, 70f));
+            var sfxSlider = factory.Slider(card, "SfxSlider", new Vector2(-120f, -110f), 540f);
+            var sfxMute = factory.Toggle(card, "SfxMute", "Mute", new Vector2(300f, -110f));
 
-            var sfxLabel = factory.Text(card, "SfxLabel", "Sound Effects", theme.bodySize + 6, theme.textLight, TextAnchor.MiddleLeft);
-            UiFactory.Place(sfxLabel.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(-60f, 30f), new Vector2(680f, 70f));
-            var sfxSlider = factory.Slider(card, "SfxSlider", new Vector2(-130f, -60f), 520f);
-            var sfxMute = factory.Toggle(card, "SfxMute", "Mute", new Vector2(290f, -60f));
-
-            var close = factory.Button(card, "CloseButton", "DONE", theme.primary, new Vector2(560f, 160f));
-            UiFactory.Place((RectTransform)close.transform, new Vector2(0.5f, 0f), new Vector2(0f, 80f), new Vector2(560f, 160f));
+            var close = factory.Button(card, "CloseButton", "DONE", theme.primary, new Vector2(520f, 150f), icon: GameArtGenerator.Icon("Check"));
+            UiFactory.Place((RectTransform)close.transform, new Vector2(0.5f, 0f), new Vector2(0f, 70f), new Vector2(520f, 150f));
             UiFactory.Record(close.transform);
 
             var panel = transition.gameObject.AddComponent<SettingsPanel>();

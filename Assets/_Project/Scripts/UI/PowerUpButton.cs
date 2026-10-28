@@ -13,6 +13,8 @@ namespace DesiMerge.UI
         [SerializeField] private Text titleText;
         [SerializeField] private Text countText;
         [SerializeField] private GameObject selectedHighlight;
+        [SerializeField] private CanvasGroup contentGroup;
+        [SerializeField, Range(0f, 1f)] private float unavailableAlpha = 0.5f;
 
         public event Action<string> Clicked;
 
@@ -20,6 +22,7 @@ namespace DesiMerge.UI
         public bool Interactable => button != null && button.interactable;
         public string CountText => countText != null ? countText.text : string.Empty;
         public bool ShowsSelected => selectedHighlight != null && selectedHighlight.activeSelf;
+        public bool ShowsUnavailable => contentGroup != null && contentGroup.alpha < 1f;
 
         private void Awake()
         {
@@ -59,6 +62,11 @@ namespace DesiMerge.UI
             if (selectedHighlight != null)
             {
                 selectedHighlight.SetActive(state.Selected);
+            }
+
+            if (contentGroup != null)
+            {
+                contentGroup.alpha = state.Interactable || state.Selected ? 1f : unavailableAlpha;
             }
         }
 

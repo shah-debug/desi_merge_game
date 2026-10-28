@@ -14,8 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: DesiMerge.Runtime::DesiMerge.Configuration.MergeItemDefinition
   id: chai
   displayName: Chai
-  sprite: {fileID: 21300000, guid: 848910c4dd4af6243a85f3300469f9ee, type: 3}
+  sprite: {fileID: 21300000, guid: e27afcd5a9b30b94494082d87c16f7ff, type: 3}
   tint: {r: 0.55, g: 0.36, b: 0.24, a: 1}
+  tintSprite: 0
   radius: 1
   mass: 2.5
   scoreValue: 28
