@@ -78,6 +78,12 @@ namespace DesiMerge.Gameplay
             return merges;
         }
 
+        /// <summary>Drops pending contacts involving an item removed outside a merge (Hammer), so a reused pooled object can't inherit them.</summary>
+        public void Forget(T item)
+        {
+            _pending.RemoveAll(pair => ReferenceEquals(pair.First, item) || ReferenceEquals(pair.Second, item));
+        }
+
         public void Clear()
         {
             _pending.Clear();

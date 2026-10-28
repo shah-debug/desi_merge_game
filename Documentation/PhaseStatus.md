@@ -5,8 +5,142 @@
 | 1 — Foundation | Structure, service interfaces, persistence, tests, docs, build check | Complete (approved, committed `eb25fdb`) |
 | 2 — Core gameplay | Drop/merge loop, physics, scoring, game over, test HUD | Complete (committed `3216c75`) |
 | 3 — UI, art, animation, audio | Main menu, HUD, pause/game over, settings, feedback, audio | Complete (committed `24b863f`) |
-| 4 — Persistence & progression | Robust saves, stats, collection, daily challenges, streaks, achievements | **Complete — awaiting review** |
-| 5 | Not defined yet | Not started |
+| 4 — Persistence & progression | Robust saves, stats, collection, daily challenges, streaks, achievements | Complete (committed `f93f0bd`) |
+| 5 — Power-ups, rewarded ads, monetization foundation | Hammer, Shuffle, rewarded-ad revive, ad boundary, cosmetics foundation | Complete (not yet committed) |
+| 6 — QA hardening & RC validation | Audit, bug fixes, tests, builds, measurements | **Complete — awaiting review** (see `Phase6-QA-Report.md`) |
+| 7 | Not defined yet | Not started |
+
+## Phase 6 — QA Hardening and Release-Candidate Validation (2026-10-28)
+
+Full report: [`Phase6-QA-Report.md`](Phase6-QA-Report.md).
+
+- Fixed: phantom merge of reused pool objects in one physics step (High, regression test); landscape auto-rotation on a
+  portrait game (High); Android back button (Medium); auto-pause when the app is backgrounded (Medium); template
+  SampleScene removed from the build (Low); Windows test window 540×960.
+- Tests (final runs): EditMode **174/174**, PlayMode **98/98**, 0 skipped, 0 project warnings.
+- Builds: Android release-config APK **succeeded** (IL2CPP ARM64, 31.7 MB, debug-signed); Windows 64-bit **succeeded**;
+  Windows release player booted headless without errors. **No Android device test.**
+- Release blockers: application ID/company name, release keystore/AAB, device validation (and ad SDK + consent if ads ship).
+- Verdict: technical RC for internal device testing; **not ready for store release**.
+
+### Build commands (Unity Editor closed; run from the project folder in PowerShell)
+
+```powershell
+# Android release configuration → Builds\Android\DesiMerge-rc-unsigned-test.apk
+& "C:\Program Files\Unity\Hub\Editor\6000.6.7f1\Editor\Unity.exe" -batchmode -quit -projectPath "C:\Users\HP\DesiMerge" -buildTarget Android -executeMethod DesiMerge.Editor.BuildCommands.BuildAndroidReleaseConfig -logFile build-android.log
+
+# Android development (simulated ads) → Builds\Android\DesiMerge-dev.apk
+& "C:\Program Files\Unity\Hub\Editor\6000.6.7f1\Editor\Unity.exe" -batchmode -quit -projectPath "C:\Users\HP\DesiMerge" -buildTarget Android -executeMethod DesiMerge.Editor.BuildCommands.BuildAndroidDevelopment -logFile build-android-dev.log
+
+# Windows 64-bit → Builds\Windows\DesiMerge.exe
+& "C:\Program Files\Unity\Hub\Editor\6000.6.7f1\Editor\Unity.exe" -batchmode -quit -projectPath "C:\Users\HP\DesiMerge" -buildTarget Win64 -executeMethod DesiMerge.Editor.BuildCommands.BuildWindows -logFile build-windows.log
+```
+
+A build is a snapshot: rebuild after code changes before handing it to testers. `Builds/` is git-ignored.
+
+## Phase 5 — Power-ups, Rewarded Ads and Monetization (2026-10-28)
+
+### Audit (before editing)
+
+- Git: clean working tree at `f93f0bd` (Phase 4 committed). Unity Editor closed, so batch mode used the real project.
+- Phase 4 verified as present (services, saves, catalogs, UI) and its tests passed again in this phase's runs.
+- Existing monetization (Phase 1): `IRewardedAdService` (`IsReady`, `Show(callback)`), `RewardedPlacement`
+  (`ContinueAfterGameOver`, `DoubleCoins`), `RewardedAdResult`, `SimulatedRewardedAdService` (dev builds) and
+  `UnavailableRewardedAdService` (release). Nothing used them yet. **No ad SDK** in `Packages/manifest.json` or Assets.
+- Economy: a dormant `coins` balance exists (Phase 1) but nothing earns or spends coins; no shop or currency design.
+  Therefore no currency was introduced; power-ups use per-game free uses plus saved charges from daily rewards.
+- Game over was final (`EndGame` counts the game, saves, shows the panel); the board had no way to remove one item
+  or reposition items; there was no snapshot/command history for Undo.
+
+### Implemented
+
+| Feature | Status |
+|---|---|
+| **Hammer** | Implemented. Select → tap an item → exactly that item is removed. Cancel / press again / pause / game over cancel without cost. No score, not a merge. |
+| **Shuffle** | Implemented as a **restricted, documented version**: items are re-stacked into non-overlapping shelves inside the walls (largest first, random within a shelf), velocities cleared. Refused with "Not enough room to shuffle" (nothing moves, nothing used) if the stack would come within 0.4 units of the danger line. |
+| **Undo** | **Deferred, disabled (no button).** A reliable rollback would have to restore positions, rotations, velocities, levels, score, merge count, the spawn queue *and* long-term statistics, discoveries, achievements, daily progress and saved files that each merge already updated. That is too large to do safely in this phase. |
+| Usage limits | Per power-up in `PowerUps.asset`: `freeUsesPerGame` (Hammer 1, Shuffle 1; reset at every new game or restart, not saved; a revive keeps what's left) and `maxSavedCharges` (9). |
+| Saved charges / rewards | Shipped daily challenges now reward 1–2 Hammer/Shuffle charges (Claim button). Grants are idempotent (stable grant IDs) and saved before the claim, so an interrupted claim never loses or duplicates a reward. Achievements still give no reward. No coins, no currency. |
+| Rewarded-ad abstraction | `IRewardedAdService` gained `IsSupported`; results gained `NoFill`, `LoadFailed`, `NetworkUnavailable`. New `RewardedAdCoordinator` (`GameServices.Ads`): one request at a time, first callback wins, duplicates/late callbacks ignored, provider exceptions → Failed, abandon on restart/menu/unload. Gameplay and UI never call the provider. |
+| **Real ad provider** | **Not integrated.** Release builds use `UnavailableRewardedAdService` (Continue is hidden). Development/Editor builds use `SimulatedRewardedAdService` (instant result; it is not a real ad). |
+| Game-over revive | Continue (AD) on the game-over panel, with Loading / no-ad / cancelled / failed / offline messages; Restart and Main Menu always available. One revive per game (`maxRevivesPerGame`). Granted only on `Completed`. Safe state: items whose top is within 3 units of the danger line are removed, the rest get a fresh grace period; score, merges and stats kept; the game is counted once (`SubmitRevivedFinalScore` only updates the best). |
+| Optional placements | Only the revive. No interstitials, banners, automatic or per-scene ad requests. `DoubleCoins` stays unused. |
+| Cosmetics | **Foundation only**: data-driven definitions, ownership separate from selection, achievement unlocks, validation, `cosmetics.json` save. No catalog asset shipped, no shop UI, nothing visual reads the selection yet. No purchases or paid currency. |
+
+### Files
+
+- New runtime: `Scripts/Monetization/RewardedAdCoordinator.cs`; `Scripts/PowerUps/{PowerUpDefinition,PowerUpCatalog,PowerUpService}.cs`;
+  `Scripts/Cosmetics/{CosmeticDefinition,CosmeticCatalog,CosmeticService}.cs`;
+  `Scripts/Gameplay/{PowerUpController,ShufflePlanner,GameplayViewStates}.cs`; `Scripts/UI/PowerUpButton.cs`.
+- Changed runtime: `Monetization/{IRewardedAdService,RewardedAdTypes,SimulatedRewardedAdService,UnavailableRewardedAdService}.cs`,
+  `Core/{GameServices,GameServicesFactory}.cs`, `Configuration/{GameConfig,GameplayConfig}.cs`,
+  `Gameplay/{GameplayLoop,IGameplayView,GameSession,MergeBoard,MergeItem,MergeResolver,DropController}.cs`,
+  `Progression/{Rewards,AchievementService,DailyChallengeService,IPlayerProgressService,PlayerProgressService}.cs`,
+  `Persistence/SaveKey.cs`, `Analytics/AnalyticsEvents.cs`, `UI/{GameplayHud,DailyChallengeCard,MainMenuEntryPoint}.cs`.
+- Editor: new `Editor/Content/PowerUpContentBuilder.cs`; changed `ContentPaths`, `ContentSetup`, `GameplaySceneBuilder`,
+  `ProgressionContentBuilder` (comment only).
+- Assets: new `ScriptableObjects/Progression/PowerUps.asset`; changed `DailyChallenges.asset` (rewards),
+  `GameConfig.asset` (`powerUps` reference); regenerated `Gameplay.unity` (power-up bar, Hammer banner, Continue
+  button, taller game-over card), `MainMenu.unity` and the UI prefabs (rebuild; no intended changes there).
+- Tests: new `EditMode/PowerUpAndAdTests.cs`, `PlayMode/PowerUpAndReviveTests.cs`; changed `PlayMode/GameplayTestRig.cs`
+  (power-up catalog, `FakeAdProvider`, view fakes), `PlayMode/SceneFlowTests.cs`.
+- Docs: this report, `Architecture.md` (Phase 5 section), `TestingStrategy.md` (Phase 5 coverage),
+  `Screenshots/phase5-*.png`.
+- **Dependencies: none added.** `Packages/manifest.json` unchanged.
+
+### Save files added
+
+`power_ups.json` (v1: saved charges per power-up ID + recently applied grant IDs) and `cosmetics.json` (v1). Same
+repository rules as Phase 4 (backup, corrupt copy kept, no write at load, never throws). Existing saves need no
+migration; the new fields in `RewardDefinition` default to empty.
+
+### SDK, consent and policy (for when a real provider is added)
+
+Not done in this phase, and **no compliance is claimed**. Before serving real ads: pick an SDK and follow its current
+official Unity integration guide; implement `IRewardedAdService` in one class (report `Completed` only from the SDK's
+verified reward callback, map no-fill/load/show/network errors to the matching results, call back on the main thread);
+obtain consent where required (e.g. a UMP/CMP flow for GDPR/UK users) before requesting ads; complete Google Play's
+Data safety form and Families/target-audience declarations, and configure child-directed / under-age treatment if
+the audience includes children; consider server-side reward verification. Then switch `GameServicesFactory` to it.
+
+### Verification actually run (real project, batch mode)
+
+| Check | Result |
+|---|---|
+| Compile | 0 errors, 0 warnings from project code |
+| Content rebuild (`ContentSetup.RebuildGeneratedScenesAndPrefabs`) | Exit 0; PowerUps.asset created, daily rewards set, GameConfig wired |
+| EditMode | **172 / 172 passed** (139 existing + 33 new) |
+| PlayMode | **92 / 92 passed** (70 existing + 22 new), 0 skipped; the scene flow test ran (not ignored) |
+| Screenshots | Hammer selection (9:16), game over with Continue (9:16, 3:4), gameplay with power-up bar (3:4) reviewed; saved as `Documentation/Screenshots/phase5-*.png` |
+| Live ads / real reward callbacks | **Not verified (no SDK integrated)** |
+| Android build / device | **Not run** |
+
+### Known limitations
+
+- Shuffle can refuse on a crowded board (shelf packing is less dense than a settled pile), which is exactly when it
+  is most wanted. Refusal costs nothing.
+- Hammer has no extra "are you sure?" dialog; choosing a target is the confirmation and Cancel is always shown.
+- Free uses are per game: restarting (which clears the board) gives them back.
+- If a real ad provider never calls back, Continue stays on "Loading ad..." until the player taps Restart or Main
+  Menu (both always work); there is no timeout.
+- Merges made during the revived part of a game count as usual; items removed by a revive or Hammer are simply gone.
+- On 3:4 tablets the toast (not scaled, as in Phase 4) briefly overlaps the drop-preview area; it never takes input.
+- `DoubleCoins` placement and the coin balance remain unused. Cosmetics have no UI and no shipped content.
+- The menu's save-recovery notice reports only the main progress file, not `power_ups.json`/`cosmetics.json`.
+
+### Manual test instructions
+
+1. Open `Bootstrap.unity` → Play (Editor = development build → simulated ads).
+2. Drop a few items. Tap **HAMMER** (badge shows uses left): the banner appears; tap an item: it disappears and the
+   badge drops to 0. Try again with 0: "No uses left this game". Tap Hammer, then **CANCEL**: nothing is used.
+3. Tap **SHUFFLE**: items re-stack in rows; nothing pokes out of the walls. Fill the jar and try again: "Not enough room".
+4. Let the jar overflow → Game Over shows **CONTINUE (AD)**. Tap it: the simulated provider completes at once, the top
+   of the jar is cleared and play resumes with the same score. Overflow again: no Continue the second time.
+5. To see release behaviour, turn off `GameConfig > Simulate Rewarded Ads`: no Continue button at all, Restart works.
+   (Cancel/failure/offline messages are covered by the automated tests; there is no in-game switch for them.)
+6. Main menu: today's challenge shows its reward ("Reward: +1 Hammer"); complete it and press **CLAIM**; the next
+   game's Hammer badge shows 2 (1 free + 1 saved).
+7. Saves: `%USERPROFILE%\AppData\LocalLow\DefaultCompany\DesiMerge\saves\power_ups.json`.
 
 ## Phase 4 — Persistence, Collection, Daily Challenges and Progression (2026-10-27)
 

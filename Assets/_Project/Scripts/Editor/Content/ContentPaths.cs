@@ -17,6 +17,7 @@ namespace DesiMerge.Editor.Content
         public const string ProgressionFolder = "Assets/_Project/ScriptableObjects/Progression";
         public const string AchievementsPath = ProgressionFolder + "/Achievements.asset";
         public const string DailyChallengesPath = ProgressionFolder + "/DailyChallenges.asset";
+        public const string PowerUpsPath = ProgressionFolder + "/PowerUps.asset";
         public const string MergeProgressionPath = "Assets/_Project/ScriptableObjects/MergeProgression.asset";
         public const string ItemPrefabPath = "Assets/_Project/Prefabs/MergeItem.prefab";
         public const string ThemePath = "Assets/_Project/Settings/UI/UITheme.asset";

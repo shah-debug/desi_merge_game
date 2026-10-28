@@ -4,18 +4,21 @@ using DesiMerge.Analytics;
 using DesiMerge.Audio;
 using DesiMerge.Configuration;
 using DesiMerge.Core;
+using DesiMerge.Monetization;
 using UnityEngine;
 
 namespace DesiMerge.Gameplay
 {
     /// <summary>
     /// Orchestrates one gameplay scene: turns drop requests into spawns, board events into score and feedback,
-    /// the danger signal into a single game over, and handles pause, resume, restart and leaving to the menu.
+    /// the danger signal into a single game over, and handles pause, resume, restart, leaving to the menu,
+    /// power-ups (effects live in <see cref="PowerUpController"/>) and the rewarded-ad revive.
     /// Plain C# so its lifetime and subscriptions are explicit. Created and disposed by <see cref="GameplayEntryPoint"/>.
     /// </summary>
     public sealed class GameplayLoop : IDisposable
     {
         private const float MergePitchStep = 0.06f;
+        private const string HammerHint = "Tap an item to smash it";
 
         private readonly GameplayConfig _config;
         private readonly MergeProgression _progression;
@@ -25,10 +28,14 @@ namespace DesiMerge.Gameplay
         private readonly GameServices _services;
         private readonly Func<float> _clock;
         private readonly Action<float> _setTimeScale;
+        private readonly List<PowerUpButtonState> _powerUpStates = new List<PowerUpButtonState>();
         private float _nextDropAllowedAt;
         private bool _hasDroppedThisSession;
         private bool _leaving;
         private bool _disposed;
+        private bool _revivePending;
+        /// <summary>Changes on every new session, so a late ad callback can't revive a different game.</summary>
+        private int _sessionGeneration;
 
         /// <param name="setTimeScale">Applies Time.timeScale; injectable for tests. Defaults to the real one.</param>
         public GameplayLoop(GameplayConfig config, MergeBoard board, DropController drop, IGameplayView view, GameServices services,
@@ -45,42 +52,59 @@ namespace DesiMerge.Gameplay
 
             Session = new GameSession();
             Queue = new SpawnQueue(_progression.SpawnableLevelCount, config.SpawnSeed);
+            PowerUps = new PowerUpController(config, board, services.PowerUps,
+                new System.Random(config.SpawnSeed != 0 ? config.SpawnSeed : Environment.TickCount));
 
             Session.ScoreChanged += _view.SetScore;
             _board.ItemMerged += OnItemMerged;
             _board.FinalLevelCleared += OnFinalLevelCleared;
             _board.DangerTimeExceeded += OnDangerTimeExceeded;
             _drop.DropRequested += OnDropRequested;
+            _drop.TargetRequested += OnTargetRequested;
             _drop.PointerFilter = _view.BlocksPointer;
             _services.Progress.ItemDiscovered += OnItemDiscovered;
             _services.Achievements.Unlocked += OnAchievementUnlocked;
             _services.DailyChallenges.Completed += OnDailyChallengeCompleted;
+            _services.PowerUps.Changed += RefreshPowerUps;
             _view.RestartRequested += OnRestartRequested;
             _view.PauseRequested += OnPauseRequested;
             _view.ResumeRequested += OnResumeRequested;
             _view.MainMenuRequested += OnMainMenuRequested;
+            _view.PowerUpRequested += OnPowerUpRequested;
+            _view.PowerUpCancelRequested += OnPowerUpCancelRequested;
+            _view.ReviveRequested += OnReviveRequested;
         }
 
         public GameSession Session { get; }
         public SpawnQueue Queue { get; }
+        public PowerUpController PowerUps { get; }
         public bool IsPaused => _services.GameState.Current == GameState.Paused;
         public bool IsLeaving => _leaving;
+        public bool IsRevivePending => _revivePending;
+
+        /// <summary>Power-ups only work during active play: not paused, over, leaving or waiting for an ad.</summary>
+        public bool CanUsePowerUps => !_leaving && !_revivePending && !Session.IsOver && _services.GameState.Current == GameState.Playing;
 
         /// <summary>Starts a session (first start and every restart).</summary>
         public void Begin()
         {
+            _sessionGeneration++;
             EnterPlayingState();
             _setTimeScale(1f);
             _nextDropAllowedAt = _clock();
             _hasDroppedThisSession = false;
             _view.HidePause();
             _view.HideGameOver();
+            _view.SetReviveOffer(ReviveOfferState.Hidden);
             _view.SetScore(Session.Score);
             _view.SetBestScore(_services.Progress.HighScore);
             _view.SetNextItem(_progression.Get(Queue.Next));
             _view.SetInstructionsVisible(true);
             _drop.InputEnabled = true;
             _drop.ShowPreview(_progression.Get(Queue.Current));
+            // Free power-up uses reset with every new game (saved charges don't).
+            _services.PowerUps.BeginGame();
+            RefreshPowerUps();
             _services.Audio.PlayMusic(MusicTrack.Gameplay);
             _services.Analytics.TrackEvent(AnalyticsEvents.GameStarted);
         }
@@ -89,7 +113,7 @@ namespace DesiMerge.Gameplay
         public bool TryDrop(float localX)
         {
             var now = _clock();
-            if (_leaving || !DropRules.CanDrop(Session.IsOver, _services.GameState.Current, now, _nextDropAllowedAt))
+            if (_leaving || PowerUps.IsTargeting || !DropRules.CanDrop(Session.IsOver, _services.GameState.Current, now, _nextDropAllowedAt))
             {
                 return false;
             }
@@ -120,10 +144,12 @@ namespace DesiMerge.Gameplay
                 return false;
             }
 
+            ExitTargeting(restoreInput: false);
             _setTimeScale(0f);
             _drop.InputEnabled = false;
             _services.Audio.SetMusicPaused(true);
             _view.ShowPause();
+            RefreshPowerUps();
             return true;
         }
 
@@ -138,8 +164,95 @@ namespace DesiMerge.Gameplay
             _drop.InputEnabled = true;
             _services.Audio.SetMusicPaused(false);
             _view.HidePause();
+            RefreshPowerUps();
             return true;
         }
+
+        /// <summary>
+        /// Uses a power-up (Hammer starts target selection; pressing it again cancels). Returns what happened;
+        /// failures change nothing and cost nothing.
+        /// </summary>
+        public PowerUpResult UsePowerUp(string id)
+        {
+            var result = PowerUps.Activate(id, CanUsePowerUps);
+            switch (result)
+            {
+                case PowerUpResult.TargetingStarted:
+                    _drop.InputEnabled = false;
+                    _drop.TargetingEnabled = true;
+                    _drop.HidePreview();
+                    _view.SetTargeting(true, HammerHint);
+                    break;
+                case PowerUpResult.TargetingCancelled:
+                    ExitTargeting(restoreInput: true);
+                    break;
+                case PowerUpResult.Used:
+                    OnPowerUpUsed(id);
+                    break;
+                case PowerUpResult.NoCharges:
+                    _view.ShowToast("No uses left this game");
+                    break;
+                case PowerUpResult.NothingToTarget:
+                    _view.ShowToast("Nothing to use it on yet");
+                    break;
+                case PowerUpResult.NoRoom:
+                    _view.ShowToast("Not enough room to shuffle");
+                    break;
+            }
+
+            RefreshPowerUps();
+            return result;
+        }
+
+        /// <summary>Hammer: the player tapped a board-local point while selecting.</summary>
+        public PowerUpResult SelectPowerUpTarget(Vector2 boardLocalPoint)
+        {
+            var id = PowerUps.TargetingId;
+            var result = PowerUps.SelectTarget(boardLocalPoint, CanUsePowerUps);
+            if (result == PowerUpResult.Used)
+            {
+                ExitTargeting(restoreInput: true);
+                OnPowerUpUsed(id);
+                RefreshPowerUps();
+            }
+
+            return result;
+        }
+
+        /// <summary>Leaves Hammer selection without using a charge.</summary>
+        public bool CancelPowerUp()
+        {
+            if (!PowerUps.IsTargeting)
+            {
+                return false;
+            }
+
+            ExitTargeting(restoreInput: CanUsePowerUps);
+            RefreshPowerUps();
+            return true;
+        }
+
+        /// <summary>
+        /// Android back button: cancels Hammer selection, otherwise toggles pause. Does nothing on the game-over panel
+        /// (the player chooses Continue, Restart or Main Menu) or while leaving. Returns true if it did something.
+        /// </summary>
+        public bool HandleBack()
+        {
+            if (_leaving || Session.IsOver)
+            {
+                return false;
+            }
+
+            if (PowerUps.IsTargeting)
+            {
+                return CancelPowerUp();
+            }
+
+            return IsPaused ? Resume() : Pause();
+        }
+
+        /// <summary>The app went to the background (home button, call, notification): pause so nothing happens unseen.</summary>
+        public bool HandleAppInterrupted() => !IsPaused && Pause();
 
         /// <summary>Ends the session once. Returns false if it was already over.</summary>
         public bool EndGame()
@@ -149,12 +262,14 @@ namespace DesiMerge.Gameplay
                 return false;
             }
 
+            ExitTargeting(restoreInput: false);
             _board.SetFrozen(true);
             _drop.InputEnabled = false;
             _drop.HidePreview();
 
             var progress = _services.Progress;
-            var isNewBest = progress.SubmitFinalScore(Session.Score);
+            // A revived game was already counted at its first game over; only its best score can still change.
+            var isNewBest = Session.RevivesUsed > 0 ? progress.SubmitRevivedFinalScore(Session.Score) : progress.SubmitFinalScore(Session.Score);
             // Session completion is a save point for everything it touched: stats, achievements, daily challenge.
             _services.FlushAll();
 
@@ -162,11 +277,38 @@ namespace DesiMerge.Gameplay
             {
                 { "score", Session.Score },
                 { "merges", Session.MergeCount },
+                { "revived", Session.RevivesUsed > 0 },
             });
             _services.Audio.StopMusic();
             _services.Audio.PlaySfx(SfxCue.GameOver);
             _services.GameState.TryTransitionTo(GameState.GameOver);
             _view.ShowGameOver(Session.Score, progress.HighScore, isNewBest);
+            _view.SetReviveOffer(CurrentReviveOffer());
+            RefreshPowerUps();
+            return true;
+        }
+
+        /// <summary>
+        /// Game over → asks for a rewarded ad; the game continues only after the provider confirms the reward.
+        /// Returns false if no request was started (not game over, revive used, already waiting, or no ad ready).
+        /// </summary>
+        public bool TryRevive()
+        {
+            if (_leaving || _revivePending || !Session.IsOver || !ReviveAllowed())
+            {
+                return false;
+            }
+
+            var generation = _sessionGeneration;
+            _revivePending = true;
+            _view.SetReviveOffer(ReviveOfferState.Loading);
+            if (!_services.Ads.TryShow(RewardedPlacement.ContinueAfterGameOver, result => OnReviveAdFinished(generation, result)))
+            {
+                _revivePending = false;
+                _view.SetReviveOffer(ReviveOfferState.NotReady);
+                return false;
+            }
+
             return true;
         }
 
@@ -178,6 +320,8 @@ namespace DesiMerge.Gameplay
                 return false;
             }
 
+            ExitTargeting(restoreInput: false);
+            AbandonRevive();
             _board.Clear();
             Session.Restart();
             Queue.Reset(_config.SpawnSeed);
@@ -197,6 +341,8 @@ namespace DesiMerge.Gameplay
             }
 
             _leaving = true;
+            ExitTargeting(restoreInput: false);
+            AbandonRevive();
             _setTimeScale(1f);
             _drop.InputEnabled = false;
             _board.SetFrozen(true);
@@ -208,6 +354,7 @@ namespace DesiMerge.Gameplay
                 Debug.LogWarning("[Gameplay] Main menu could not be loaded.");
             }
 
+            RefreshPowerUps();
             return true;
         }
 
@@ -226,17 +373,26 @@ namespace DesiMerge.Gameplay
             _board.FinalLevelCleared -= OnFinalLevelCleared;
             _board.DangerTimeExceeded -= OnDangerTimeExceeded;
             _drop.DropRequested -= OnDropRequested;
+            _drop.TargetRequested -= OnTargetRequested;
+            _drop.TargetingEnabled = false;
             _drop.PointerFilter = null;
             _view.RestartRequested -= OnRestartRequested;
             _view.PauseRequested -= OnPauseRequested;
             _view.ResumeRequested -= OnResumeRequested;
             _view.MainMenuRequested -= OnMainMenuRequested;
+            _view.PowerUpRequested -= OnPowerUpRequested;
+            _view.PowerUpCancelRequested -= OnPowerUpCancelRequested;
+            _view.ReviveRequested -= OnReviveRequested;
             _services.Progress.ItemDiscovered -= OnItemDiscovered;
             _services.Achievements.Unlocked -= OnAchievementUnlocked;
             _services.DailyChallenges.Completed -= OnDailyChallengeCompleted;
+            _services.PowerUps.Changed -= RefreshPowerUps;
+            AbandonRevive();
         }
 
         private void OnDropRequested(float localX) => TryDrop(localX);
+
+        private void OnTargetRequested(Vector2 boardLocalPoint) => SelectPowerUpTarget(boardLocalPoint);
 
         private void OnRestartRequested() => Restart();
 
@@ -245,6 +401,12 @@ namespace DesiMerge.Gameplay
         private void OnResumeRequested() => Resume();
 
         private void OnMainMenuRequested() => ReturnToMainMenu();
+
+        private void OnPowerUpRequested(string id) => UsePowerUp(id);
+
+        private void OnPowerUpCancelRequested() => CancelPowerUp();
+
+        private void OnReviveRequested() => TryRevive();
 
         private void OnItemMerged(int resultLevel, Vector2 position)
         {
@@ -283,6 +445,135 @@ namespace DesiMerge.Gameplay
         private void OnAchievementUnlocked(DesiMerge.Progression.AchievementDefinition achievement) => _view.ShowToast($"Achievement: {achievement.title}");
 
         private void OnDailyChallengeCompleted(DesiMerge.Progression.DailyChallengeDefinition challenge) => _view.ShowToast("Daily challenge complete!");
+
+        private void OnPowerUpUsed(string id)
+        {
+            var definition = _services.PowerUps.Find(id);
+            _services.Audio.PlaySfx(SfxCue.Drop, 0.8f);
+            _services.Analytics.TrackEvent(AnalyticsEvents.PowerUpUsed, new Dictionary<string, object> { { "id", id } });
+            if (definition != null)
+            {
+                _view.ShowToast($"{definition.title}!");
+            }
+        }
+
+        private void ExitTargeting(bool restoreInput)
+        {
+            if (!PowerUps.CancelTargeting() && !_drop.TargetingEnabled)
+            {
+                return;
+            }
+
+            _drop.TargetingEnabled = false;
+            _view.SetTargeting(false, string.Empty);
+            if (restoreInput)
+            {
+                _drop.InputEnabled = true;
+                _drop.ShowPreview(_progression.Get(Queue.Current));
+            }
+        }
+
+        private void RefreshPowerUps()
+        {
+            if (_disposed)
+            {
+                return;
+            }
+
+            _powerUpStates.Clear();
+            var service = _services.PowerUps;
+            var canUse = CanUsePowerUps;
+            foreach (var definition in service.Definitions)
+            {
+                var available = service.Available(definition.id);
+                var selected = PowerUps.TargetingId == definition.id;
+                var interactable = selected || (canUse && !PowerUps.IsTargeting && available > 0);
+                _powerUpStates.Add(new PowerUpButtonState(definition.id, definition.title, available, interactable, selected));
+            }
+
+            _view.SetPowerUps(_powerUpStates);
+        }
+
+        private bool ReviveAllowed() => _services.Ads.IsSupported && Session.RevivesUsed < _config.MaxRevivesPerGame;
+
+        private ReviveOfferState CurrentReviveOffer()
+        {
+            if (!ReviveAllowed())
+            {
+                return ReviveOfferState.Hidden;
+            }
+
+            return _services.Ads.IsReady(RewardedPlacement.ContinueAfterGameOver) ? ReviveOfferState.Available : ReviveOfferState.NotReady;
+        }
+
+        private void OnReviveAdFinished(int generation, RewardedAdResult result)
+        {
+            // Only the request for this very game over may revive it. Anything else grants nothing.
+            if (_disposed || _leaving || generation != _sessionGeneration || !_revivePending || !Session.IsOver)
+            {
+                return;
+            }
+
+            _revivePending = false;
+            switch (result)
+            {
+                case RewardedAdResult.Completed:
+                    ApplyRevive();
+                    break;
+                case RewardedAdResult.Skipped:
+                    _view.SetReviveOffer(ReviveOfferState.Cancelled);
+                    break;
+                case RewardedAdResult.NetworkUnavailable:
+                    _view.SetReviveOffer(ReviveOfferState.Offline);
+                    break;
+                case RewardedAdResult.NotAvailable:
+                    _view.SetReviveOffer(ReviveOfferState.NotReady);
+                    break;
+                default:
+                    _view.SetReviveOffer(ReviveOfferState.Failed);
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// Safe revive state: items near the top are removed (see <see cref="MergeBoard.ClearForRevive"/>), the rest get a
+        /// fresh grace period, and play resumes with the same score and merges. The game stays counted once.
+        /// </summary>
+        private void ApplyRevive()
+        {
+            if (!Session.TryRevive())
+            {
+                return;
+            }
+
+            var now = _clock();
+            _board.ClearForRevive(_config.ReviveClearance, now);
+            _board.SetFrozen(false);
+            EnterPlayingState();
+            _setTimeScale(1f);
+            _nextDropAllowedAt = now;
+            _view.SetReviveOffer(ReviveOfferState.Hidden);
+            _view.HideGameOver();
+            _drop.InputEnabled = true;
+            _drop.ShowPreview(_progression.Get(Queue.Current));
+            _services.Audio.PlayMusic(MusicTrack.Gameplay);
+            _services.Analytics.TrackEvent(AnalyticsEvents.Revived);
+            _view.ShowToast("Revived! Keep going");
+            RefreshPowerUps();
+        }
+
+        /// <summary>Stops waiting for a revive ad (restart, menu, scene unload). Its result is ignored.</summary>
+        private void AbandonRevive()
+        {
+            if (!_revivePending)
+            {
+                return;
+            }
+
+            _revivePending = false;
+            _sessionGeneration++;
+            _services.Ads.Abandon();
+        }
 
         private void EnterPlayingState()
         {

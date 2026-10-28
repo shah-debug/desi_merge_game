@@ -41,8 +41,11 @@ namespace DesiMerge.Progression
         /// <summary>Raised once per recorded merge (created item is null for a final-level clear).</summary>
         event Action<MergeItemDefinition> MergeRecorded;
 
-        /// <summary>Raised once per recorded completed game, with its final score.</summary>
+        /// <summary>Raised once per recorded completed game, with its final score. Not raised again after a revive.</summary>
         event Action<long> GameCompleted;
+
+        /// <summary>Raised for every final score: the first game over and, after a revive, the game's later end.</summary>
+        event Action<long> FinalScoreRecorded;
 
         bool IsDiscovered(string itemId);
 
@@ -54,6 +57,12 @@ namespace DesiMerge.Progression
         /// Call exactly once per finished game. Returns true if the score is a new best.
         /// </summary>
         bool SubmitFinalScore(long score);
+
+        /// <summary>
+        /// A game already recorded with <see cref="SubmitFinalScore"/> was revived and has ended again: updates the
+        /// best score only. It is not counted as another game and doesn't change the streak. Returns true on a new best.
+        /// </summary>
+        bool SubmitRevivedFinalScore(long score);
 
         /// <summary>Records one merge. <paramref name="createdItem"/> is discovered if new; null for a final-level clear.</summary>
         void RecordMerge(MergeItemDefinition createdItem);

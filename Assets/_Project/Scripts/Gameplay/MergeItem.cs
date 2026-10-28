@@ -112,6 +112,24 @@ namespace DesiMerge.Gameplay
             IsConsumed = true;
         }
 
+        /// <summary>Moves the body to a new resting position (Shuffle). Velocity and spin are cleared.</summary>
+        internal void Teleport(Vector2 worldPosition)
+        {
+            transform.SetPositionAndRotation(worldPosition, Quaternion.identity);
+            body.position = worldPosition;
+            body.rotation = 0f;
+            body.linearVelocity = Vector2.zero;
+            body.angularVelocity = 0f;
+            AboveLineSince = GameOverRule.NotAbove;
+        }
+
+        /// <summary>Restarts the danger-line grace period, as if just spawned (after a revive).</summary>
+        internal void RestartGrace(float now)
+        {
+            SpawnTime = now;
+            AboveLineSince = GameOverRule.NotAbove;
+        }
+
         internal void SetFrozen(bool frozen)
         {
             body.simulated = !frozen;

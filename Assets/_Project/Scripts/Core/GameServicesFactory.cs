@@ -1,8 +1,10 @@
 using DesiMerge.Analytics;
 using DesiMerge.Audio;
 using DesiMerge.Configuration;
+using DesiMerge.Cosmetics;
 using DesiMerge.Monetization;
 using DesiMerge.Persistence;
+using DesiMerge.PowerUps;
 using DesiMerge.Progression;
 using DesiMerge.Settings;
 using UnityEngine;
@@ -35,7 +37,8 @@ namespace DesiMerge.Core
 
             var content = config.ItemProgression;
             var progress = new PlayerProgressService(saveStore, content, clock);
-            var rewards = new ProgressRewardGranter(progress);
+            var powerUps = new PowerUpService(saveStore, config.PowerUps);
+            var rewards = new ProgressRewardGranter(progress, powerUps);
             var achievements = new AchievementService(saveStore, config.Achievements, progress, content, rewards);
             var daily = new DailyChallengeService(saveStore, config.DailyChallenges, progress, content, clock, rewards);
 
@@ -50,6 +53,8 @@ namespace DesiMerge.Core
                 achievements,
                 daily,
                 clock,
+                powerUps,
+                new CosmeticService(saveStore, config.Cosmetics, achievements),
                 content);
         }
     }

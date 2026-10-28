@@ -58,6 +58,46 @@ namespace DesiMerge.Tests.EditMode
             Assert.IsInstanceOf<NullAnalyticsService>(services.Analytics);
         }
 
+        /// <summary>Phase 6: a config with no optional content (no items, catalogs, audio) still yields working, offline services.</summary>
+        [Test]
+        public void MissingOptionalContent_ServicesStillWork()
+        {
+            var store = new InMemorySaveStore();
+            var services = GameServicesFactory.Create(_config, store, isDevelopmentBuild: false);
+
+            Assert.AreEqual(0, services.PowerUps.Definitions.Count);
+            Assert.AreEqual(0, services.Achievements.Definitions.Count);
+            Assert.IsNull(services.DailyChallenges.Current);
+            Assert.IsFalse(services.Ads.IsSupported, "Release builds without an SDK never offer ads.");
+            Assert.IsFalse(services.Ads.TryShow(RewardedPlacement.ContinueAfterGameOver, _ => Assert.Fail("No callback expected.")));
+            Assert.AreEqual(0, services.PowerUps.Available("hammer"));
+            Assert.IsFalse(services.DailyChallenges.TryClaim());
+            services.Progress.SubmitFinalScore(50);
+            Assert.IsTrue(services.FlushAll());
+            Assert.IsTrue(store.TryRead(SaveKey.PlayerProgress, out _));
+            services.Dispose();
+        }
+
+        /// <summary>Phase 6: a failing disk never throws out of FlushAll; changes are kept and written once it works again.</summary>
+        [Test]
+        public void FlushAll_WriteFailureKeepsChangesForTheNextFlush()
+        {
+            var store = new InMemorySaveStore();
+            var services = GameServicesFactory.Create(_config, store, isDevelopmentBuild: false);
+            services.Progress.SubmitFinalScore(70);
+
+            store.FailWrites = true;
+            Assert.IsFalse(services.FlushAll());
+            Assert.IsFalse(store.TryRead(SaveKey.PlayerProgress, out _));
+
+            store.FailWrites = false;
+            Assert.IsTrue(services.FlushAll());
+            var reopened = GameServicesFactory.Create(_config, store, isDevelopmentBuild: false);
+            Assert.AreEqual(70, reopened.Progress.HighScore);
+            services.Dispose();
+            reopened.Dispose();
+        }
+
         [Test]
         public void DevelopmentBuild_RespectsConfigToggles()
         {

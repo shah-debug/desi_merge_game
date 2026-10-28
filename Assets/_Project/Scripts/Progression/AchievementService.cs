@@ -163,17 +163,21 @@ namespace DesiMerge.Progression
             {
                 foreach (var achievement in _definitions)
                 {
-                    if (_unlocked.Contains(achievement.id) || ProgressOf(achievement) < TargetOf(achievement))
+                    if (_unlocked.Contains(achievement.id))
+                    {
+                        // A reward that could not be applied when unlocked (e.g. charges at their maximum) is retried.
+                        TryGrantReward(achievement);
+                        continue;
+                    }
+
+                    if (ProgressOf(achievement) < TargetOf(achievement))
                     {
                         continue;
                     }
 
                     _unlocked.Add(achievement.id);
                     _dirty = true;
-                    if (achievement.reward.IsSomething && _rewarded.Add(achievement.id))
-                    {
-                        _rewards?.Grant(achievement.reward);
-                    }
+                    TryGrantReward(achievement);
 
                     if (notify)
                     {
@@ -186,6 +190,23 @@ namespace DesiMerge.Progression
                 _evaluating = false;
             }
         }
+
+        /// <summary>Applies an unlocked achievement's reward once; it is recorded as rewarded only if the grant succeeded.</summary>
+        private void TryGrantReward(AchievementDefinition achievement)
+        {
+            if (!achievement.reward.IsSomething || _rewarded.Contains(achievement.id) || _rewards == null)
+            {
+                return;
+            }
+
+            if (_rewards.Grant(GrantIdFor(achievement), achievement.reward))
+            {
+                _rewarded.Add(achievement.id);
+                _dirty = true;
+            }
+        }
+
+        internal static string GrantIdFor(AchievementDefinition achievement) => "achievement:" + achievement.id;
 
         private int CountUnlockedDefinitions()
         {

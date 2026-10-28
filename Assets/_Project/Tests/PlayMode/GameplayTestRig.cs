@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using DesiMerge.Analytics;
 using DesiMerge.Audio;
 using DesiMerge.Configuration;
+using DesiMerge.Cosmetics;
 using DesiMerge.Core;
 using DesiMerge.Gameplay;
 using DesiMerge.Monetization;
 using DesiMerge.Persistence;
+using DesiMerge.PowerUps;
 using DesiMerge.Progression;
 using DesiMerge.Settings;
 using UnityEngine;
@@ -80,8 +82,21 @@ namespace DesiMerge.Tests.PlayMode
                 new DailyChallengeDefinition { id = "daily_merges_2", title = "Merge twice", type = DailyChallengeType.MergesInDay, target = 2 },
             });
 
+            PowerUpCatalog = Track(ScriptableObject.CreateInstance<PowerUpCatalog>());
+            PowerUpCatalog.Set(new[]
+            {
+                new PowerUpDefinition { id = "hammer", title = "Hammer", kind = PowerUpKind.Hammer, freeUsesPerGame = 1, maxSavedCharges = 3 },
+                new PowerUpDefinition { id = "shuffle", title = "Shuffle", kind = PowerUpKind.Shuffle, freeUsesPerGame = 1, maxSavedCharges = 3 },
+            });
+            Config.SetPowerUpRules();
+
             Services = BuildServices();
         }
+
+        public PowerUpCatalog PowerUpCatalog { get; }
+
+        /// <summary>Scriptable ad provider used by every BuildServices(); tests decide when and how it calls back.</summary>
+        public FakeAdProvider Ads { get; } = new FakeAdProvider();
 
         public SilentAudioService Audio { get; private set; }
         public FakeNavigator Navigator { get; private set; }
@@ -95,18 +110,22 @@ namespace DesiMerge.Tests.PlayMode
             Audio = new SilentAudioService();
             Navigator = new FakeNavigator();
             var progress = new PlayerProgressService(Store, Progression, Clock);
-            var rewards = new ProgressRewardGranter(progress);
+            var powerUps = new PowerUpService(Store, PowerUpCatalog);
+            var rewards = new ProgressRewardGranter(progress, powerUps);
+            var achievements = new AchievementService(Store, Achievements, progress, Progression, rewards);
             return new GameServices(
                 new GameStateMachine(),
                 progress,
                 new SettingsService(Store, new SettingsData()),
                 Audio,
                 new NullAnalyticsService(),
-                new UnavailableRewardedAdService(),
+                Ads,
                 Navigator,
-                new AchievementService(Store, Achievements, progress, Progression, rewards),
+                achievements,
                 new DailyChallengeService(Store, DailyChallenges, progress, Progression, Clock, rewards),
                 Clock,
+                powerUps,
+                new CosmeticService(Store, null, achievements),
                 Progression);
         }
 
@@ -221,10 +240,71 @@ namespace DesiMerge.Tests.PlayMode
         public void ShowConfigurationError(string message) => ConfigurationError = message;
         public bool BlocksPointer(Vector2 screenPosition) => screenPosition.y > BlockAboveY;
 
+        public event Action<string> PowerUpRequested;
+        public event Action PowerUpCancelRequested;
+        public event Action ReviveRequested;
+
+        public readonly List<PowerUpButtonState> PowerUps = new List<PowerUpButtonState>();
+        public bool TargetingShown;
+        public ReviveOfferState ReviveOffer = ReviveOfferState.Hidden;
+        public readonly List<ReviveOfferState> ReviveOfferHistory = new List<ReviveOfferState>();
+
+        public void SetPowerUps(IReadOnlyList<PowerUpButtonState> states)
+        {
+            PowerUps.Clear();
+            PowerUps.AddRange(states);
+        }
+
+        public PowerUpButtonState PowerUp(string id) => PowerUps.Find(state => state.Id == id);
+
+        public void SetTargeting(bool active, string hint) => TargetingShown = active;
+
+        public void SetReviveOffer(ReviveOfferState state)
+        {
+            ReviveOffer = state;
+            ReviveOfferHistory.Add(state);
+        }
+
+        public void ClickPowerUp(string id) => PowerUpRequested?.Invoke(id);
+        public void ClickCancelPowerUp() => PowerUpCancelRequested?.Invoke();
+        public void ClickContinue() => ReviveRequested?.Invoke();
+
         public void ClickRestart() => RestartRequested?.Invoke();
         public void ClickPause() => PauseRequested?.Invoke();
         public void ClickResume() => ResumeRequested?.Invoke();
         public void ClickMainMenu() => MainMenuRequested?.Invoke();
+    }
+
+    /// <summary>
+    /// Deterministic ad provider: requests wait until the test calls <see cref="Finish"/>, which may be called
+    /// several times to imitate an SDK that reports the same result more than once.
+    /// </summary>
+    internal sealed class FakeAdProvider : IRewardedAdService
+    {
+        private readonly List<Action<RewardedAdResult>> _pending = new List<Action<RewardedAdResult>>();
+
+        public bool IsSupported { get; set; } = true;
+        public bool Ready { get; set; } = true;
+        public int ShowCalls { get; private set; }
+        public int PendingCount => _pending.Count;
+
+        public bool IsReady(RewardedPlacement placement) => Ready;
+
+        public void Show(RewardedPlacement placement, Action<RewardedAdResult> onComplete)
+        {
+            ShowCalls++;
+            _pending.Add(onComplete);
+        }
+
+        /// <summary>Reports a result for the most recent request; the callback is kept so it can be repeated.</summary>
+        public void Finish(RewardedAdResult result, int times = 1)
+        {
+            var callback = _pending[_pending.Count - 1];
+            for (var i = 0; i < times; i++)
+            {
+                callback(result);
+            }
+        }
     }
 
     internal sealed class FakeNavigator : ISceneNavigator

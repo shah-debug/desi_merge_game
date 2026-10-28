@@ -27,14 +27,25 @@ namespace DesiMerge.Gameplay
         private float _dropHeight;
         private float _previewRadius;
         private bool _pressArmed;
+        private bool _targetArmed;
+        private Vector2 _targetPoint;
         private WaitForSeconds _previewDelay;
         private Coroutine _pendingPreview;
 
         /// <summary>Raised with the board-local x when the player releases a press.</summary>
         public event Action<float> DropRequested;
 
+        /// <summary>Raised with the board-local point of a tap while <see cref="TargetingEnabled"/> (Hammer).</summary>
+        public event Action<Vector2> TargetRequested;
+
         /// <summary>When false, presses are ignored (game over, paused, configuration error).</summary>
         public bool InputEnabled { get; set; }
+
+        /// <summary>
+        /// While true, a tap selects a target instead of aiming or dropping (<see cref="TargetRequested"/>).
+        /// Set together with <see cref="InputEnabled"/> = false so no drop can happen meanwhile.
+        /// </summary>
+        public bool TargetingEnabled { get; set; }
 
         /// <summary>Returns true for screen positions owned by UI controls (set from the HUD).</summary>
         public Func<Vector2, bool> PointerFilter { get; set; }
@@ -139,6 +150,7 @@ namespace DesiMerge.Gameplay
             _pointAction.Disable();
             _pressAction.Disable();
             _pressArmed = false;
+            _targetArmed = false;
         }
 
         private void OnDestroy()
@@ -166,7 +178,16 @@ namespace DesiMerge.Gameplay
         /// </summary>
         internal void HandlePressStarted(Vector2 screenPosition)
         {
-            _pressArmed = InputEnabled && (PointerFilter == null || !PointerFilter(screenPosition));
+            var onHud = PointerFilter != null && PointerFilter(screenPosition);
+            if (TargetingEnabled)
+            {
+                _pressArmed = false;
+                _targetArmed = !onHud && TryScreenToBoard(screenPosition, out _targetPoint);
+                return;
+            }
+
+            _targetArmed = false;
+            _pressArmed = InputEnabled && !onHud;
             if (_pressArmed)
             {
                 AimAtScreen(screenPosition);
@@ -176,11 +197,30 @@ namespace DesiMerge.Gameplay
         internal void HandlePressReleased()
         {
             var armed = _pressArmed;
+            var targetArmed = _targetArmed;
             _pressArmed = false;
-            if (armed && InputEnabled)
+            _targetArmed = false;
+            if (targetArmed && TargetingEnabled)
+            {
+                TargetRequested?.Invoke(_targetPoint);
+            }
+            else if (armed && InputEnabled)
             {
                 DropRequested?.Invoke(AimX);
             }
+        }
+
+        private bool TryScreenToBoard(Vector2 screenPosition, out Vector2 boardPoint)
+        {
+            boardPoint = default;
+            if (worldCamera == null || _board == null)
+            {
+                return false;
+            }
+
+            var world = worldCamera.ScreenToWorldPoint(new Vector3(screenPosition.x, screenPosition.y, -worldCamera.transform.position.z));
+            boardPoint = _board.InverseTransformPoint(world);
+            return true;
         }
 
         private void AimAtScreen(Vector2 screenPosition)

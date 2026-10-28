@@ -36,6 +36,20 @@ namespace DesiMerge.Configuration
         [SerializeField] private FinalLevelMergeRule finalLevelRule = FinalLevelMergeRule.ClearBoth;
         [SerializeField, Min(0)] private int finalMergeBonus = 100;
 
+        [Header("Revive (rewarded ad)")]
+        [Tooltip("Revives allowed per game. 0 turns the revive offer off.")]
+        [SerializeField, Min(0)] private int maxRevivesPerGame = 1;
+        [Tooltip("On revive, every item whose top is within this distance of the danger line is removed.")]
+        [SerializeField, Min(0.5f)] private float reviveClearance = 3f;
+
+        [Header("Power-ups")]
+        [Tooltip("Shuffle only places items whose top stays at least this far below the danger line.")]
+        [SerializeField, Min(0f)] private float shuffleTopMargin = 0.4f;
+        [Tooltip("Space left between shuffled items and walls, so they never start overlapping.")]
+        [SerializeField, Min(0.01f)] private float shuffleGap = 0.04f;
+        [Tooltip("A tap counts as hitting an item if it is within the item's radius plus this tolerance.")]
+        [SerializeField, Min(0f)] private float hammerTapTolerance = 0.15f;
+
         [Header("Physics")]
         [SerializeField] private PhysicsMaterial2D itemMaterial;
         [SerializeField, Min(0f)] private float gravityScale = 1.5f;
@@ -54,6 +68,11 @@ namespace DesiMerge.Configuration
         public float SpawnGraceSeconds => spawnGraceSeconds;
         public FinalLevelMergeRule FinalLevelRule => finalLevelRule;
         public int FinalMergeBonus => finalMergeBonus;
+        public int MaxRevivesPerGame => maxRevivesPerGame;
+        public float ReviveClearance => reviveClearance;
+        public float ShuffleTopMargin => shuffleTopMargin;
+        public float ShuffleGap => shuffleGap;
+        public float HammerTapTolerance => hammerTapTolerance;
         public PhysicsMaterial2D ItemMaterial => itemMaterial;
         public float GravityScale => gravityScale;
         public float LinearDamping => linearDamping;
@@ -120,6 +139,16 @@ namespace DesiMerge.Configuration
             finalLevelRule = finalRule;
             finalMergeBonus = finalBonus;
             spawnSeed = seed;
+        }
+
+        /// <summary>Used by tests to author revive and power-up rules in code.</summary>
+        internal void SetPowerUpRules(int maxRevives = 1, float clearance = 3f, float topMargin = 0.4f, float gap = 0.04f, float tapTolerance = 0.15f)
+        {
+            maxRevivesPerGame = maxRevives;
+            reviveClearance = clearance;
+            shuffleTopMargin = topMargin;
+            shuffleGap = gap;
+            hammerTapTolerance = tapTolerance;
         }
     }
 }

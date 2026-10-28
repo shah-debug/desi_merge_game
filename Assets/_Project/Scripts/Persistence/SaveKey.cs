@@ -8,6 +8,8 @@ namespace DesiMerge.Persistence
         public const string Settings = "settings";
         public const string Achievements = "achievements";
         public const string DailyChallenge = "daily_challenge";
+        public const string PowerUps = "power_ups";
+        public const string Cosmetics = "cosmetics";
 
         public static void Validate(string key)
         {

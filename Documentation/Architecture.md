@@ -383,6 +383,74 @@ Main menu: today's challenge card (progress bar, status, day streak, Claim only 
 Awards, Settings, best score and a save-recovery notice. `CollectionPanel` and `AchievementsPanel` (prefabs) read
 services when opened; the card refreshes from the daily service's `Changed` event. None of them touch save files.
 
+## Power-ups, rewarded ads and cosmetics (Phase 5)
+
+### Layers
+
+| Concern | Where |
+|---|---|
+| Definitions and limits (data) | `PowerUpCatalog` asset (`ScriptableObjects/Progression/PowerUps.asset`) → `PowerUpDefinition` (stable `id`, `kind`, `freeUsesPerGame`, `maxSavedCharges`) |
+| Usage limits and saved charges | `IPowerUpService` / `PowerUpService` (app lifetime, in `GameServices.PowerUps`) |
+| Activation, validation, effects | `PowerUpController` (plain C#, owned by `GameplayLoop`) + board operations `MergeBoard.FindItemAt / TryRemove / TryShuffle`; shuffle layout is the pure `ShufflePlanner` |
+| Game-state gating | `GameplayLoop.CanUsePowerUps`: only while Playing — not paused, not game over, not leaving, not waiting for an ad |
+| Presentation | `IGameplayView.SetPowerUps / SetTargeting` → `GameplayHud` + `PowerUpButton`; input for Hammer targeting through `DropController.TargetingEnabled / TargetRequested` |
+| Rewarded ads | `IRewardedAdService` (provider boundary) → `RewardedAdCoordinator` (`GameServices.Ads`, the only entry point for gameplay/UI) |
+| Revive | `GameplayLoop.TryRevive` + `MergeBoard.ClearForRevive` + `GameSession.TryRevive`; rules in `GameplayConfig` (`maxRevivesPerGame`, `reviveClearance`) |
+| Cosmetics (foundation) | `CosmeticCatalog` / `ICosmeticService` (`GameServices.Cosmetics`); nothing reads the selection yet |
+
+### Power-up rules
+
+- **Hammer**: pressing it enters target selection (banner + Cancel, drops disabled, preview hidden). Tapping an item
+  removes exactly that item (closest centre within radius + `hammerTapTolerance`); a miss keeps waiting; pressing
+  Hammer again or Cancel leaves without cost. Pausing or game over cancels the selection. Removal is not a merge: no
+  score, no merge statistics; pending contacts involving the item are discarded (`MergeResolver.Forget`).
+- **Shuffle**: re-stacks every item into shelves inside the walls (largest first, random order within a shelf), with
+  `shuffleGap` between items and walls, velocities cleared. The plan is checked for overlap and bounds and must keep
+  every top at least `shuffleTopMargin` below the danger line; otherwise nothing moves and nothing is used ("Not enough
+  room to shuffle"). This is the documented *restricted* shuffle: it can refuse on a crowded board.
+- **Undo**: not implemented (see PhaseStatus.md). No button exists.
+- A charge is used only after the effect succeeded. Free uses (`freeUsesPerGame`) reset at every new game/restart and
+  are not saved; a revive keeps what is left. Saved charges come only from rewards and are used after free uses.
+
+### Rewards without an economy
+
+`IRewardGranter.Grant(grantId, reward)` applies a reward identified by a stable grant ID (`daily:<day>:<challengeId>`,
+`achievement:<id>`). `PowerUpService.TryGrant` records applied grant IDs (last 200) and writes immediately, **before**
+the caller records the claim, so an interrupted claim can be repeated without duplicating the reward and without losing
+it. A grant that can't be applied (unknown power-up, charges at maximum) returns false and the claim stays open.
+Shipped daily challenges give 1–2 Hammer/Shuffle charges; achievements give none. Coins remain unused.
+
+### Rewarded-ad flow
+
+```
+GameplayLoop.TryRevive ──► RewardedAdCoordinator.TryShow ──► IRewardedAdService.Show (SDK boundary)
+          ▲                       │ one request at a time;                      │
+          └── result once ◄───────┘ first callback wins, repeats ignored ◄──────┘
+```
+
+- `IsSupported == false` (release default `UnavailableRewardedAdService`) → the Continue offer is hidden entirely.
+- Supported but not ready → "No ad available right now" (the button stays tappable to re-check; no polling).
+- Only `RewardedAdResult.Completed` revives. `Skipped`, `Failed`, `NoFill`, `LoadFailed`, `NetworkUnavailable` and
+  `NotAvailable` grant nothing and show a message; the player may retry or Restart.
+- App pause/focus loss during an ad is normal: saves are flushed, the request stays in flight. Restart, Main Menu or
+  scene unload abandon the request; its late callback is ignored. A request is tied to its session (generation
+  counter), so a late reward can never revive a different game.
+- Development builds use `SimulatedRewardedAdService` (completes immediately; **not a real ad**).
+
+### Revive
+
+At most `maxRevivesPerGame` (default 1) per game. On a confirmed reward: every item whose top is above
+`dangerLine − reviveClearance` (default 3 units) is removed (no score, not a merge), the rest restart their grace
+period, the danger check is re-armed, physics and input resume, score and merge count are kept. The game was counted
+at its first game over (`SubmitFinalScore`); when the revived game ends again `SubmitRevivedFinalScore` updates only
+the best score (daily "score in one game" sees the higher score; games/streak are not counted twice).
+
+### Saves added
+
+`power_ups.json` (`PowerUpSaveData` v1: saved charges per ID, applied grant IDs) and `cosmetics.json`
+(`CosmeticSaveData` v1: owned IDs, selected per kind). Both use `JsonRepository` (backup, quarantine, no write at
+load) and are flushed by `GameServices.FlushAll` — power-ups first.
+
 ## Template content
 
 `Assets/Scenes/SampleScene.unity`, `Assets/Settings/*` (URP pipeline, 2D renderer, Input System actions, volume

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using DesiMerge.Configuration;
 using UnityEngine;
 
@@ -14,6 +15,15 @@ namespace DesiMerge.Gameplay
         event Action PauseRequested;
         event Action ResumeRequested;
         event Action MainMenuRequested;
+
+        /// <summary>A power-up button was pressed (also used to cancel Hammer selection by pressing it again).</summary>
+        event Action<string> PowerUpRequested;
+
+        /// <summary>The Cancel button of the Hammer selection banner was pressed.</summary>
+        event Action PowerUpCancelRequested;
+
+        /// <summary>Continue (watch a rewarded ad to revive) was pressed on the game-over panel.</summary>
+        event Action ReviveRequested;
 
         void SetScore(long score);
 
@@ -38,6 +48,14 @@ namespace DesiMerge.Gameplay
         void HideGameOver();
 
         void ShowConfigurationError(string message);
+
+        /// <summary>Power-up buttons, in display order. The list is reused by the caller; copy what you keep.</summary>
+        void SetPowerUps(IReadOnlyList<PowerUpButtonState> states);
+
+        /// <summary>Shows or hides the "tap an item" banner (with its Cancel button) while Hammer waits for a target.</summary>
+        void SetTargeting(bool active, string hint);
+
+        void SetReviveOffer(ReviveOfferState state);
 
         /// <summary>True if a press at this screen position is on HUD controls and must not aim or drop.</summary>
         bool BlocksPointer(Vector2 screenPosition);

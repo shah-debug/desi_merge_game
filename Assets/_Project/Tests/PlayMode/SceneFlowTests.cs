@@ -60,9 +60,10 @@ namespace DesiMerge.Tests.PlayMode
             yield return new WaitForSecondsRealtime(0.4f);
             Assert.IsTrue(menu.Settings.IsOpen);
             yield return SceneCapture.Capture(SceneManager.GetSceneByName(MenuScene), "menu-settings-9x16.png", 540, 960);
-            menu.Settings.Close();
+            Assert.IsTrue(menu.HandleBack(), "Android back closes the open panel.");
             yield return new WaitForSecondsRealtime(0.3f);
             Assert.IsFalse(menu.Settings.IsOpen);
+            Assert.IsFalse(menu.HandleBack(), "Nothing open: back is not consumed by a panel.");
 
             // --- Collection and Awards (seeded through the same service calls gameplay makes) ---
             var progress = menu.Services.Progress;
@@ -114,6 +115,24 @@ namespace DesiMerge.Tests.PlayMode
             yield return new WaitForSeconds(1.2f);
             yield return SceneCapture.CaptureAspectRatios(game.gameObject.scene, "gameplay");
 
+            // --- Power-up bar (Phase 5) ---
+            var hud = game.Hud;
+            Assert.AreEqual(2, hud.PowerUpButtons.Length);
+            Assert.AreEqual("hammer", hud.PowerUpButtons[0].PowerUpId);
+            Assert.AreEqual("shuffle", hud.PowerUpButtons[1].PowerUpId);
+            Assert.AreEqual("1", hud.PowerUpButtons[0].CountText);
+            Assert.IsTrue(hud.PowerUpButtons[0].Interactable);
+            hud.PowerUpButtons[0].GetComponentInChildren<Button>().onClick.Invoke();
+            Assert.IsTrue(game.Loop.PowerUps.IsTargeting);
+            Assert.IsTrue(hud.TargetingVisible);
+            Assert.IsTrue(hud.PowerUpButtons[0].ShowsSelected);
+            Assert.IsFalse(hud.PowerUpButtons[1].Interactable, "Only one power-up at a time.");
+            yield return new WaitForSecondsRealtime(0.3f);
+            yield return SceneCapture.Capture(game.gameObject.scene, "gameplay-hammer-9x16.png", 540, 960);
+            Assert.IsTrue(game.Loop.CancelPowerUp());
+            Assert.IsFalse(hud.TargetingVisible);
+            Assert.AreEqual("1", hud.PowerUpButtons[0].CountText, "Cancelling costs nothing.");
+
             // --- Pause / Resume ---
             Assert.IsTrue(game.Loop.Pause());
             Assert.AreEqual(0f, Time.timeScale);
@@ -124,6 +143,14 @@ namespace DesiMerge.Tests.PlayMode
             Assert.IsTrue(game.Loop.Resume());
             Assert.AreEqual(1f, Time.timeScale);
 
+            // --- App sent to the background (Unity sends OnApplicationPause) pauses play ---
+            game.SendMessage("OnApplicationPause", true);
+            Assert.IsTrue(game.Loop.IsPaused);
+            Assert.AreEqual(0f, Time.timeScale);
+            game.SendMessage("OnApplicationPause", false);
+            Assert.IsTrue(game.Loop.IsPaused, "Coming back shows the pause panel; the player resumes.");
+            Assert.IsTrue(game.Loop.Resume());
+
             // --- Game over shows the real final score ---
             var finalScore = game.Loop.Session.Score;
             Assert.IsTrue(game.Loop.EndGame());
@@ -131,6 +158,19 @@ namespace DesiMerge.Tests.PlayMode
             var finalScoreText = FindText(GameplayScene, "FinalScore");
             Assert.AreEqual(finalScore.ToString(), finalScoreText.text);
             yield return SceneCapture.CaptureAspectRatios(game.gameObject.scene, "gameplay-game-over");
+
+            // --- Revive (development build: simulated ad provider that completes at once; no real ad) ---
+            Assert.AreEqual(ReviveOfferState.Available, hud.ReviveOffer);
+            Assert.IsTrue(hud.ContinueInteractable);
+            FindButton(GameplayScene, "ContinueButton").onClick.Invoke();
+            Assert.IsFalse(game.Loop.Session.IsOver, "The simulated provider confirmed the reward.");
+            Assert.AreEqual(finalScore, game.Loop.Session.Score, "Score kept.");
+            Assert.IsFalse(hud.ContinueVisible);
+            yield return new WaitForSecondsRealtime(0.5f);
+            Assert.IsTrue(game.Loop.EndGame());
+            yield return new WaitForSecondsRealtime(0.6f);
+            Assert.AreEqual(ReviveOfferState.Hidden, hud.ReviveOffer, "One revive per game.");
+            Assert.AreEqual(game.Loop.Session.Score.ToString(), finalScoreText.text);
 
             // --- Main menu (double tap) ---
             LogAssert.Expect(LogType.Warning, new Regex(@"\[MainMenu\] Started without Bootstrap"));
@@ -148,6 +188,23 @@ namespace DesiMerge.Tests.PlayMode
         private static int CountAudioSources()
         {
             return Object.FindObjectsByType<AudioSource>(FindObjectsInactive.Include).Length;
+        }
+
+        private static Button FindButton(string sceneName, string objectName)
+        {
+            foreach (var root in SceneManager.GetSceneByName(sceneName).GetRootGameObjects())
+            {
+                foreach (var button in root.GetComponentsInChildren<Button>(true))
+                {
+                    if (button.name == objectName)
+                    {
+                        return button;
+                    }
+                }
+            }
+
+            Assert.Fail($"No Button named '{objectName}' in {sceneName}.");
+            return null;
         }
 
         private static Text FindText(string sceneName, string objectName)

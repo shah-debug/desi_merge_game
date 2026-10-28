@@ -1,3 +1,4 @@
+using DesiMerge.PowerUps;
 using DesiMerge.Progression;
 using UnityEngine;
 using UnityEngine.UI;
@@ -22,16 +23,20 @@ namespace DesiMerge.UI
 
         private IDailyChallengeService _daily;
         private IPlayerProgressService _progress;
+        private IPowerUpService _powerUps;
+        private bool _claimFailed;
 
         public string StatusText => statusText != null ? statusText.text : string.Empty;
         public string ProgressText => progressText != null ? progressText.text : string.Empty;
         public bool ClaimVisible => claimButton != null && claimButton.gameObject.activeSelf;
 
-        public void Bind(IDailyChallengeService daily, IPlayerProgressService progress)
+        /// <param name="powerUps">Names power-up rewards ("+1 Hammer"). Optional.</param>
+        public void Bind(IDailyChallengeService daily, IPlayerProgressService progress, IPowerUpService powerUps = null)
         {
             Unbind();
             _daily = daily;
             _progress = progress;
+            _powerUps = powerUps;
             _daily.Changed += Refresh;
             if (claimButton != null)
             {
@@ -67,7 +72,7 @@ namespace DesiMerge.UI
                 SetText(descriptionText, challenge.description);
                 SetText(progressText, $"{_daily.Progress} / {_daily.Target}");
                 SetFill(_daily.Target > 0 ? (float)_daily.Progress / _daily.Target : 0f);
-                SetText(statusText, _daily.IsClaimed ? "Reward claimed" : _daily.CanClaim ? "Ready to claim!" : _daily.IsCompleted ? "Completed!" : "In progress");
+                SetText(statusText, StatusFor(challenge));
                 SetActive(completedMark, _daily.IsCompleted);
                 SetActive(claimButton != null ? claimButton.gameObject : null, _daily.CanClaim);
             }
@@ -79,7 +84,55 @@ namespace DesiMerge.UI
             }
         }
 
-        private void OnClaimClicked() => _daily?.TryClaim();
+        private string StatusFor(DailyChallengeDefinition challenge)
+        {
+            var reward = DescribeReward(challenge.reward, _powerUps);
+            if (_daily.IsClaimed)
+            {
+                return "Reward claimed";
+            }
+
+            if (_daily.CanClaim)
+            {
+                return _claimFailed ? "Can't claim yet: use some first" : $"Claim {reward}!";
+            }
+
+            if (_daily.IsCompleted)
+            {
+                return "Completed!";
+            }
+
+            return string.IsNullOrEmpty(reward) ? "In progress" : $"Reward: {reward}";
+        }
+
+        /// <summary>"+1 Hammer", "+5 coins", or empty for no reward.</summary>
+        internal static string DescribeReward(RewardDefinition reward, IPowerUpService powerUps)
+        {
+            if (!reward.IsSomething)
+            {
+                return string.Empty;
+            }
+
+            if (reward.type == RewardType.PowerUpCharges)
+            {
+                var definition = powerUps != null ? powerUps.Find(reward.powerUpId) : null;
+                return $"+{reward.amount} {(definition != null ? definition.title : reward.powerUpId)}";
+            }
+
+            return $"+{reward.amount} coins";
+        }
+
+        private void OnClaimClicked()
+        {
+            if (_daily == null)
+            {
+                return;
+            }
+
+            // Refused claims (e.g. saved charges at their maximum) change nothing and can be retried later.
+            _claimFailed = !_daily.TryClaim();
+            Refresh();
+        }
 
         private void Unbind()
         {

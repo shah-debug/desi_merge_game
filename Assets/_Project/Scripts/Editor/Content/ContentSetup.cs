@@ -1,6 +1,7 @@
 using DesiMerge.Audio;
 using DesiMerge.Configuration;
 using DesiMerge.Gameplay;
+using DesiMerge.PowerUps;
 using DesiMerge.Progression;
 using DesiMerge.UI;
 using DesiMerge.UI.Animation;
@@ -35,6 +36,8 @@ namespace DesiMerge.Editor.Content
             ProgressionContentBuilder.EnsureCatalogs();
             ProgressionContentBuilder.EnsureCollectionPanelPrefab();
             ProgressionContentBuilder.EnsureAchievementsPanelPrefab();
+            PowerUpContentBuilder.EnsurePowerUpCatalog();
+            PowerUpContentBuilder.EnsureDailyRewards();
             ConfigureGameConfig();
 
             if (AssetDatabase.LoadAssetAtPath<SceneAsset>(ContentPaths.MainMenuScenePath) == null)
@@ -161,6 +164,7 @@ namespace DesiMerge.Editor.Content
             AssignIfEmpty(serialized, "itemProgression", AssetDatabase.LoadAssetAtPath<MergeProgression>(ContentPaths.MergeProgressionPath));
             AssignIfEmpty(serialized, "achievements", AssetDatabase.LoadAssetAtPath<AchievementCatalog>(ContentPaths.AchievementsPath));
             AssignIfEmpty(serialized, "dailyChallenges", AssetDatabase.LoadAssetAtPath<DailyChallengeCatalog>(ContentPaths.DailyChallengesPath));
+            AssignIfEmpty(serialized, "powerUps", AssetDatabase.LoadAssetAtPath<PowerUpCatalog>(ContentPaths.PowerUpsPath));
 
             serialized.ApplyModifiedPropertiesWithoutUndo();
             EditorUtility.SetDirty(config);

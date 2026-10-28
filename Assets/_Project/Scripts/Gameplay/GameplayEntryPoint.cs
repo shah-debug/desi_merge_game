@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using DesiMerge.Configuration;
 using DesiMerge.Core;
+using DesiMerge.Platform;
 using DesiMerge.UI;
 using UnityEngine;
 
@@ -23,6 +24,7 @@ namespace DesiMerge.Gameplay
 
         private bool _initializeAttempted;
         private GameServices _ownedServices;
+        private BackButton _backButton;
 
         public GameplayLoop Loop { get; private set; }
         public MergeBoard Board => board;
@@ -78,6 +80,33 @@ namespace DesiMerge.Gameplay
                 Initialize(_ownedServices);
             }
 #endif
+        }
+
+        private void OnEnable() => _backButton = new BackButton(OnBackPressed);
+
+        private void OnDisable()
+        {
+            _backButton?.Dispose();
+            _backButton = null;
+        }
+
+        private void OnBackPressed() => Loop?.HandleBack();
+
+        /// <summary>Pause when the app is backgrounded. Editor focus changes are ignored so clicking another window doesn't pause.</summary>
+        private void OnApplicationPause(bool paused)
+        {
+            if (paused)
+            {
+                Loop?.HandleAppInterrupted();
+            }
+        }
+
+        private void OnApplicationFocus(bool hasFocus)
+        {
+            if (!hasFocus && !Application.isEditor)
+            {
+                Loop?.HandleAppInterrupted();
+            }
         }
 
         private void OnDestroy()

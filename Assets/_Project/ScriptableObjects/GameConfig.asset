@@ -27,5 +27,7 @@ MonoBehaviour:
   itemProgression: {fileID: 11400000, guid: 97de2c1449c8f2b488e42566646c76ad, type: 2}
   achievements: {fileID: 11400000, guid: 34fc65deec6fa2a4eb1576067465092f, type: 2}
   dailyChallenges: {fileID: 11400000, guid: 09fdbf81a95cc7f4db579da24b44eb95, type: 2}
+  powerUps: {fileID: 11400000, guid: 176a2b29fb1c10b4db408ed824e22418, type: 2}
+  cosmetics: {fileID: 0}
   simulateRewardedAds: 1
   logAnalyticsEvents: 1

@@ -170,18 +170,33 @@ namespace DesiMerge.Editor.Content
             var pauseIcon = factory.Image(pause.transform, "Icon", theme.pauseIcon, theme.deep);
             UiFactory.Stretch(pauseIcon.rectTransform, 38f, 38f, 38f, 38f);
 
+            // Hint, toast and Hammer banner share the left part of the band under the top bar; power-ups take the right.
             var instructions = factory.Image(safe, "Instructions", theme.roundedPanel, new Color(1f, 1f, 1f, 0.8f));
-            UiFactory.Place(instructions.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -290f), new Vector2(780f, 96f));
-            var instructionText = factory.Text(instructions.transform, "Text", "Drag to aim  •  Lift to drop", 42, theme.textDark);
+            UiFactory.Place(instructions.rectTransform, new Vector2(0.5f, 1f), new Vector2(-160f, -290f), new Vector2(660f, 96f));
+            var instructionText = factory.Text(instructions.transform, "Text", "Drag to aim  •  Lift to drop", 36, theme.textDark);
             UiFactory.Stretch(instructionText.rectTransform);
 
-            // On short screens (tablets) the top bar shrinks so it doesn't cover the board.
-            EditorRefs.Set(safe.gameObject.AddComponent<ResponsiveScaler>(), ("targets", new Object[] { topBar, instructions.rectTransform }));
+            // Power-ups (Phase 5): presses on the bar never aim or drop.
+            var powerBar = UiFactory.Place(UiFactory.Rect("PowerUpBar", safe), new Vector2(1f, 1f), new Vector2(-30f, -268f), new Vector2(345f, 130f));
+            var hammer = BuildPowerUpButton(factory, powerBar, "HammerSlot", "HAMMER", theme.primary, 0f);
+            var shuffle = BuildPowerUpButton(factory, powerBar, "ShuffleSlot", "SHUFFLE", theme.secondary, 185f);
 
-            // Toasts for discoveries / achievements / daily challenge: below the top bar, never take input.
+            var banner = factory.Image(safe, "TargetingBanner", theme.roundedPanel, theme.primary);
+            UiFactory.Place(banner.rectTransform, new Vector2(0.5f, 1f), new Vector2(-160f, -280f), new Vector2(660f, 116f));
+            var bannerText = factory.Text(banner.transform, "Text", "Tap an item to smash it", 32, theme.textLight, TextAnchor.MiddleLeft);
+            UiFactory.Place(bannerText.rectTransform, new Vector2(0f, 0.5f), new Vector2(28f, 0f), new Vector2(440f, 80f));
+            var cancelTargeting = factory.Button(banner.transform, "CancelButton", "CANCEL", theme.deep, new Vector2(176f, 88f), 34);
+            UiFactory.Place((RectTransform)cancelTargeting.transform, new Vector2(1f, 0.5f), new Vector2(-14f, 0f), new Vector2(176f, 88f));
+            UiFactory.Record(cancelTargeting.transform);
+            banner.gameObject.SetActive(false);
+
+            // On short screens (tablets) the top bar shrinks so it doesn't cover the board.
+            EditorRefs.Set(safe.gameObject.AddComponent<ResponsiveScaler>(), ("targets", new Object[] { topBar, instructions.rectTransform, powerBar, banner.rectTransform }));
+
+            // Toasts for discoveries / achievements / daily challenge / power-ups: below the top bar, never take input.
             var toastImage = factory.Image(safe, "Toast", theme.roundedPanel, theme.accent);
-            UiFactory.Place(toastImage.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -410f), new Vector2(840f, 100f));
-            var toastText = factory.Text(toastImage.transform, "Text", string.Empty, 40, theme.textDark);
+            UiFactory.Place(toastImage.rectTransform, new Vector2(0.5f, 1f), new Vector2(-160f, -420f), new Vector2(660f, 96f));
+            var toastText = factory.Text(toastImage.transform, "Text", string.Empty, 34, theme.textDark);
             UiFactory.Stretch(toastText.rectTransform, 20f, 20f);
             toastImage.gameObject.AddComponent<CanvasGroup>();
             var toast = toastImage.gameObject.AddComponent<ToastPresenter>();
@@ -203,7 +218,7 @@ namespace DesiMerge.Editor.Content
             UiFactory.Place((RectTransform)pauseMenu.transform, new Vector2(0.5f, 0.5f), new Vector2(0f, -200f), new Vector2(600f, 150f));
             UiFactory.Record(pauseMenu.transform);
 
-            var (gameOverPanel, gameOverCard) = factory.Modal(root, "GameOverPanel", new Vector2(880f, 1100f), theme.deep);
+            var (gameOverPanel, gameOverCard) = factory.Modal(root, "GameOverPanel", new Vector2(880f, 1300f), theme.deep);
             var gameOverTitle = factory.Text(gameOverCard, "Title", "Game Over", 100, theme.accent, TextAnchor.MiddleCenter, outline: true);
             UiFactory.Place(gameOverTitle.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -60f), new Vector2(800f, 130f));
             var titlePunch = UiFactory.Punch(gameOverTitle.gameObject, 0.2f, 0.45f, true);
@@ -217,6 +232,15 @@ namespace DesiMerge.Editor.Content
             UiFactory.Stretch(newBestText.rectTransform);
             var gameOverBest = factory.Text(gameOverCard, "BestText", "Best  0", 44, theme.textLight);
             UiFactory.Place(gameOverBest.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -570f), new Vector2(700f, 60f));
+            // Revive offer (rewarded ad). Hidden unless the build has an ad provider; Restart never depends on it.
+            var reviveStatus = factory.Text(gameOverCard, "ReviveStatus", string.Empty, 30, theme.textLight);
+            reviveStatus.horizontalOverflow = HorizontalWrapMode.Wrap;
+            reviveStatus.fontStyle = FontStyle.Normal;
+            UiFactory.Place(reviveStatus.rectTransform, new Vector2(0.5f, 0f), new Vector2(0f, 600f), new Vector2(800f, 56f));
+            var continueButton = factory.Button(gameOverCard, "ContinueButton", "CONTINUE (AD)", theme.accent, new Vector2(620f, 150f), 52);
+            UiFactory.Place((RectTransform)continueButton.transform, new Vector2(0.5f, 0f), new Vector2(0f, 440f), new Vector2(620f, 150f));
+            UiFactory.Record(continueButton.transform);
+
             var restart = factory.Button(gameOverCard, "RestartButton", "RESTART", theme.primary, new Vector2(620f, 170f));
             UiFactory.Place((RectTransform)restart.transform, new Vector2(0.5f, 0f), new Vector2(0f, 240f), new Vector2(620f, 170f));
             UiFactory.Record(restart.transform);
@@ -237,8 +261,35 @@ namespace DesiMerge.Editor.Content
                 ("newBestBadge", newBest.gameObject), ("gameOverTitlePunch", titlePunch),
                 ("restartButton", restart), ("gameOverMenuButton", gameOverMenu),
                 ("popupLayer", popupLayer), ("mergeEffects", effects), ("toast", toast),
-                ("pointerBlockers", new Object[] { topBar }), ("errorText", errorText));
+                ("continueButton", continueButton), ("reviveStatusText", reviveStatus),
+                ("powerUpButtons", new Object[] { hammer, shuffle }), ("targetingBanner", banner.gameObject),
+                ("targetingText", bannerText), ("targetingCancelButton", cancelTargeting),
+                ("pointerBlockers", new Object[] { topBar, powerBar, banner.rectTransform }), ("errorText", errorText));
             return hud;
+        }
+
+        /// <summary>A power-up control: themed button, a "uses left" badge and a highlight shown while selecting a target.</summary>
+        private static PowerUpButton BuildPowerUpButton(UiFactory factory, Transform parent, string name, string label, Color color, float x)
+        {
+            var theme = factory.Theme;
+            var slot = UiFactory.Place(UiFactory.Rect(name, parent), new Vector2(0f, 1f), new Vector2(x, 0f), new Vector2(160f, 130f));
+            var highlight = factory.Image(slot, "Selected", theme.roundedPanel, theme.accent);
+            UiFactory.Stretch(highlight.rectTransform, -10f, -10f, -10f, -10f);
+            highlight.gameObject.SetActive(false);
+
+            var button = factory.Button(slot, "Button", label, color, new Vector2(160f, 130f), 30);
+            UiFactory.Stretch((RectTransform)button.transform);
+            UiFactory.Record(button.transform);
+            var title = button.GetComponentInChildren<Text>(true);
+
+            var badge = factory.Image(slot, "CountBadge", theme.circle, theme.deep);
+            UiFactory.Place(badge.rectTransform, new Vector2(1f, 1f), new Vector2(16f, 16f), new Vector2(60f, 60f));
+            var count = factory.Text(badge.transform, "Count", "0", 34, theme.textLight);
+            UiFactory.Stretch(count.rectTransform);
+
+            var component = slot.gameObject.AddComponent<PowerUpButton>();
+            EditorRefs.Set(component, ("button", button), ("titleText", title), ("countText", count), ("selectedHighlight", highlight.gameObject));
+            return component;
         }
     }
 }

@@ -47,10 +47,27 @@ namespace DesiMerge.Gameplay
             return true;
         }
 
+        /// <summary>Revives this ended session: play continues with the same score and merge count.</summary>
+        public bool TryRevive()
+        {
+            if (!IsOver)
+            {
+                return false;
+            }
+
+            IsOver = false;
+            RevivesUsed++;
+            return true;
+        }
+
+        /// <summary>Revives used in this session (reset by <see cref="Restart"/>).</summary>
+        public int RevivesUsed { get; private set; }
+
         public void Restart()
         {
             Score = 0;
             MergeCount = 0;
+            RevivesUsed = 0;
             IsOver = false;
             Restarted?.Invoke();
             ScoreChanged?.Invoke(Score);

@@ -1,6 +1,7 @@
 using DesiMerge.Audio;
 using DesiMerge.Configuration;
 using DesiMerge.Core;
+using DesiMerge.Platform;
 using DesiMerge.Persistence;
 using DesiMerge.UI.Animation;
 using UnityEngine;
@@ -32,6 +33,7 @@ namespace DesiMerge.UI
 
         private GameServices _services;
         private GameServices _ownedServices;
+        private BackButton _backButton;
         private bool _initializeAttempted;
 
         public bool IsInitialized => _services != null;
@@ -93,7 +95,7 @@ namespace DesiMerge.UI
 
             if (dailyChallengeCard != null)
             {
-                dailyChallengeCard.Bind(services.DailyChallenges, services.Progress);
+                dailyChallengeCard.Bind(services.DailyChallenges, services.Progress, services.PowerUps);
             }
 
             AddListener(playButton, OnPlayClicked);
@@ -113,6 +115,50 @@ namespace DesiMerge.UI
                 Initialize(_ownedServices);
             }
 #endif
+        }
+
+        private void OnEnable() => _backButton = new BackButton(OnBackPressed);
+
+        private void OnDisable()
+        {
+            _backButton?.Dispose();
+            _backButton = null;
+        }
+
+        /// <summary>
+        /// Android back: closes the open panel. On the bare menu it exits the app, as Android players expect
+        /// (the bootstrapper saves on quit). Ignored while Gameplay is loading.
+        /// </summary>
+        private void OnBackPressed()
+        {
+            if (!HandleBack() && _services != null && !_services.Navigator.IsLoading && !Application.isEditor)
+            {
+                Application.Quit();
+            }
+        }
+
+        /// <summary>Closes the topmost open panel. Returns false when no panel was open.</summary>
+        internal bool HandleBack()
+        {
+            if (settingsPanel != null && settingsPanel.IsOpen)
+            {
+                settingsPanel.Close();
+                return true;
+            }
+
+            if (collectionPanel != null && collectionPanel.IsOpen)
+            {
+                collectionPanel.Close();
+                return true;
+            }
+
+            if (achievementsPanel != null && achievementsPanel.IsOpen)
+            {
+                achievementsPanel.Close();
+                return true;
+            }
+
+            return false;
         }
 
         private void OnDestroy()

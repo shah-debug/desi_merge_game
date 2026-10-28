@@ -20,8 +20,9 @@ MonoBehaviour:
     target: 20
     itemId: 
     reward:
-      type: 0
-      amount: 0
+      type: 2
+      amount: 1
+      powerUpId: hammer
   - id: daily_score_300
     title: Score Chase
     description: Score 300 in one game
@@ -29,8 +30,9 @@ MonoBehaviour:
     target: 300
     itemId: 
     reward:
-      type: 0
-      amount: 0
+      type: 2
+      amount: 1
+      powerUpId: shuffle
   - id: daily_create_aam
     title: Aam Season
     description: Create an Aam (or better)
@@ -38,8 +40,9 @@ MonoBehaviour:
     target: 1
     itemId: aam
     reward:
-      type: 0
-      amount: 0
+      type: 2
+      amount: 1
+      powerUpId: hammer
   - id: daily_games_3
     title: Three Rounds
     description: Finish 3 games today
@@ -47,8 +50,9 @@ MonoBehaviour:
     target: 3
     itemId: 
     reward:
-      type: 0
-      amount: 0
+      type: 2
+      amount: 1
+      powerUpId: shuffle
   - id: daily_merges_40
     title: Busy Bazaar
     description: Merge 40 times today
@@ -56,8 +60,9 @@ MonoBehaviour:
     target: 40
     itemId: 
     reward:
-      type: 0
-      amount: 0
+      type: 2
+      amount: 2
+      powerUpId: hammer
   - id: daily_score_600
     title: Big Score
     description: Score 600 in one game
@@ -65,8 +70,9 @@ MonoBehaviour:
     target: 600
     itemId: 
     reward:
-      type: 0
-      amount: 0
+      type: 2
+      amount: 2
+      powerUpId: shuffle
   - id: daily_create_chai
     title: Chai Break
     description: Create a Chai (or better)
@@ -74,5 +80,6 @@ MonoBehaviour:
     target: 1
     itemId: chai
     reward:
-      type: 0
-      amount: 0
+      type: 2
+      amount: 2
+      powerUpId: hammer

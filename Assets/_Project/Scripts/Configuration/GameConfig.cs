@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using DesiMerge.Audio;
+using DesiMerge.Cosmetics;
+using DesiMerge.PowerUps;
 using DesiMerge.Progression;
 using DesiMerge.Settings;
 using UnityEngine;
@@ -36,6 +38,12 @@ namespace DesiMerge.Configuration
         [SerializeField] private AchievementCatalog achievements;
         [SerializeField] private DailyChallengeCatalog dailyChallenges;
 
+        [Header("Power-ups and cosmetics")]
+        [Tooltip("Power-up definitions and per-game limits. Empty = no power-ups.")]
+        [SerializeField] private PowerUpCatalog powerUps;
+        [Tooltip("Cosmetic definitions (foundation; not shown in the game yet).")]
+        [SerializeField] private CosmeticCatalog cosmetics;
+
         [Header("Development builds only")]
         [SerializeField] private bool simulateRewardedAds = true;
         [SerializeField] private bool logAnalyticsEvents = true;
@@ -48,6 +56,8 @@ namespace DesiMerge.Configuration
         public MergeProgression ItemProgression => itemProgression;
         public AchievementCatalog Achievements => achievements;
         public DailyChallengeCatalog DailyChallenges => dailyChallenges;
+        public PowerUpCatalog PowerUps => powerUps;
+        public CosmeticCatalog Cosmetics => cosmetics;
         public SettingsData DefaultSettings => defaultSettings;
         public bool SimulateRewardedAds => simulateRewardedAds;
         public bool LogAnalyticsEvents => logAnalyticsEvents;

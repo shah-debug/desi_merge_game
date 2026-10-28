@@ -26,6 +26,34 @@ namespace DesiMerge.Tests.PlayMode
             _finalClears = 0;
         }
 
+        /// <summary>
+        /// Regression (Phase 6): A–B and C–D merge in one step, and a stale contact (A–C or B–D) was reported in the same step.
+        /// The pool hands two of those objects straight back as the new items, so the stale pair used to merge two items
+        /// that never touched (a phantom third merge). Released items must stay consumed until the step is resolved.
+        /// </summary>
+        [Test]
+        public void StaleContactBetweenReusedPoolObjects_DoesNotMergeInTheSameStep()
+        {
+            var a = _rig.Board.SpawnLocal(0, new UnityEngine.Vector2(-2.5f, 5f));
+            var b = _rig.Board.SpawnLocal(0, new UnityEngine.Vector2(-1.5f, 5f));
+            var c = _rig.Board.SpawnLocal(0, new UnityEngine.Vector2(1.5f, 5f));
+            var d = _rig.Board.SpawnLocal(0, new UnityEngine.Vector2(2.5f, 5f));
+            _rig.Board.ReportContact(a, b);
+            _rig.Board.ReportContact(c, d);
+            // Stale cross contacts; which object the pool hands back first is an implementation detail, so cover both.
+            _rig.Board.ReportContact(a, c);
+            _rig.Board.ReportContact(b, d);
+
+            _rig.Board.Step(0f);
+
+            Assert.AreEqual(2, _merges, "Exactly the two real merges.");
+            Assert.AreEqual(2, _rig.Board.ActiveCount);
+            foreach (var item in _rig.Board.ActiveItems)
+            {
+                Assert.AreEqual(1, item.Level);
+            }
+        }
+
         [Test]
         public void SameLevelContact_MergesIntoNextLevelExactlyOnce()
         {

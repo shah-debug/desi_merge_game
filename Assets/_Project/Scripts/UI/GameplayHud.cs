@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using DesiMerge.Audio;
 using DesiMerge.Configuration;
 using DesiMerge.Gameplay;
@@ -39,6 +40,16 @@ namespace DesiMerge.UI
         [SerializeField] private Button restartButton;
         [SerializeField] private Button gameOverMenuButton;
 
+        [Header("Revive")]
+        [SerializeField] private Button continueButton;
+        [SerializeField] private Text reviveStatusText;
+
+        [Header("Power-ups")]
+        [SerializeField] private PowerUpButton[] powerUpButtons = Array.Empty<PowerUpButton>();
+        [SerializeField] private GameObject targetingBanner;
+        [SerializeField] private Text targetingText;
+        [SerializeField] private Button targetingCancelButton;
+
         [Header("Feedback")]
         [SerializeField] private ScorePopupLayer popupLayer;
         [SerializeField] private MergeEffects mergeEffects;
@@ -56,6 +67,16 @@ namespace DesiMerge.UI
         public event Action PauseRequested;
         public event Action ResumeRequested;
         public event Action MainMenuRequested;
+        public event Action<string> PowerUpRequested;
+        public event Action PowerUpCancelRequested;
+        public event Action ReviveRequested;
+
+        public ReviveOfferState ReviveOffer { get; private set; }
+        public bool ContinueVisible => continueButton != null && continueButton.gameObject.activeSelf;
+        public bool ContinueInteractable => ContinueVisible && continueButton.interactable;
+        public string ReviveStatus => reviveStatusText != null && reviveStatusText.gameObject.activeSelf ? reviveStatusText.text : string.Empty;
+        public bool TargetingVisible => targetingBanner != null && targetingBanner.activeSelf;
+        public PowerUpButton[] PowerUpButtons => powerUpButtons;
 
         private void Awake()
         {
@@ -64,6 +85,18 @@ namespace DesiMerge.UI
             AddListener(pauseMenuButton, OnMainMenuClicked);
             AddListener(restartButton, OnRestartClicked);
             AddListener(gameOverMenuButton, OnMainMenuClicked);
+            AddListener(continueButton, OnContinueClicked);
+            AddListener(targetingCancelButton, OnTargetingCancelClicked);
+            foreach (var powerUp in powerUpButtons)
+            {
+                if (powerUp != null)
+                {
+                    powerUp.Clicked += OnPowerUpClicked;
+                }
+            }
+
+            SetTargeting(false, string.Empty);
+            SetReviveOffer(ReviveOfferState.Hidden);
 
             if (pausePanel != null)
             {
@@ -88,6 +121,15 @@ namespace DesiMerge.UI
             RemoveListener(pauseMenuButton, OnMainMenuClicked);
             RemoveListener(restartButton, OnRestartClicked);
             RemoveListener(gameOverMenuButton, OnMainMenuClicked);
+            RemoveListener(continueButton, OnContinueClicked);
+            RemoveListener(targetingCancelButton, OnTargetingCancelClicked);
+            foreach (var powerUp in powerUpButtons)
+            {
+                if (powerUp != null)
+                {
+                    powerUp.Clicked -= OnPowerUpClicked;
+                }
+            }
         }
 
         /// <summary>Gives every button in this HUD its tap sound.</summary>
@@ -233,6 +275,78 @@ namespace DesiMerge.UI
             }
         }
 
+        public void SetPowerUps(IReadOnlyList<PowerUpButtonState> states)
+        {
+            for (var i = 0; i < powerUpButtons.Length; i++)
+            {
+                var button = powerUpButtons[i];
+                if (button == null)
+                {
+                    continue;
+                }
+
+                if (i < states.Count)
+                {
+                    button.Show(states[i]);
+                }
+                else
+                {
+                    button.Hide();
+                }
+            }
+        }
+
+        public void SetTargeting(bool active, string hint)
+        {
+            if (targetingText != null)
+            {
+                targetingText.text = hint;
+            }
+
+            if (targetingBanner != null)
+            {
+                targetingBanner.SetActive(active);
+            }
+
+            // The banner sits where the first-drop hint is; never show both.
+            if (active && instructions != null)
+            {
+                instructions.SetActive(false);
+            }
+        }
+
+        public void SetReviveOffer(ReviveOfferState state)
+        {
+            ReviveOffer = state;
+            var visible = state != ReviveOfferState.Hidden;
+            if (continueButton != null)
+            {
+                continueButton.gameObject.SetActive(visible);
+                continueButton.interactable = visible && state != ReviveOfferState.Loading;
+            }
+
+            if (reviveStatusText != null)
+            {
+                reviveStatusText.text = ReviveStatusFor(state);
+                reviveStatusText.gameObject.SetActive(visible);
+            }
+        }
+
+        /// <summary>Player-facing text for each revive state. Never claims a reward that wasn't confirmed.</summary>
+        internal static string ReviveStatusFor(ReviveOfferState state)
+        {
+            switch (state)
+            {
+                case ReviveOfferState.Available: return "Watch a short ad to keep playing (once per game)";
+                case ReviveOfferState.Loading: return "Loading ad...";
+                case ReviveOfferState.NotReady: return "No ad available right now. Try again soon.";
+                case ReviveOfferState.Cancelled: return "Ad closed early, so no revive. You can try again.";
+                case ReviveOfferState.Failed: return "The ad couldn't be shown. You can try again.";
+                case ReviveOfferState.Offline: return "No internet connection. Restart is always free.";
+                default: return string.Empty;
+            }
+        }
+
         public bool BlocksPointer(Vector2 screenPosition)
         {
             foreach (var blocker in pointerBlockers)
@@ -254,6 +368,12 @@ namespace DesiMerge.UI
         private void OnRestartClicked() => RestartRequested?.Invoke();
 
         private void OnMainMenuClicked() => MainMenuRequested?.Invoke();
+
+        private void OnContinueClicked() => ReviveRequested?.Invoke();
+
+        private void OnTargetingCancelClicked() => PowerUpCancelRequested?.Invoke();
+
+        private void OnPowerUpClicked(string id) => PowerUpRequested?.Invoke(id);
 
         private static void AddListener(Button button, UnityEngine.Events.UnityAction action)
         {

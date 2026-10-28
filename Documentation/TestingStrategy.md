@@ -137,7 +137,46 @@ All Phase 4 tests use `InMemorySaveStore` or a unique temp folder, and `ManualCl
   rows and stats, daily card updates from events and hides Claim without a reward.
 - Changed expectation: `FileStore_Overwrite_...` now also expects `slot.json.bak` (intentional: backups).
 
+## Phase 5 coverage
+
+No test needs an ad network: ads come from deterministic fakes (`FakeAdProvider` in the PlayMode rig, which holds each
+request until the test calls `Finish(result, times)`; `ScriptedProvider` in EditMode). Storage is in-memory only.
+
+- EditMode (`PowerUpAndAdTests`):
+  - Inventory: free uses from config and reset per game; free uses before saved charges; unknown IDs refused; saved
+    charges persist across restart (free uses don't); corrupt save → defaults with the bad copy kept; tampered values clamped.
+  - Rewards: grant applied once per grant ID (also after restart); unknown power-up / bad amount / over the maximum refused
+    and not recorded; daily power-up reward granted exactly once; **interrupted claim** (grant saved, claim not) → claiming
+    again doesn't duplicate; claim refused when full stays claimable; achievement reward retried once there is room.
+  - Revived games: best score only, game and streak counted once; daily "score" sees the higher score, "games" doesn't double.
+  - Ad coordinator: each request reported once with the provider's result (Completed / Skipped / Failed / NoFill /
+    LoadFailed / NetworkUnavailable); duplicate callbacks ignored; concurrent request refused; not ready / unsupported
+    starts nothing; provider exception → Failed; abandoned request ignores a late completion; shipped fallbacks.
+  - Shuffle planning: inside the walls with the gap, no overlaps (3 seeds), refuses when it can't fit, deterministic per seed.
+  - Cosmetics: selection needs an existing owned item, persists, unlocked by achievement; invalid saved selection → default.
+- PlayMode (`PowerUpAndReviveTests`, real physics): Hammer removes exactly the tapped item with no score/merge; miss keeps
+  waiting and Cancel costs nothing; one power-up at a time / pressing again cancels; refused while paused and after game
+  over; pausing cancels targeting; empty board / used up / unknown refused; free uses reset on restart while a used saved
+  charge stays used after an app restart; Shuffle keeps items inside, apart and with the same levels, and refuses (nothing
+  moves, nothing used) when it can't fit; revive only after `Completed`; every failure result grants nothing and can be
+  retried; duplicate callbacks revive once; one revive per game and the game counted once; revive clears the danger zone
+  and doesn't end again within 5 s; Restart works with ads not ready or unsupported; app interruption during the ad;
+  restart/leaving during the ad ignores the late reward.
+- `SceneFlowTests` (generated scenes): power-up bar ids/counts, Hammer banner and selection, cancel without cost,
+  Continue offered with the development (simulated) provider, revive keeps the score, second game over hides Continue.
+
 ## Future
 
 - CI (e.g. GameCI) running both suites and the Android build on each push — once the project is in Git.
 - On-device smoke test checklist per release.
+
+## Phase 6 coverage
+
+- `MergeBoardTests.StaleContactBetweenReusedPoolObjects_DoesNotMergeInTheSameStep`: regression for the phantom merge
+  (failed before the fix).
+- `ReleaseHardeningTests`: back button, app interruption, repeated restarts (no leaked items/subscriptions), merges
+  after game over, and `Measure_BoardStepCostAndAllocations` — a logged measurement (`[Perf]` in the log), not a
+  timing assertion, so it can't be flaky.
+- `ServiceCompositionTests`: missing optional content still yields working offline services; `FlushAll` write failure.
+- `SceneFlowTests`: menu back closes a panel; `OnApplicationPause` pauses gameplay on the real scene.
+- Device-only checks are a manual checklist in `Phase6-QA-Report.md`.

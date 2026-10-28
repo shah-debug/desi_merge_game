@@ -9,7 +9,7 @@ namespace DesiMerge.Editor.Content
     /// <summary>
     /// Phase 4 content: default achievement and daily-challenge catalogs (data only, stable IDs) and the
     /// Collection / Achievements panel prefabs. Existing assets are kept so tuned catalogs survive re-running.
-    /// Shipped rewards are None: the game design doesn't define an economy yet.
+    /// Rewards: the game has no currency; Phase 5 gives shipped daily challenges power-up charges (PowerUpContentBuilder).
     /// </summary>
     internal static class ProgressionContentBuilder
     {

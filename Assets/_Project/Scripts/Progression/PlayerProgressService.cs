@@ -44,6 +44,7 @@ namespace DesiMerge.Progression
         public event Action<MergeItemDefinition> ItemDiscovered;
         public event Action<MergeItemDefinition> MergeRecorded;
         public event Action<long> GameCompleted;
+        public event Action<long> FinalScoreRecorded;
 
         public bool IsDiscovered(string itemId) => !string.IsNullOrEmpty(itemId) && _discovered.Contains(itemId);
 
@@ -66,6 +67,25 @@ namespace DesiMerge.Progression
             StreakRules.RecordCompletedGame(ref _data.currentStreak, ref _data.bestStreak, ref _data.lastPlayedDay, DayKey.Today(_clock));
             MarkChanged();
             GameCompleted?.Invoke(score);
+            FinalScoreRecorded?.Invoke(score);
+            return isHighScore;
+        }
+
+        public bool SubmitRevivedFinalScore(long score)
+        {
+            if (score < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(score), "Score cannot be negative.");
+            }
+
+            var isHighScore = score > _data.highScore;
+            if (isHighScore)
+            {
+                _data.highScore = score;
+                MarkChanged();
+            }
+
+            FinalScoreRecorded?.Invoke(score);
             return isHighScore;
         }
 

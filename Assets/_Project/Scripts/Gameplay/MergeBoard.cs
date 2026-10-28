@@ -27,6 +27,8 @@ namespace DesiMerge.Gameplay
         [SerializeField] private Color dangerLineColor = new Color(0.9f, 0.15f, 0.15f, 0.8f);
 
         private readonly List<MergeItem> _active = new List<MergeItem>();
+        /// <summary>Items merged away during the current step; pooled only after the step (see RetireMerged).</summary>
+        private readonly List<MergeItem> _retired = new List<MergeItem>();
         private GameplayConfig _config;
         private MergeResolver<MergeItem> _resolver;
         private ObjectPool<MergeItem> _pool;
@@ -98,6 +100,104 @@ namespace DesiMerge.Gameplay
             }
         }
 
+        public Vector2 WorldToLocal(Vector2 world) => transform.InverseTransformPoint(world);
+
+        /// <summary>The item under a board-local point (closest centre within its radius + tolerance), or null.</summary>
+        public MergeItem FindItemAt(Vector2 localPoint, float tolerance)
+        {
+            MergeItem best = null;
+            var bestDistance = float.MaxValue;
+            foreach (var item in _active)
+            {
+                if (item.IsConsumed)
+                {
+                    continue;
+                }
+
+                var distance = Vector2.Distance(WorldToLocal(item.Body.position), localPoint);
+                if (distance <= item.Radius + tolerance && distance < bestDistance)
+                {
+                    best = item;
+                    bestDistance = distance;
+                }
+            }
+
+            return best;
+        }
+
+        /// <summary>Removes one item without a merge (Hammer). Returns false if it isn't an active item on this board.</summary>
+        public bool TryRemove(MergeItem item)
+        {
+            if (item == null || item.IsConsumed || !_active.Contains(item))
+            {
+                return false;
+            }
+
+            _resolver.Forget(item);
+            Release(item);
+            return true;
+        }
+
+        /// <summary>
+        /// Moves every active item to a planned position (Shuffle). The whole plan is validated first: a plan that
+        /// doesn't fit or overlaps is refused and nothing moves. Pending contacts are discarded (they are stale).
+        /// </summary>
+        public bool TryShuffle(System.Random random)
+        {
+            var radii = new List<float>(_active.Count);
+            foreach (var item in _active)
+            {
+                radii.Add(item.Radius);
+            }
+
+            var maxTop = _config.DangerLineHeight - _config.ShuffleTopMargin;
+            var positions = new List<Vector2>(radii.Count);
+            if (_active.Count == 0 ||
+                !ShufflePlanner.TryPlan(radii, _config.HalfWidth, maxTop, _config.ShuffleGap, random, positions) ||
+                ShufflePlanner.HasOverlap(positions, radii) ||
+                !ShufflePlanner.AllInside(positions, radii, _config.HalfWidth, maxTop))
+            {
+                return false;
+            }
+
+            _resolver.Clear();
+            for (var i = 0; i < _active.Count; i++)
+            {
+                _active[i].Teleport(LocalToWorld(positions[i]));
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Makes the board safe to continue after a revive: removes every item whose top is above
+        /// (danger line − clearance), restarts the grace period of the rest and re-arms the danger check.
+        /// Returns how many items were removed. Removed items give no score and are not merges.
+        /// </summary>
+        public int ClearForRevive(float clearance, float now)
+        {
+            var limit = _config.DangerLineHeight - clearance;
+            var removed = 0;
+            for (var i = _active.Count - 1; i >= 0; i--)
+            {
+                var item = _active[i];
+                if (WorldToLocal(item.Body.position).y + item.Radius > limit)
+                {
+                    Release(item);
+                    removed++;
+                }
+            }
+
+            foreach (var item in _active)
+            {
+                item.RestartGrace(now);
+            }
+
+            _resolver.Clear();
+            _dangerRaised = false;
+            return removed;
+        }
+
         /// <summary>Returns every item to the pool and resets merge and danger state.</summary>
         public void Clear()
         {
@@ -112,6 +212,7 @@ namespace DesiMerge.Gameplay
             }
 
             _active.Clear();
+            ReturnRetiredToPool();
             _resolver?.Clear();
             _frozen = false;
             _dangerRaised = false;
@@ -135,6 +236,7 @@ namespace DesiMerge.Gameplay
 
             _stepTime = now;
             _resolver.ResolvePending(this);
+            ReturnRetiredToPool();
             CheckDangerLine(now);
         }
 
@@ -142,8 +244,8 @@ namespace DesiMerge.Gameplay
         {
             var position = (first.Body.position + second.Body.position) * 0.5f;
             var velocity = (first.Body.linearVelocity + second.Body.linearVelocity) * 0.5f;
-            Release(first);
-            Release(second);
+            RetireMerged(first);
+            RetireMerged(second);
             SpawnWorld(resultLevel, position, velocity, _stepTime).PlaySpawnPop();
             ItemMerged?.Invoke(resultLevel, position);
         }
@@ -151,9 +253,31 @@ namespace DesiMerge.Gameplay
         void IMergeHandler<MergeItem>.OnFinalCleared(MergeItem first, MergeItem second)
         {
             var position = (first.Body.position + second.Body.position) * 0.5f;
-            Release(first);
-            Release(second);
+            RetireMerged(first);
+            RetireMerged(second);
             FinalLevelCleared?.Invoke(position);
+        }
+
+        /// <summary>
+        /// Removes a merged item from play but keeps it out of the pool until the step is resolved. Otherwise the pool
+        /// could hand it straight back as the merge result, un-consumed, and a stale contact reported in the same step
+        /// would merge two items that never touched.
+        /// </summary>
+        private void RetireMerged(MergeItem item)
+        {
+            _active.Remove(item);
+            item.Deactivate();
+            _retired.Add(item);
+        }
+
+        private void ReturnRetiredToPool()
+        {
+            foreach (var item in _retired)
+            {
+                _pool.Release(item);
+            }
+
+            _retired.Clear();
         }
 
         private MergeItem SpawnWorld(int level, Vector2 worldPosition, Vector2 velocity, float spawnTime)

@@ -2,7 +2,9 @@ using System;
 using DesiMerge.Analytics;
 using DesiMerge.Audio;
 using DesiMerge.Configuration;
+using DesiMerge.Cosmetics;
 using DesiMerge.Monetization;
+using DesiMerge.PowerUps;
 using DesiMerge.Progression;
 using DesiMerge.Settings;
 
@@ -25,6 +27,8 @@ namespace DesiMerge.Core
             IAchievementService achievements,
             IDailyChallengeService dailyChallenges,
             IClock clock,
+            IPowerUpService powerUps,
+            ICosmeticService cosmetics,
             MergeProgression itemContent = null)
         {
             ItemContent = itemContent;
@@ -38,6 +42,10 @@ namespace DesiMerge.Core
             Achievements = achievements ?? throw new ArgumentNullException(nameof(achievements));
             DailyChallenges = dailyChallenges ?? throw new ArgumentNullException(nameof(dailyChallenges));
             Clock = clock ?? throw new ArgumentNullException(nameof(clock));
+            PowerUps = powerUps ?? throw new ArgumentNullException(nameof(powerUps));
+            Cosmetics = cosmetics ?? throw new ArgumentNullException(nameof(cosmetics));
+            // The only way gameplay and UI reach the ad provider: one request at a time, duplicate callbacks ignored.
+            Ads = new RewardedAdCoordinator(RewardedAds, Analytics);
         }
 
         public IGameStateService GameState { get; }
@@ -50,6 +58,11 @@ namespace DesiMerge.Core
         public IAchievementService Achievements { get; }
         public IDailyChallengeService DailyChallenges { get; }
         public IClock Clock { get; }
+        public IPowerUpService PowerUps { get; }
+        public ICosmeticService Cosmetics { get; }
+
+        /// <summary>Rewarded-ad lifecycle over <see cref="RewardedAds"/> (the provider). Use this, never the provider.</summary>
+        public RewardedAdCoordinator Ads { get; }
 
         /// <summary>Item definitions the progression services were built with (collection, stats). May be null in tests.</summary>
         public MergeProgression ItemContent { get; }
@@ -61,6 +74,9 @@ namespace DesiMerge.Core
         public bool FlushAll()
         {
             var ok = Progress.Flush();
+            // Power-ups before the files that record claims, so a granted reward is never lost (see PowerUpService).
+            ok &= PowerUps.Flush();
+            ok &= Cosmetics.Flush();
             ok &= Achievements.Flush();
             ok &= DailyChallenges.Flush();
             Settings.Flush();
@@ -73,6 +89,8 @@ namespace DesiMerge.Core
             (Audio as IDisposable)?.Dispose();
             (Achievements as IDisposable)?.Dispose();
             (DailyChallenges as IDisposable)?.Dispose();
+            (Cosmetics as IDisposable)?.Dispose();
+            Ads.Abandon();
         }
     }
 }

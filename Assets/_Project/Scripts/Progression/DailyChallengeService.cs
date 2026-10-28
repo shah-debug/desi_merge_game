@@ -100,6 +100,7 @@ namespace DesiMerge.Progression
             Refresh();
             _progress.MergeRecorded += OnMergeRecorded;
             _progress.GameCompleted += OnGameCompleted;
+            _progress.FinalScoreRecorded += OnFinalScoreRecorded;
         }
 
         public DailyChallengeDefinition Current { get; private set; }
@@ -112,6 +113,9 @@ namespace DesiMerge.Progression
 
         public event Action Changed;
         public event Action<DailyChallengeDefinition> Completed;
+
+        /// <summary>Stable reward ID for one day's challenge, so its reward is applied at most once.</summary>
+        internal static string GrantIdFor(int dayNumber, DailyChallengeDefinition challenge) => $"daily:{dayNumber}:{challenge.id}";
 
         public static DailyChallengeDefinition SelectFor(int dayNumber, IReadOnlyList<DailyChallengeDefinition> pool)
         {
@@ -164,9 +168,15 @@ namespace DesiMerge.Progression
                 return false;
             }
 
+            // Grant first (the granter saves it under a stable ID), then record the claim. If the app dies in between,
+            // the claim reappears and claiming again finds the grant already applied: no loss, no duplicate.
+            if (_rewards == null || !_rewards.Grant(GrantIdFor(_data.dayNumber, Current), Current.reward))
+            {
+                return false;
+            }
+
             _data.claimed = true;
             _dirty = true;
-            _rewards?.Grant(Current.reward);
             Flush();
             Changed?.Invoke();
             return true;
@@ -192,6 +202,7 @@ namespace DesiMerge.Progression
         {
             _progress.MergeRecorded -= OnMergeRecorded;
             _progress.GameCompleted -= OnGameCompleted;
+            _progress.FinalScoreRecorded -= OnFinalScoreRecorded;
         }
 
         private void OnMergeRecorded(MergeItemDefinition created)
@@ -221,22 +232,23 @@ namespace DesiMerge.Progression
             }
         }
 
+        /// <summary>Counts each game once; a revived game ending again is not a new game.</summary>
         private void OnGameCompleted(long score)
         {
             Refresh();
-            if (Current == null || _data.completed)
+            if (Current != null && !_data.completed && Current.type == DailyChallengeType.CompleteGames)
             {
-                return;
+                Advance(_data.progress + 1);
             }
+        }
 
-            switch (Current.type)
+        /// <summary>Every final score, including the higher one a revived game ends with.</summary>
+        private void OnFinalScoreRecorded(long score)
+        {
+            Refresh();
+            if (Current != null && !_data.completed && Current.type == DailyChallengeType.ScoreInOneGame)
             {
-                case DailyChallengeType.ScoreInOneGame:
-                    Advance(Math.Max(_data.progress, score));
-                    break;
-                case DailyChallengeType.CompleteGames:
-                    Advance(_data.progress + 1);
-                    break;
+                Advance(Math.Max(_data.progress, score));
             }
         }
 
