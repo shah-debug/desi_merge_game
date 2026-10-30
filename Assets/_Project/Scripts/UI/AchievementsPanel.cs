@@ -104,6 +104,22 @@ namespace DesiMerge.UI
             }
         }
 
+        /// <summary>Achievement rewards are applied automatically when the achievement unlocks.</summary>
+        private string WithReward(DesiMerge.Progression.AchievementDefinition achievement)
+        {
+            var reward = achievement.reward;
+            if (!reward.IsSomething)
+            {
+                return achievement.description;
+            }
+
+            var name = reward.type == DesiMerge.Progression.RewardType.PowerUpCharges && !string.IsNullOrEmpty(reward.powerUpId)
+                ? char.ToUpperInvariant(reward.powerUpId[0]) + reward.powerUpId.Substring(1)
+                : "Coins";
+            var state = _achievements.IsUnlocked(achievement.id) ? "received" : "reward";
+            return $"{achievement.description}  •  {name} ×{reward.amount} {state}";
+        }
+
         public void Refresh()
         {
             if (_progress != null && statsValues != null)
@@ -146,7 +162,7 @@ namespace DesiMerge.UI
                 }
 
                 var achievement = definitions[i];
-                _rows[i].Show(achievement.title, achievement.description, _achievements.ProgressOf(achievement),
+                _rows[i].Show(achievement.title, WithReward(achievement), _achievements.ProgressOf(achievement),
                     _achievements.TargetOf(achievement), _achievements.IsUnlocked(achievement.id));
             }
         }

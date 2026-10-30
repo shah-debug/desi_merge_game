@@ -130,7 +130,7 @@ namespace DesiMerge.Progression
 
         public void Refresh()
         {
-            var effectiveDay = Math.Max(DayKey.Today(_clock), _data.latestDay);
+            var effectiveDay = DayKey.Effective(DayKey.Today(_clock), _data.latestDay);
             var expected = SelectFor(effectiveDay, _pool);
             var changed = false;
 

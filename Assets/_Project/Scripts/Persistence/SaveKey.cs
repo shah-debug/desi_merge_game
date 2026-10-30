@@ -10,6 +10,9 @@ namespace DesiMerge.Persistence
         public const string DailyChallenge = "daily_challenge";
         public const string PowerUps = "power_ups";
         public const string Cosmetics = "cosmetics";
+        public const string DailyRewards = "daily_rewards";
+        public const string Missions = "missions";
+        public const string Milestones = "milestones";
 
         public static void Validate(string key)
         {

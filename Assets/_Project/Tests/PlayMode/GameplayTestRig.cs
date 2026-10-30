@@ -237,6 +237,11 @@ namespace DesiMerge.Tests.PlayMode
         }
 
         public void HideGameOver() => GameOverHidden++;
+
+        public readonly List<string> Discoveries = new List<string>();
+        public SessionSummary? LastSummary;
+        public void ShowSessionSummary(SessionSummary summary) => LastSummary = summary;
+        public void ShowDiscovery(MergeItemDefinition item) => Discoveries.Add(item.DisplayName);
         public void ShowConfigurationError(string message) => ConfigurationError = message;
         public bool BlocksPointer(Vector2 screenPosition) => screenPosition.y > BlockAboveY;
 

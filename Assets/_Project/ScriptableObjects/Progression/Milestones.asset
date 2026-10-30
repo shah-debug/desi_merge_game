@@ -1,0 +1,71 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a38c728f27aef6459435090f3ffe2c1, type: 3}
+  m_Name: Milestones
+  m_EditorClassIdentifier: DesiMerge.Runtime::DesiMerge.Progression.MilestoneCatalog
+  milestones:
+  - id: rank_100
+    title: Naya Khiladi
+    description: Your first 100 points
+    score: 100
+    reward:
+      type: 2
+      amount: 1
+      powerUpId: hammer
+  - id: rank_250
+    title: Bazaar Regular
+    description: A best score of 250
+    score: 250
+    reward:
+      type: 2
+      amount: 1
+      powerUpId: shuffle
+  - id: rank_500
+    title: Chai Champion
+    description: A best score of 500
+    score: 500
+    reward:
+      type: 2
+      amount: 2
+      powerUpId: hammer
+  - id: rank_800
+    title: Dhaba Star
+    description: A best score of 800
+    score: 800
+    reward:
+      type: 2
+      amount: 2
+      powerUpId: shuffle
+  - id: rank_1200
+    title: Truck-Art Ustaad
+    description: A best score of 1200
+    score: 1200
+    reward:
+      type: 2
+      amount: 2
+      powerUpId: hammer
+  - id: rank_1800
+    title: Rickshaw Racer
+    description: A best score of 1800
+    score: 1800
+    reward:
+      type: 2
+      amount: 3
+      powerUpId: shuffle
+  - id: rank_2500
+    title: Bus Badshah
+    description: A best score of 2500
+    score: 2500
+    reward:
+      type: 2
+      amount: 3
+      powerUpId: hammer

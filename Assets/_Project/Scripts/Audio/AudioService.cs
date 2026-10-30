@@ -42,9 +42,19 @@ namespace DesiMerge.Audio
                 _sfxVoices[i] = CreateSource(host);
             }
 
+            // Without an enabled AudioListener Unity renders no sound at all. The generated scenes' cameras have none,
+            // so the listener lives on the audio host: exactly one for the whole session.
+            Listener = host.GetComponent<AudioListener>();
+            if (Listener == null)
+            {
+                Listener = host.AddComponent<AudioListener>();
+            }
+
             _settings.Changed += ApplyVolumes;
             ApplyVolumes();
         }
+
+        public AudioListener Listener { get; }
 
         public MusicTrack CurrentTrack { get; private set; }
         public AudioSource MusicSource => _music;

@@ -44,6 +44,8 @@ namespace DesiMerge.UI
         [SerializeField] private ScalePunch gameOverTitlePunch;
         [SerializeField] private Button restartButton;
         [SerializeField] private Button gameOverMenuButton;
+        [SerializeField] private Text summaryText;
+        [SerializeField] private Text improvementText;
 
         [Header("Revive")]
         [SerializeField] private Button continueButton;
@@ -65,6 +67,7 @@ namespace DesiMerge.UI
         [SerializeField] private RectTransform[] pointerBlockers = Array.Empty<RectTransform>();
 
         [SerializeField] private Text errorText;
+        [SerializeField] private TutorialOverlay tutorial;
 
         private long _shownScore = -1;
 
@@ -156,6 +159,11 @@ namespace DesiMerge.UI
             {
                 feedback.Bind(audio);
             }
+
+            if (tutorial != null)
+            {
+                tutorial.BindAudio(audio);
+            }
         }
 
         public void SetScore(long score)
@@ -228,6 +236,58 @@ namespace DesiMerge.UI
             {
                 toast.Show(message);
             }
+        }
+
+        public void ShowDiscovery(MergeItemDefinition item)
+        {
+            if (toast != null && item != null)
+            {
+                toast.Show($"New discovery: {item.DisplayName}!", item.Sprite);
+            }
+        }
+
+        public string SummaryText => summaryText != null ? summaryText.text : string.Empty;
+
+        public void ShowSessionSummary(SessionSummary summary)
+        {
+            if (improvementText != null)
+            {
+                improvementText.text = summary.Improvement > 0 && summary.PreviousBest > 0 ? $"+{summary.Improvement} over your old best" : string.Empty;
+                improvementText.gameObject.SetActive(improvementText.text.Length > 0);
+            }
+
+            if (summaryText == null)
+            {
+                return;
+            }
+
+            var lines = new System.Text.StringBuilder();
+            lines.Append(summary.Merges == 1 ? "1 merge" : $"{summary.Merges} merges");
+            if (summary.Discoveries.Count > 0)
+            {
+                lines.Append("   •   New: ").Append(string.Join(", ", summary.Discoveries));
+            }
+
+            if (!string.IsNullOrEmpty(summary.NewRank))
+            {
+                lines.Append("\nNew rank: ").Append(summary.NewRank);
+            }
+
+            if (summary.AchievementsUnlocked > 0)
+            {
+                lines.Append(summary.AchievementsUnlocked == 1 ? "\n1 award unlocked" : $"\n{summary.AchievementsUnlocked} awards unlocked");
+            }
+
+            if (summary.MissionsToClaim > 0)
+            {
+                lines.Append(summary.MissionsToClaim == 1 ? "\n1 mission reward to claim in the menu" : $"\n{summary.MissionsToClaim} mission rewards to claim in the menu");
+            }
+            else if (summary.MissionsCompleted > 0)
+            {
+                lines.Append(summary.MissionsCompleted == 1 ? "\n1 mission completed" : $"\n{summary.MissionsCompleted} missions completed");
+            }
+
+            summaryText.text = lines.ToString();
         }
 
         public void ShowPause()
@@ -365,8 +425,45 @@ namespace DesiMerge.UI
             }
         }
 
+        public bool TutorialVisible => tutorial != null && tutorial.IsShowing;
+        public TutorialOverlay Tutorial => tutorial;
+
+        public void ShowTutorial(Action onFinished)
+        {
+            if (tutorial == null)
+            {
+                onFinished?.Invoke();
+                return;
+            }
+
+            void Done()
+            {
+                tutorial.Finished -= Done;
+                onFinished?.Invoke();
+            }
+
+            tutorial.Finished += Done;
+            tutorial.Show();
+        }
+
+        public bool CloseTutorial()
+        {
+            if (!TutorialVisible)
+            {
+                return false;
+            }
+
+            tutorial.Finish();
+            return true;
+        }
+
         public bool BlocksPointer(Vector2 screenPosition)
         {
+            if (TutorialVisible)
+            {
+                return true;
+            }
+
             foreach (var blocker in pointerBlockers)
             {
                 if (blocker != null && blocker.gameObject.activeInHierarchy &&

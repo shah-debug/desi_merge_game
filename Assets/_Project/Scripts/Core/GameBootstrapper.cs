@@ -22,6 +22,9 @@ namespace DesiMerge.Core
 
         [SerializeField] private GameConfig config;
 
+        [Tooltip("Optional intro (an ISplashScreen) shown while the first scene loads.")]
+        [SerializeField] private MonoBehaviour splash;
+
         private ISaveStore _saveStoreOverride;
         private AppLifecycleHook _lifecycle;
 
@@ -73,9 +76,17 @@ namespace DesiMerge.Core
 
         private void Start()
         {
-            if (Services != null && !string.IsNullOrEmpty(config.FirstSceneName))
+            if (Services == null || string.IsNullOrEmpty(config.FirstSceneName))
             {
-                SceneManager.LoadSceneAsync(config.FirstSceneName, LoadSceneMode.Single);
+                return;
+            }
+
+            var load = SceneManager.LoadSceneAsync(config.FirstSceneName, LoadSceneMode.Single);
+            if (load != null && splash is ISplashScreen intro)
+            {
+                // The menu activates when both the load and the short intro are done; there is no extra wait.
+                load.allowSceneActivation = false;
+                intro.Play(() => load.allowSceneActivation = true);
             }
         }
 

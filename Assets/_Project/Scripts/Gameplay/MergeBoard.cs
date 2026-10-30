@@ -17,6 +17,12 @@ namespace DesiMerge.Gameplay
     {
         private const float WallThickness = 0.5f;
 
+        /// <summary>
+        /// Collider depth of walls and floor (the art stays <see cref="WallThickness"/>). Deep enough that an item pushed
+        /// into a wall by a crowded pile is always pushed back inside rather than out through the far side.
+        /// </summary>
+        private const float ColliderThickness = 2f;
+
         [SerializeField] private MergeItem itemPrefab;
         [SerializeField] private Transform itemRoot;
 
@@ -251,7 +257,7 @@ namespace DesiMerge.Gameplay
             var velocity = (first.Body.linearVelocity + second.Body.linearVelocity) * 0.5f;
             RetireMerged(first);
             RetireMerged(second);
-            SpawnWorld(resultLevel, position, velocity, _stepTime).PlaySpawnPop();
+            SpawnWorld(resultLevel, InsideContainer(position, _config.Progression.Get(resultLevel).Radius), velocity, _stepTime).PlaySpawnPop();
             ItemMerged?.Invoke(resultLevel, position);
         }
 
@@ -283,6 +289,20 @@ namespace DesiMerge.Gameplay
             }
 
             _retired.Clear();
+        }
+
+        /// <summary>
+        /// The merged item is bigger than the two it replaces. Placed at their midpoint next to a wall it would start
+        /// inside the wall, and the physics engine could push it out through the far side (found by the Phase 6.7
+        /// stress test). Keep it fully inside the container instead.
+        /// </summary>
+        private Vector2 InsideContainer(Vector2 worldPosition, float radius)
+        {
+            var local = WorldToLocal(worldPosition);
+            var limit = Mathf.Max(0f, _config.HalfWidth - radius);
+            local.x = Mathf.Clamp(local.x, -limit, limit);
+            local.y = Mathf.Max(local.y, radius);
+            return LocalToWorld(local);
         }
 
         private MergeItem SpawnWorld(int level, Vector2 worldPosition, Vector2 velocity, float spawnTime)
@@ -343,9 +363,9 @@ namespace DesiMerge.Gameplay
             var walls = new GameObject("Walls").transform;
             walls.SetParent(transform, false);
 
-            CreateSolid(walls, "Floor", new Vector2(0f, -WallThickness * 0.5f), new Vector2(width + WallThickness * 2f, WallThickness));
-            CreateSolid(walls, "LeftWall", new Vector2(-halfWidth - WallThickness * 0.5f, wallHeight * 0.5f), new Vector2(WallThickness, wallHeight));
-            CreateSolid(walls, "RightWall", new Vector2(halfWidth + WallThickness * 0.5f, wallHeight * 0.5f), new Vector2(WallThickness, wallHeight));
+            CreateSolid(walls, "Floor", new Vector2(0f, -ColliderThickness * 0.5f), new Vector2(width + ColliderThickness * 2f, ColliderThickness));
+            CreateSolid(walls, "LeftWall", new Vector2(-halfWidth - ColliderThickness * 0.5f, wallHeight * 0.5f), new Vector2(ColliderThickness, wallHeight));
+            CreateSolid(walls, "RightWall", new Vector2(halfWidth + ColliderThickness * 0.5f, wallHeight * 0.5f), new Vector2(ColliderThickness, wallHeight));
 
             var art = new GameObject("Art").transform;
             art.SetParent(transform, false);

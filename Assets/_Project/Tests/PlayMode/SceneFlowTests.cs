@@ -104,7 +104,8 @@ namespace DesiMerge.Tests.PlayMode
             Assert.IsNotNull(game.Loop, "Play must open the real gameplay flow.");
             Assert.AreEqual(GameState.Playing, game.Services.GameState.Current);
             var musicPlayers = CountAudioSources();
-            Assert.AreEqual(7, musicPlayers, "Exactly one audio host (1 music + 6 SFX voices) after the scene change.");
+            var expectedSources = ((DesiMerge.Audio.AudioService)game.Services.Audio).SourceCount;
+            Assert.AreEqual(expectedSources, musicPlayers, "Exactly one audio host (1 music source + the SFX voices) after the scene change.");
 
             foreach (var x in new[] { -2f, -0.8f, 0.4f, 1.6f, -1.4f, 2.2f })
             {

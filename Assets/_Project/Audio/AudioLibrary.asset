@@ -25,6 +25,27 @@ MonoBehaviour:
   - cue: 3
     clip: {fileID: 8300000, guid: 0e7c120b9569dd34cb2ecf2b4a5ff45b, type: 3}
     volume: 1
+  - cue: 4
+    clip: {fileID: 8300000, guid: 1aa5117a27f4cee40ad043a0e017b669, type: 3}
+    volume: 0.8
+  - cue: 5
+    clip: {fileID: 8300000, guid: d59aa5c76be09a54b8f534ae64adcbe7, type: 3}
+    volume: 0.9
+  - cue: 6
+    clip: {fileID: 8300000, guid: 5ebffe476d0a6784f9e60ba7b4d7be94, type: 3}
+    volume: 0.8
+  - cue: 7
+    clip: {fileID: 8300000, guid: e003889213748ba4f92c81abf9bb6215, type: 3}
+    volume: 0.8
+  - cue: 8
+    clip: {fileID: 8300000, guid: a20f331a6520e174b94f9f42e5872de1, type: 3}
+    volume: 0.6
+  - cue: 9
+    clip: {fileID: 8300000, guid: 5ad5ffe69fea46a4abc273e8dbca3de7, type: 3}
+    volume: 0.6
+  - cue: 10
+    clip: {fileID: 8300000, guid: 6fc7ffb7c6572ee4ca9e594abe33ef77, type: 3}
+    volume: 1
   music:
   - track: 1
     clip: {fileID: 8300000, guid: cc7c59d63e9d2d44dae1f0069898977f, type: 3}
@@ -32,4 +53,4 @@ MonoBehaviour:
   - track: 2
     clip: {fileID: 8300000, guid: 5840d678fa5687b4db44f31e3c444753, type: 3}
     volume: 0.45
-  sfxVoices: 6
+  sfxVoices: 8

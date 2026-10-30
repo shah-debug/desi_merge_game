@@ -4,6 +4,7 @@ using DesiMerge.Audio;
 using DesiMerge.Configuration;
 using DesiMerge.Cosmetics;
 using DesiMerge.Monetization;
+using DesiMerge.Persistence;
 using DesiMerge.PowerUps;
 using DesiMerge.Progression;
 using DesiMerge.Settings;
@@ -29,7 +30,10 @@ namespace DesiMerge.Core
             IClock clock,
             IPowerUpService powerUps,
             ICosmeticService cosmetics,
-            MergeProgression itemContent = null)
+            MergeProgression itemContent = null,
+            IDailyRewardService dailyRewards = null,
+            IMissionService missions = null,
+            IMilestoneService milestones = null)
         {
             ItemContent = itemContent;
             GameState = gameState ?? throw new ArgumentNullException(nameof(gameState));
@@ -44,6 +48,9 @@ namespace DesiMerge.Core
             Clock = clock ?? throw new ArgumentNullException(nameof(clock));
             PowerUps = powerUps ?? throw new ArgumentNullException(nameof(powerUps));
             Cosmetics = cosmetics ?? throw new ArgumentNullException(nameof(cosmetics));
+            DailyRewards = dailyRewards ?? new DailyRewardService(new InMemorySaveStore(), null, Clock, null);
+            Missions = missions ?? new MissionService(new InMemorySaveStore(), null, Progress, PowerUps, itemContent, Clock, null);
+            Milestones = milestones ?? new MilestoneService(new InMemorySaveStore(), null, Progress, null);
             // The only way gameplay and UI reach the ad provider: one request at a time, duplicate callbacks ignored.
             Ads = new RewardedAdCoordinator(RewardedAds, Analytics);
         }
@@ -60,6 +67,9 @@ namespace DesiMerge.Core
         public IClock Clock { get; }
         public IPowerUpService PowerUps { get; }
         public ICosmeticService Cosmetics { get; }
+        public IDailyRewardService DailyRewards { get; }
+        public IMissionService Missions { get; }
+        public IMilestoneService Milestones { get; }
 
         /// <summary>Rewarded-ad lifecycle over <see cref="RewardedAds"/> (the provider). Use this, never the provider.</summary>
         public RewardedAdCoordinator Ads { get; }
@@ -79,6 +89,9 @@ namespace DesiMerge.Core
             ok &= Cosmetics.Flush();
             ok &= Achievements.Flush();
             ok &= DailyChallenges.Flush();
+            ok &= DailyRewards.Flush();
+            ok &= Missions.Flush();
+            ok &= Milestones.Flush();
             Settings.Flush();
             return ok;
         }
@@ -90,6 +103,8 @@ namespace DesiMerge.Core
             (Achievements as IDisposable)?.Dispose();
             (DailyChallenges as IDisposable)?.Dispose();
             (Cosmetics as IDisposable)?.Dispose();
+            (Missions as IDisposable)?.Dispose();
+            (Milestones as IDisposable)?.Dispose();
             Ads.Abandon();
         }
     }

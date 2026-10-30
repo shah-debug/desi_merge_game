@@ -45,6 +45,12 @@ namespace DesiMerge.Gameplay
 
         void ShowGameOver(long finalScore, long bestScore, bool isNewBest);
 
+        /// <summary>Fills the results card after <see cref="ShowGameOver"/>.</summary>
+        void ShowSessionSummary(SessionSummary summary);
+
+        /// <summary>First discovery of an item during play.</summary>
+        void ShowDiscovery(MergeItemDefinition item);
+
         void HideGameOver();
 
         void ShowConfigurationError(string message);

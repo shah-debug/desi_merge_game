@@ -43,6 +43,7 @@ namespace DesiMerge.Editor.Content
             PowerUpContentBuilder.EnsurePowerUpCatalog();
             PowerUpContentBuilder.EnsureDailyRewards();
             ConfigureGameConfig();
+            ExperienceContentSetup.EnsureData();
 
             if (AssetDatabase.LoadAssetAtPath<SceneAsset>(ContentPaths.MainMenuScenePath) == null)
             {

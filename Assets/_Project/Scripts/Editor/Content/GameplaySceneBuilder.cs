@@ -264,15 +264,20 @@ namespace DesiMerge.Editor.Content
             UiFactory.Record(cancelTargeting.transform);
             banner.gameObject.SetActive(false);
 
-            EditorRefs.Set(safe.gameObject.AddComponent<ResponsiveScaler>(), ("targets", new Object[] { topHud }));
+            safe.gameObject.AddComponent<ResponsiveScaler>();
+            var responsive = new System.Collections.Generic.List<Object> { topHud };
 
             var toastImage = factory.Image(topHud, "Toast", theme.pill, theme.deep);
             UiFactory.Place(toastImage.rectTransform, new Vector2(0.5f, 1f), new Vector2(-170f, -376f), new Vector2(640f, 88f));
             var toastText = factory.Text(toastImage.transform, "Text", string.Empty, 34, theme.accent);
             UiFactory.Stretch(toastText.rectTransform, 24f, 24f, 0f, 2f);
+            var toastIcon = factory.Image(toastImage.transform, "Icon", null, Color.white);
+            toastIcon.preserveAspect = true;
+            UiFactory.Place(toastIcon.rectTransform, new Vector2(0f, 0.5f), new Vector2(10f, 4f), new Vector2(104f, 104f));
+            toastIcon.gameObject.SetActive(false);
             toastImage.gameObject.AddComponent<CanvasGroup>();
             var toast = toastImage.gameObject.AddComponent<ToastPresenter>();
-            EditorRefs.Set(toast, ("label", toastText));
+            EditorRefs.Set(toast, ("label", toastText), ("icon", toastIcon));
 
             var popupLayer = UiFactory.Stretch(UiFactory.Rect("ScorePopups", root)).gameObject.AddComponent<ScorePopupLayer>();
             var popupTemplate = factory.Text(popupLayer.transform, "PopupTemplate", "+0", 72, theme.textLight, TextAnchor.MiddleCenter, outline: true);
@@ -304,24 +309,36 @@ namespace DesiMerge.Editor.Content
             UiFactory.Record(cancelRestart.transform);
             confirm.gameObject.SetActive(false);
 
-            var (gameOverPanel, gameOverCard) = factory.Modal(root, "GameOverPanel", new Vector2(900f, 1360f), "GAME OVER");
+            var (gameOverPanel, gameOverCard) = factory.Modal(root, "GameOverPanel", new Vector2(900f, 1580f), "GAME OVER");
             var gameOverTitle = gameOverCard.Find("Header/Title").gameObject;
             var titlePunch = UiFactory.Punch(gameOverTitle, 0.2f, 0.45f, true);
             var finalCaption = factory.Text(gameOverCard, "ScoreCaption", "YOUR SCORE", 40, theme.mutedText);
-            UiFactory.Place(finalCaption.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -214f), new Vector2(600f, 50f));
+            UiFactory.Place(finalCaption.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -196f), new Vector2(600f, 50f));
             var finalScore = factory.Text(gameOverCard, "FinalScore", "0", 170, theme.primary);
             AddShadow(finalScore.gameObject, theme, 0.3f, 8f);
-            UiFactory.Place(finalScore.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -262f), new Vector2(800f, 180f));
+            UiFactory.Place(finalScore.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -236f), new Vector2(800f, 176f));
+            var improvement = factory.Text(gameOverCard, "Improvement", string.Empty, 36, theme.secondary);
+            UiFactory.Place(improvement.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -410f), new Vector2(800f, 46f));
+            improvement.gameObject.SetActive(false);
             var newBest = factory.Image(gameOverCard, "NewBest", theme.pill, theme.accent).rectTransform;
-            UiFactory.Place(newBest, new Vector2(0.5f, 1f), new Vector2(0f, -456f), new Vector2(420f, 92f));
+            UiFactory.Place(newBest, new Vector2(0.5f, 1f), new Vector2(0f, -462f), new Vector2(420f, 88f));
             var newBestIcon = factory.Image(newBest, "Icon", GameArtGenerator.Icon("Star"), theme.deep);
             UiFactory.Place(newBestIcon.rectTransform, new Vector2(0f, 0.5f), new Vector2(34f, 0f), new Vector2(54f, 54f));
             var newBestText = factory.Text(newBest, "Text", "NEW BEST!", 48, theme.deep);
             UiFactory.Stretch(newBestText.rectTransform, 70f, 10f, 0f, 2f);
             var gameOverBest = factory.Text(gameOverCard, "BestText", "Best  0", 46, theme.textDark, TextAnchor.MiddleLeft);
-            UiFactory.Place(gameOverBest.rectTransform, new Vector2(0.5f, 1f), new Vector2(110f, -572f), new Vector2(380f, 64f));
+            UiFactory.Place(gameOverBest.rectTransform, new Vector2(0.5f, 1f), new Vector2(110f, -560f), new Vector2(380f, 64f));
             var bestIcon = factory.Image(gameOverCard, "BestIcon", GameArtGenerator.Icon("Crown"), theme.accent);
-            UiFactory.Place(bestIcon.rectTransform, new Vector2(0.5f, 1f), new Vector2(-114f, -578f), new Vector2(50f, 50f));
+            UiFactory.Place(bestIcon.rectTransform, new Vector2(0.5f, 1f), new Vector2(-114f, -566f), new Vector2(50f, 50f));
+
+            var summaryPanel = factory.Panel(gameOverCard, "Summary", new Color(theme.deep.r, theme.deep.g, theme.deep.b, 0.06f)).rectTransform;
+            UiFactory.Place(summaryPanel, new Vector2(0.5f, 1f), new Vector2(0f, -650f), new Vector2(780f, 180f));
+            var summaryIcon = factory.Image(summaryPanel, "Icon", GameArtGenerator.Icon("Missions"), theme.secondary);
+            UiFactory.Place(summaryIcon.rectTransform, new Vector2(0f, 1f), new Vector2(30f, -26f), new Vector2(54f, 54f));
+            var summary = factory.Text(summaryPanel, "Text", string.Empty, 32, theme.textDark, TextAnchor.UpperLeft, body: true);
+            summary.horizontalOverflow = HorizontalWrapMode.Wrap;
+            summary.lineSpacing = 1.15f;
+            UiFactory.Stretch(summary.rectTransform, 104f, 24f, 24f, 16f);
 
             var reviveStatus = factory.Text(gameOverCard, "ReviveStatus", string.Empty, 30, theme.mutedText, body: true);
             reviveStatus.horizontalOverflow = HorizontalWrapMode.Wrap;
@@ -357,7 +374,12 @@ namespace DesiMerge.Editor.Content
                 ("continueButton", continueButton), ("reviveStatusText", reviveStatus),
                 ("powerUpButtons", new Object[] { hammer, shuffle }), ("targetingBanner", banner.gameObject),
                 ("targetingText", bannerText), ("targetingCancelButton", cancelTargeting),
-                ("pointerBlockers", new Object[] { topBar, powerBar, banner.rectTransform }), ("errorText", errorText));
+                ("pointerBlockers", new Object[] { topBar, powerBar, banner.rectTransform }), ("errorText", errorText),
+                ("summaryText", summary), ("improvementText", improvement),
+                ("tutorial", TutorialBuilder.Build(factory, root)));
+            responsive.Add(gameOverCard);
+            responsive.Add(pausePanel.transform.Find("Card"));
+            EditorRefs.Set(safe.GetComponent<ResponsiveScaler>(), ("targets", responsive.ToArray()));
             return hud;
         }
 

@@ -50,6 +50,12 @@ namespace DesiMerge.Settings
             set => Set(ref _data.hapticsEnabled, value);
         }
 
+        public bool TutorialCompleted
+        {
+            get => _data.tutorialCompleted;
+            set => Set(ref _data.tutorialCompleted, value);
+        }
+
         public event Action Changed;
 
         public void Flush()
@@ -102,6 +108,7 @@ namespace DesiMerge.Settings
                 musicMuted = source.musicMuted,
                 sfxMuted = source.sfxMuted,
                 hapticsEnabled = source.hapticsEnabled,
+                tutorialCompleted = source.tutorialCompleted,
             };
         }
 

@@ -33,6 +33,8 @@ namespace DesiMerge.Audio
         [SerializeField, Range(1, 16)] private int sfxVoices = 6;
 
         public int SfxVoices => sfxVoices;
+        internal System.Collections.Generic.IReadOnlyList<SfxEntry> SfxEntries => sfx;
+        internal System.Collections.Generic.IReadOnlyList<MusicEntry> MusicEntries => music;
 
         public bool TryGetSfx(SfxCue cue, out AudioClip clip, out float volume)
         {

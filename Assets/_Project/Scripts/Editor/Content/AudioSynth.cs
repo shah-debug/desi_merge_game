@@ -21,6 +21,13 @@ namespace DesiMerge.Editor.Content
         public const string GameOverPath = SfxFolder + "/game_over.wav";
         public const string MenuMusicPath = MusicFolder + "/menu_loop.wav";
         public const string GameplayMusicPath = MusicFolder + "/gameplay_loop.wav";
+        public const string PowerUpPath = SfxFolder + "/power_up.wav";
+        public const string RewardPath = SfxFolder + "/reward_claim.wav";
+        public const string MissionPath = SfxFolder + "/mission_complete.wav";
+        public const string UnlockPath = SfxFolder + "/unlock.wav";
+        public const string PausePath = SfxFolder + "/pause.wav";
+        public const string ResumePath = SfxFolder + "/resume.wav";
+        public const string NewBestPath = SfxFolder + "/new_best.wav";
 
         private const int SfxRate = 44100;
         private const int MusicRate = 22050;
@@ -35,6 +42,13 @@ namespace DesiMerge.Editor.Content
             Ensure(MergePath, SfxRate, Merge, false);
             Ensure(ButtonPath, SfxRate, Button, false);
             Ensure(GameOverPath, SfxRate, GameOver, false);
+            Ensure(PowerUpPath, SfxRate, PowerUp, false);
+            Ensure(RewardPath, SfxRate, () => Arpeggio(new[] { 0, 2, 3, 5 }, 0.07f, 0.9f), false);
+            Ensure(MissionPath, SfxRate, () => Arpeggio(new[] { 3, 5 }, 0.11f, 0.7f), false);
+            Ensure(UnlockPath, SfxRate, Unlock, false);
+            Ensure(PausePath, SfxRate, () => Arpeggio(new[] { 3, 0 }, 0.08f, 0.35f, 0.5f), false);
+            Ensure(ResumePath, SfxRate, () => Arpeggio(new[] { 0, 3 }, 0.08f, 0.35f, 0.5f), false);
+            Ensure(NewBestPath, SfxRate, NewBest, false);
             // Loop lengths make every drone frequency complete whole cycles, so the loop point is seamless.
             Ensure(MenuMusicPath, MusicRate, () => Music(80f, 16, new[] { 0, -1, 2, -1, 3, 2, 1, -1, 0, -1, 4, 3, 2, -1, 1, -1 }, 0.55f), true);
             Ensure(GameplayMusicPath, MusicRate, () => Music(120f, 32, new[]
@@ -93,6 +107,53 @@ namespace DesiMerge.Editor.Content
             var samples = Allocate(SfxRate, 0.32f);
             AddBell(samples, SfxRate, 0f, 659.25f, 18f, 0.8f);
             AddBell(samples, SfxRate, 0.07f, 880f, 12f, 1f);
+            return samples;
+        }
+
+        private static float[] PowerUp()
+        {
+            var samples = Allocate(SfxRate, 0.36f);
+            var phase = 0f;
+            for (var i = 0; i < samples.Length; i++)
+            {
+                var t = (float)i / SfxRate;
+                phase += 2f * Mathf.PI * Mathf.Lerp(380f, 1250f, Mathf.Clamp01(t / 0.22f)) / SfxRate;
+                samples[i] = Mathf.Sin(phase) * 0.5f * Mathf.Exp(-t * 7f) * Attack(t, 0.01f);
+            }
+
+            AddBell(samples, SfxRate, 0.18f, 1318.5f, 14f, 0.6f);
+            return samples;
+        }
+
+        private static float[] Unlock()
+        {
+            var samples = Allocate(SfxRate, 0.7f);
+            AddBell(samples, SfxRate, 0f, 880f, 6f, 0.7f);
+            AddBell(samples, SfxRate, 0f, 1108.7f, 6f, 0.5f);
+            AddBell(samples, SfxRate, 0.09f, 1318.5f, 5f, 0.8f);
+            return samples;
+        }
+
+        private static float[] NewBest()
+        {
+            var samples = Allocate(SfxRate, 1.3f);
+            AddPluck(samples, SfxRate, 0f, 440f, 4f, 0.8f);
+            AddPluck(samples, SfxRate, 0.12f, 554.37f, 4f, 0.8f);
+            AddPluck(samples, SfxRate, 0.24f, 659.25f, 4f, 0.85f);
+            AddPluck(samples, SfxRate, 0.36f, 880f, 2.5f, 1f);
+            AddBell(samples, SfxRate, 0.36f, 1760f, 4f, 0.35f);
+            return samples;
+        }
+
+        /// <param name="degrees">Scale degrees played one after another.</param>
+        private static float[] Arpeggio(int[] degrees, float step, float level, float octave = 1f)
+        {
+            var samples = Allocate(SfxRate, step * degrees.Length + 0.45f);
+            for (var i = 0; i < degrees.Length; i++)
+            {
+                AddBell(samples, SfxRate, i * step, Scale[degrees[i]] * octave, 9f, level);
+            }
+
             return samples;
         }
 

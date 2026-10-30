@@ -39,4 +39,31 @@ namespace DesiMerge.Gameplay
         /// <summary>No network connection. No revive; the player may try again.</summary>
         Offline = 6,
     }
+
+    /// <summary>What happened during one game, for the results card.</summary>
+    public readonly struct SessionSummary
+    {
+        public SessionSummary(long score, long previousBest, int merges, System.Collections.Generic.IReadOnlyList<string> discoveries,
+            int achievementsUnlocked, int missionsCompleted, int missionsToClaim, string newRank)
+        {
+            Score = score;
+            PreviousBest = previousBest;
+            Merges = merges;
+            Discoveries = discoveries ?? System.Array.Empty<string>();
+            AchievementsUnlocked = achievementsUnlocked;
+            MissionsCompleted = missionsCompleted;
+            MissionsToClaim = missionsToClaim;
+            NewRank = newRank ?? string.Empty;
+        }
+
+        public long Score { get; }
+        public long PreviousBest { get; }
+        public int Merges { get; }
+        public System.Collections.Generic.IReadOnlyList<string> Discoveries { get; }
+        public int AchievementsUnlocked { get; }
+        public int MissionsCompleted { get; }
+        public int MissionsToClaim { get; }
+        public string NewRank { get; }
+        public long Improvement => Score > PreviousBest ? Score - PreviousBest : 0;
+    }
 }

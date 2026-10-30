@@ -50,7 +50,27 @@ Lilita One is display-only; long or small text uses the body font. `UiFactory.Te
 | Border strip | `BorderStrip.png` (tiled) | Truck-art "chamak patti" trim under bars and ribbons, and at the top and bottom of the menu. |
 | Ornament | `Ornament.png` | Flower motif: ribbon ends, title plate, wall caps; large and faint in backgrounds (10–20% alpha). |
 
-Iconography: 17 icons (`Art/UI/Icons`), white, filled, rounded geometry, all drawn on the same 128 px grid. Line weight comes from about 0.1–0.19 unit strokes, so they read alike at small sizes. They are tinted per use (white on coloured buttons, navy on saffron).
+Phase 6.6 components (runtime class → builder):
+
+| Component | Runtime | Notes |
+|---|---|---|
+| Menu panel | `MenuPanel` (base) | Modal card, round coral close (X) button sticking out of the top-right corner, Android back closes it |
+| Reward card (calendar day) | `DailyRewardTile` | Claimed: mint fill, faded icon, teal check badge. Today: saffron glow, cream-yellow fill. Upcoming: white. Day 7 is double width with ornaments. |
+| Mission / rank card | `ProgressCard` | Title, one-line description, animated progress bar (saffron on a navy-12% pill), "n / target", reward icon and amount, Claim (magenta) or check badge |
+| Progress bar | Pill track and filled Image | Animates with `MoveTowards`, unscaled time, stops itself when it reaches the value |
+| Badge / notification dot | Coral disc with "!" | Punch on appear; event-driven |
+| Tabs | Three buttons | Selected: navy with saffron label; normal: sand (`#F1E6D2`) with muted label |
+| Reward popup | `RewardPresenter` | Magenta ribbon, rotating faint truck-art flower, 200 px reward discs, Collect; queue of 8 at most |
+| Toast | `ToastPresenter` | Navy pill, saffron text, optional item-art icon (discoveries) |
+| Confirmation dialog | Pause → Restart confirm (6.5) | |
+| Loading state | Splash spinner (ornament), only after 1.2 s | |
+| Empty state | Muted body text inside the list ("Claimed missions appear here.") | |
+| Locked item card | Collection slot (6.5): dark silhouette + lock, plus a hint label | |
+| Tutorial card | `TutorialOverlay` | Teal ribbon "HOW TO PLAY", one illustration per page, page dots, NEXT / LET'S PLAY, SKIP below |
+
+Sizes: icon 44–60 inside rows, 110 on tiles, 200 discs in the reward popup; touch targets ≥ 100 px (row Claim 176×100, close 112×112, tabs 286×100). Card radius ≈ 42 (Panel sprite). Row height 150 with a 14 px gap. Modal cards join `ResponsiveScaler`, so they shrink on short (3:4) screens.
+
+Iconography: 23 icons (`Art/UI/Icons`), white, filled, rounded geometry, all drawn on the same 128 px grid. 6.6 added Gift, Calendar, Missions, Medal, Back and Unlock. Line weight comes from about 0.1–0.19 unit strokes, so they read alike at small sizes. They are tinted per use (white on coloured buttons, navy on saffron).
 
 ## States
 
@@ -79,6 +99,11 @@ Reference 1080×1920, portrait. Side margin 24 for bars and 40 elsewhere; minimu
 | Sparkles | 14 + 4 particles, 0.35–0.65 s |
 | Menu entrance | Staggered 0–0.46 s slide and fade |
 | Game-over title | 0.45 s punch, unscaled |
+| Splash | 0.9 s: logo scale 0.7→1 (OutBack), fade (OutCubic) |
+| Reward popup | Panel in (0.22 s), reward discs punch +18% over 0.4 s, background flower 24°/s |
+| Calendar tile state change | +12% punch over 0.3 s |
+| Progress bars | Fill moves at 2.5 / s |
+| Notification dot | +20% punch over 0.4 s when it appears |
 
 Rules: animations never block input, never touch the physics root, and animation code paths make no per-frame allocations. Gameplay effects use scaled time (they freeze while paused); UI uses unscaled time.
 

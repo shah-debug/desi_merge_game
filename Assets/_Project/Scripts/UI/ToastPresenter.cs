@@ -15,10 +15,11 @@ namespace DesiMerge.UI
         private const int MaxQueued = 6;
 
         [SerializeField] private Text label;
+        [SerializeField] private Image icon;
         [SerializeField] private float fadeSeconds = 0.2f;
         [SerializeField] private float holdSeconds = 1.6f;
 
-        private readonly Queue<string> _queue = new Queue<string>();
+        private readonly Queue<(string Message, Sprite Icon)> _queue = new Queue<(string, Sprite)>();
         private CanvasGroup _group;
         private float _elapsed;
         private bool _showing;
@@ -35,7 +36,10 @@ namespace DesiMerge.UI
             enabled = false;
         }
 
-        public void Show(string message)
+        public string CurrentMessage => label != null ? label.text : string.Empty;
+        public Sprite CurrentIcon => icon != null && icon.gameObject.activeSelf ? icon.sprite : null;
+
+        public void Show(string message, Sprite iconSprite = null)
         {
             if (string.IsNullOrEmpty(message))
             {
@@ -47,7 +51,7 @@ namespace DesiMerge.UI
                 _queue.Dequeue();
             }
 
-            _queue.Enqueue(message);
+            _queue.Enqueue((message, iconSprite));
             if (!_showing)
             {
                 Next();
@@ -64,13 +68,16 @@ namespace DesiMerge.UI
                 return;
             }
 
+            var next = _queue.Dequeue();
             if (label != null)
             {
-                label.text = _queue.Dequeue();
+                label.text = next.Message;
             }
-            else
+
+            if (icon != null)
             {
-                _queue.Dequeue();
+                icon.sprite = next.Icon;
+                icon.gameObject.SetActive(next.Icon != null);
             }
 
             _showing = true;

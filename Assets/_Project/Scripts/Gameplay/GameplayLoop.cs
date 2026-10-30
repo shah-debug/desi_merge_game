@@ -34,6 +34,11 @@ namespace DesiMerge.Gameplay
         private bool _leaving;
         private bool _disposed;
         private bool _revivePending;
+        private readonly List<string> _sessionDiscoveries = new List<string>();
+        private long _bestBeforeSession;
+        private int _sessionAchievements;
+        private int _sessionMissions;
+        private string _sessionRank;
         /// <summary>Changes on every new session, so a late ad callback can't revive a different game.</summary>
         private int _sessionGeneration;
 
@@ -66,6 +71,8 @@ namespace DesiMerge.Gameplay
             _services.Achievements.Unlocked += OnAchievementUnlocked;
             _services.DailyChallenges.Completed += OnDailyChallengeCompleted;
             _services.PowerUps.Changed += RefreshPowerUps;
+            _services.Missions.Completed += OnMissionCompleted;
+            _services.Milestones.Reached += OnMilestoneReached;
             _view.RestartRequested += OnRestartRequested;
             _view.PauseRequested += OnPauseRequested;
             _view.ResumeRequested += OnResumeRequested;
@@ -89,6 +96,11 @@ namespace DesiMerge.Gameplay
         public void Begin()
         {
             _sessionGeneration++;
+            _bestBeforeSession = _services.Progress.HighScore;
+            _sessionDiscoveries.Clear();
+            _sessionAchievements = 0;
+            _sessionMissions = 0;
+            _sessionRank = null;
             EnterPlayingState();
             _setTimeScale(1f);
             _nextDropAllowedAt = _clock();
@@ -148,6 +160,7 @@ namespace DesiMerge.Gameplay
             _setTimeScale(0f);
             _drop.InputEnabled = false;
             _services.Audio.SetMusicPaused(true);
+            _services.Audio.PlaySfx(SfxCue.Pause);
             _view.ShowPause();
             RefreshPowerUps();
             return true;
@@ -163,6 +176,7 @@ namespace DesiMerge.Gameplay
             _setTimeScale(1f);
             _drop.InputEnabled = true;
             _services.Audio.SetMusicPaused(false);
+            _services.Audio.PlaySfx(SfxCue.Resume);
             _view.HidePause();
             RefreshPowerUps();
             return true;
@@ -280,9 +294,11 @@ namespace DesiMerge.Gameplay
                 { "revived", Session.RevivesUsed > 0 },
             });
             _services.Audio.StopMusic();
-            _services.Audio.PlaySfx(SfxCue.GameOver);
+            _services.Audio.PlaySfx(isNewBest ? SfxCue.NewBest : SfxCue.GameOver);
             _services.GameState.TryTransitionTo(GameState.GameOver);
             _view.ShowGameOver(Session.Score, progress.HighScore, isNewBest);
+            _view.ShowSessionSummary(new SessionSummary(Session.Score, _bestBeforeSession, Session.MergeCount, _sessionDiscoveries.ToArray(),
+                _sessionAchievements, _sessionMissions, _services.Missions.ClaimableCount, _sessionRank));
             _view.SetReviveOffer(CurrentReviveOffer());
             RefreshPowerUps();
             return true;
@@ -387,6 +403,8 @@ namespace DesiMerge.Gameplay
             _services.Achievements.Unlocked -= OnAchievementUnlocked;
             _services.DailyChallenges.Completed -= OnDailyChallengeCompleted;
             _services.PowerUps.Changed -= RefreshPowerUps;
+            _services.Missions.Completed -= OnMissionCompleted;
+            _services.Milestones.Reached -= OnMilestoneReached;
             AbandonRevive();
         }
 
@@ -440,16 +458,40 @@ namespace DesiMerge.Gameplay
 
         private void OnDangerTimeExceeded() => EndGame();
 
-        private void OnItemDiscovered(MergeItemDefinition item) => _view.ShowToast($"New discovery: {item.DisplayName}!");
+        private void OnItemDiscovered(MergeItemDefinition item)
+        {
+            _sessionDiscoveries.Add(item.DisplayName);
+            _services.Audio.PlaySfx(SfxCue.Unlock);
+            _view.ShowDiscovery(item);
+        }
 
-        private void OnAchievementUnlocked(DesiMerge.Progression.AchievementDefinition achievement) => _view.ShowToast($"Achievement: {achievement.title}");
+        private void OnAchievementUnlocked(DesiMerge.Progression.AchievementDefinition achievement)
+        {
+            _sessionAchievements++;
+            _services.Audio.PlaySfx(SfxCue.Unlock);
+            _view.ShowToast($"Award unlocked: {achievement.title}");
+        }
+
+        private void OnMissionCompleted(DesiMerge.Progression.MissionDefinition mission)
+        {
+            _sessionMissions++;
+            _services.Audio.PlaySfx(SfxCue.MissionComplete);
+            _view.ShowToast($"Mission complete: {mission.title}");
+        }
+
+        private void OnMilestoneReached(DesiMerge.Progression.MilestoneDefinition milestone)
+        {
+            _sessionRank = milestone.title;
+            _services.Audio.PlaySfx(SfxCue.Unlock);
+            _view.ShowToast($"New rank: {milestone.title}!");
+        }
 
         private void OnDailyChallengeCompleted(DesiMerge.Progression.DailyChallengeDefinition challenge) => _view.ShowToast("Daily challenge complete!");
 
         private void OnPowerUpUsed(string id)
         {
             var definition = _services.PowerUps.Find(id);
-            _services.Audio.PlaySfx(SfxCue.Drop, 0.8f);
+            _services.Audio.PlaySfx(SfxCue.PowerUp);
             _services.Analytics.TrackEvent(AnalyticsEvents.PowerUpUsed, new Dictionary<string, object> { { "id", id } });
             if (definition != null)
             {

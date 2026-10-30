@@ -7,6 +7,13 @@ namespace DesiMerge.Audio
         Drop = 1,
         Merge = 2,
         GameOver = 3,
+        PowerUp = 4,
+        RewardClaim = 5,
+        MissionComplete = 6,
+        Unlock = 7,
+        Pause = 8,
+        Resume = 9,
+        NewBest = 10,
     }
 
     public enum MusicTrack

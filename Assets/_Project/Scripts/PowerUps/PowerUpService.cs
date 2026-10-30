@@ -36,6 +36,12 @@ namespace DesiMerge.PowerUps
 
         event Action Changed;
 
+        /// <summary>Raised once per successful use, with the power-up ID.</summary>
+        event Action<string> Used;
+
+        /// <summary>Raised by <see cref="BeginGame"/>, once per new game.</summary>
+        event Action GameBegan;
+
         PowerUpDefinition Find(string id);
 
         int FreeUsesLeft(string id);
@@ -63,6 +69,9 @@ namespace DesiMerge.PowerUps
         bool TryGrant(string grantId, string powerUpId, int amount);
 
         bool HasApplied(string grantId);
+
+        /// <summary>True if <paramref name="amount"/> charges fit under the power-up's saved maximum.</summary>
+        bool CanGrant(string powerUpId, int amount);
 
         bool Flush();
     }
@@ -101,6 +110,16 @@ namespace DesiMerge.PowerUps
             }
 
             Migrate(_data);
+            foreach (var entry in _data.charges)
+            {
+                var definition = Find(entry.id);
+                if (definition != null && entry.count > definition.maxSavedCharges)
+                {
+                    entry.count = definition.maxSavedCharges;
+                    _dirty = true;
+                }
+            }
+
             BeginGame();
         }
 
@@ -108,6 +127,8 @@ namespace DesiMerge.PowerUps
         public LoadOutcome LoadOutcome { get; }
 
         public event Action Changed;
+        public event Action<string> Used;
+        public event Action GameBegan;
 
         public PowerUpDefinition Find(string id)
         {
@@ -141,6 +162,7 @@ namespace DesiMerge.PowerUps
             }
 
             Changed?.Invoke();
+            GameBegan?.Invoke();
         }
 
         public bool TryConsume(string id)
@@ -154,6 +176,7 @@ namespace DesiMerge.PowerUps
             {
                 _freeUsesLeft[id]--;
                 Changed?.Invoke();
+                Used?.Invoke(id);
                 return true;
             }
 
@@ -166,10 +189,17 @@ namespace DesiMerge.PowerUps
             saved.count--;
             _dirty = true;
             Changed?.Invoke();
+            Used?.Invoke(id);
             return true;
         }
 
         public bool HasApplied(string grantId) => !string.IsNullOrEmpty(grantId) && _data.appliedGrantIds.Contains(grantId);
+
+        public bool CanGrant(string powerUpId, int amount)
+        {
+            var definition = Find(powerUpId);
+            return definition != null && amount > 0 && SavedCharges(powerUpId) + amount <= definition.maxSavedCharges;
+        }
 
         public bool TryGrant(string grantId, string powerUpId, int amount)
         {

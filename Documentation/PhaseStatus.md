@@ -8,8 +8,22 @@
 | 4 — Persistence & progression | Robust saves, stats, collection, daily challenges, streaks, achievements | Complete (committed `f93f0bd`) |
 | 5 — Power-ups, rewarded ads, monetization foundation | Hammer, Shuffle, rewarded-ad revive, ad boundary, cosmetics foundation | Complete (committed `8ae6060`) |
 | 6 — QA hardening & RC validation | Audit, bug fixes, tests, builds, measurements | Complete (committed `8ae6060`; see `Phase6-QA-Report.md`) |
-| 6.5 — Visual redesign & polish | Original item art, design system, HUD, screens, playfield, game feel, icon | **Complete — awaiting review** (see `VisualRedesignTestReport.md`) |
+| 6.5 — Visual redesign & polish | Original item art, design system, HUD, screens, playfield, game feel, icon | Complete (committed `e2d162a`; see `VisualRedesignTestReport.md`) |
+| 6.6 — Player experience, rewards, audio | Audio fix, splash, tutorial, menu, daily rewards, missions, ranks, reward popup, results, icons, SFX | **Complete — awaiting review** (see `Phase66_TestReport.md`) |
+| 6.7 — Production readiness audit | Crash hunting, failure injection, stress, fixes, release gate | **Done — decision: NOT READY (high-priority issues remain)**; see `ProductionReadiness/FinalProductionAudit.md` |
 | 7 | Not defined yet | Not started |
+
+## Phase 6.6 — Production-Grade Player Experience (2026-10-30)
+
+Docs: [`Phase66_Audit.md`](Phase66_Audit.md), [`AudioSystemAudit.md`](AudioSystemAudit.md), [`RewardAndMissionSystem.md`](RewardAndMissionSystem.md), [`GameScreenFlow.md`](GameScreenFlow.md), [`VisualDesignSystem.md`](VisualDesignSystem.md), [`VisualAssetManifest.md`](VisualAssetManifest.md), [`Phase66_TestReport.md`](Phase66_TestReport.md). Screenshots: `Screenshots/phase6.6-*.png`.
+
+- **Audio bug fixed.** Root cause: no `AudioListener` in any scene (generated cameras never had one), so Unity rendered no sound. `AudioService` now owns exactly one listener on the persistent audio host. Added 7 sound cues; SFX are preloaded.
+- **New:** branded splash (Unity splash off); 4-page first-game tutorial (skippable, shown once); redesigned menu with rank card and notification dots; 7-day **Daily Rewards**; **Missions** (3 daily, 3 weekly, completed tab, today's challenge); score **Ranks** (7 milestones); rewards on achievements (+3 new achievements); one reusable **reward popup**; a game-over **results summary**; a discovery toast with item art; collection hints; one-panel-at-a-time navigation with Android back for every screen.
+- **Economy:** all rewards are real power-up charges (maximum 9 each). There are no coins on screen and no shop (deferred: no real currency or visible cosmetics).
+- **Saves:** new `daily_rewards.json`, `missions.json`, `milestones.json`; `settings.json` schema 3 (`tutorialCompleted`). Nothing reset; the existing best score earns ranks at startup.
+- **Regenerate:** **Desi Merge > Setup > Apply Phase 6.6 Experience** (rebuilds MainMenu/Gameplay/UI prefabs and the Bootstrap splash; data assets are kept).
+- **Tests:** EditMode **203/203**, PlayMode **110/110** (final runs).
+- **Android build:** release-config APK **succeeded** (32.5 MB, debug-signed, 0 errors). Not installed on a phone.
 
 ## Phase 6.5 — Visual Redesign and Game Polish (2026-10-28)
 

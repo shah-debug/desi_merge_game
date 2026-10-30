@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using DesiMerge.PowerUps;
 using UnityEngine;
 
@@ -34,6 +35,53 @@ namespace DesiMerge.Progression
         /// if it could not be applied; the caller must then not record the reward as claimed.
         /// </summary>
         bool Grant(string grantId, RewardDefinition reward);
+
+        /// <summary>True if the reward was already applied or can be applied now (e.g. the power-up storage has room).</summary>
+        bool CanGrant(string grantId, RewardDefinition reward);
+    }
+
+    public enum ClaimResult
+    {
+        Claimed = 0,
+        NotAvailable = 1,
+        StorageFull = 2,
+        Failed = 3,
+    }
+
+    public static class RewardClaims
+    {
+        /// <summary>
+        /// Applies every reward under "<paramref name="grantPrefix"/>:index". Nothing is applied unless all of them fit.
+        /// Grants are idempotent, so retrying after an interrupted claim never applies a reward twice.
+        /// </summary>
+        public static ClaimResult GrantAll(IRewardGranter granter, string grantPrefix, IReadOnlyList<RewardDefinition> rewards)
+        {
+            if (granter == null)
+            {
+                return ClaimResult.Failed;
+            }
+
+            var count = rewards?.Count ?? 0;
+            for (var i = 0; i < count; i++)
+            {
+                if (!granter.CanGrant(GrantId(grantPrefix, i), rewards[i]))
+                {
+                    return ClaimResult.StorageFull;
+                }
+            }
+
+            for (var i = 0; i < count; i++)
+            {
+                if (!granter.Grant(GrantId(grantPrefix, i), rewards[i]))
+                {
+                    return ClaimResult.Failed;
+                }
+            }
+
+            return ClaimResult.Claimed;
+        }
+
+        public static string GrantId(string prefix, int index) => prefix + ":" + index;
     }
 
     public sealed class ProgressRewardGranter : IRewardGranter
@@ -64,6 +112,17 @@ namespace DesiMerge.Progression
                 default:
                     return false;
             }
+        }
+
+        public bool CanGrant(string grantId, RewardDefinition reward)
+        {
+            if (!reward.IsSomething || reward.type == RewardType.Coins)
+            {
+                return true;
+            }
+
+            return reward.type == RewardType.PowerUpCharges && _powerUps != null &&
+                   (_powerUps.HasApplied(grantId) || _powerUps.CanGrant(reward.powerUpId, reward.amount));
         }
     }
 }

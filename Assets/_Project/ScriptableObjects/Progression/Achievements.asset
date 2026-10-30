@@ -20,8 +20,9 @@ MonoBehaviour:
     target: 1
     itemId: 
     reward:
-      type: 0
-      amount: 0
+      type: 2
+      amount: 1
+      powerUpId: hammer
   - id: games_10
     title: Regular
     description: Finish 10 games
@@ -29,8 +30,9 @@ MonoBehaviour:
     target: 10
     itemId: 
     reward:
-      type: 0
-      amount: 0
+      type: 2
+      amount: 2
+      powerUpId: shuffle
   - id: merges_50
     title: Mixer
     description: Merge 50 times
@@ -38,8 +40,9 @@ MonoBehaviour:
     target: 50
     itemId: 
     reward:
-      type: 0
-      amount: 0
+      type: 2
+      amount: 1
+      powerUpId: hammer
   - id: merges_500
     title: Merge Ustaad
     description: Merge 500 times
@@ -47,8 +50,9 @@ MonoBehaviour:
     target: 500
     itemId: 
     reward:
-      type: 0
-      amount: 0
+      type: 2
+      amount: 3
+      powerUpId: hammer
   - id: score_500
     title: High Scorer
     description: Reach a best score of 500
@@ -56,8 +60,9 @@ MonoBehaviour:
     target: 500
     itemId: 
     reward:
-      type: 0
-      amount: 0
+      type: 2
+      amount: 2
+      powerUpId: shuffle
   - id: discover_chai
     title: Chai Time
     description: Discover Chai
@@ -65,8 +70,9 @@ MonoBehaviour:
     target: 1
     itemId: chai
     reward:
-      type: 0
-      amount: 0
+      type: 2
+      amount: 2
+      powerUpId: hammer
   - id: discover_bus
     title: All Aboard!
     description: Discover the Bus
@@ -74,8 +80,9 @@ MonoBehaviour:
     target: 1
     itemId: bus
     reward:
-      type: 0
-      amount: 0
+      type: 2
+      amount: 3
+      powerUpId: shuffle
   - id: streak_3
     title: Three Days Running
     description: Finish a game on 3 days in a row
@@ -83,5 +90,36 @@ MonoBehaviour:
     target: 3
     itemId: 
     reward:
-      type: 0
-      amount: 0
+      type: 2
+      amount: 2
+      powerUpId: hammer
+  - id: first_merge
+    title: First Merge
+    description: Merge two items
+    type: 1
+    target: 1
+    itemId: 
+    reward:
+      type: 2
+      amount: 1
+      powerUpId: shuffle
+  - id: discover_aam
+    title: Aam Ki Baat
+    description: Discover the Aam
+    type: 3
+    target: 1
+    itemId: aam
+    reward:
+      type: 2
+      amount: 1
+      powerUpId: shuffle
+  - id: score_1000
+    title: Thousand Points
+    description: Reach a best score of 1000
+    type: 2
+    target: 1000
+    itemId: 
+    reward:
+      type: 2
+      amount: 2
+      powerUpId: hammer

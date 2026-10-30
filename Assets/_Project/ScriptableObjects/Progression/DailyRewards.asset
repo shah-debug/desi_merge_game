@@ -1,0 +1,60 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2fe626f58a62e7c4ea47503283551f7a, type: 3}
+  m_Name: DailyRewards
+  m_EditorClassIdentifier: DesiMerge.Runtime::DesiMerge.Progression.DailyRewardCatalog
+  days:
+  - title: A Hammer to start
+    rewards:
+    - type: 2
+      amount: 1
+      powerUpId: hammer
+    special: 0
+  - title: A Shuffle
+    rewards:
+    - type: 2
+      amount: 1
+      powerUpId: shuffle
+    special: 0
+  - title: Another Hammer
+    rewards:
+    - type: 2
+      amount: 1
+      powerUpId: hammer
+    special: 0
+  - title: Another Shuffle
+    rewards:
+    - type: 2
+      amount: 1
+      powerUpId: shuffle
+    special: 0
+  - title: Double Hammer
+    rewards:
+    - type: 2
+      amount: 2
+      powerUpId: hammer
+    special: 0
+  - title: Double Shuffle
+    rewards:
+    - type: 2
+      amount: 2
+      powerUpId: shuffle
+    special: 0
+  - title: Mela bundle!
+    rewards:
+    - type: 2
+      amount: 2
+      powerUpId: hammer
+    - type: 2
+      amount: 2
+      powerUpId: shuffle
+    special: 1

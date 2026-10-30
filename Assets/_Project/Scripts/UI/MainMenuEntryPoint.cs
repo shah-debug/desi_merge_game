@@ -29,6 +29,21 @@ namespace DesiMerge.UI
         [SerializeField] private AchievementsPanel achievementsPanel;
         [SerializeField] private DailyChallengeCard dailyChallengeCard;
 
+        [Header("Rewards and progression")]
+        [SerializeField] private Button dailyRewardsButton;
+        [SerializeField] private Button missionsButton;
+        [SerializeField] private Button rankButton;
+        [SerializeField] private GameObject dailyRewardsDot;
+        [SerializeField] private GameObject missionsDot;
+        [SerializeField] private GameObject rankDot;
+        [SerializeField] private Text rankTitleText;
+        [SerializeField] private Text rankProgressText;
+        [SerializeField] private Image rankProgressFill;
+        [SerializeField] private DailyRewardsPanel dailyRewardsPanel;
+        [SerializeField] private MissionsPanel missionsPanel;
+        [SerializeField] private RanksPanel ranksPanel;
+        [SerializeField] private RewardPresenter rewardPresenter;
+
         [Tooltip("Editor/development only: config used when this scene is played without Bootstrap.")]
         [SerializeField] private GameConfig developmentConfig;
 
@@ -46,6 +61,26 @@ namespace DesiMerge.UI
         public CollectionPanel Collection => collectionPanel;
         public AchievementsPanel Achievements => achievementsPanel;
         public DailyChallengeCard DailyCard => dailyChallengeCard;
+        public Button DailyRewardsButton => dailyRewardsButton;
+        public Button MissionsButton => missionsButton;
+        public Button RankButton => rankButton;
+        public DailyRewardsPanel DailyRewards => dailyRewardsPanel;
+        public MissionsPanel Missions => missionsPanel;
+        public RanksPanel Ranks => ranksPanel;
+        public RewardPresenter Rewards => rewardPresenter;
+        public bool DailyRewardsDotVisible => dailyRewardsDot != null && dailyRewardsDot.activeSelf;
+        public bool MissionsDotVisible => missionsDot != null && missionsDot.activeSelf;
+        public string RankTitle => rankTitleText != null ? rankTitleText.text : string.Empty;
+
+        /// <summary>True while any menu panel or the reward popup is open.</summary>
+        public bool AnyPanelOpen =>
+            (rewardPresenter != null && rewardPresenter.IsShowing) ||
+            (settingsPanel != null && settingsPanel.IsOpen) ||
+            (collectionPanel != null && collectionPanel.IsOpen) ||
+            (achievementsPanel != null && achievementsPanel.IsOpen) ||
+            (dailyRewardsPanel != null && dailyRewardsPanel.IsOpen) ||
+            (missionsPanel != null && missionsPanel.IsOpen) ||
+            (ranksPanel != null && ranksPanel.IsOpen);
         public GameServices Services => _services;
 
         public void Initialize(GameServices services)
@@ -99,10 +134,40 @@ namespace DesiMerge.UI
                 achievementsPanel.Bind(services.Achievements, services.Progress, content, services.Audio);
             }
 
-            if (dailyChallengeCard != null)
+            services.DailyRewards.Refresh();
+            services.Missions.Refresh();
+            if (rewardPresenter != null)
+            {
+                rewardPresenter.Bind(services.Audio, services.PowerUps);
+            }
+
+            if (dailyRewardsPanel != null)
+            {
+                dailyRewardsPanel.Bind(services.DailyRewards, services.PowerUps, rewardPresenter, services.Audio);
+            }
+
+            if (missionsPanel != null)
+            {
+                missionsPanel.Bind(services.Missions, services.DailyChallenges, services.Progress, services.PowerUps, services.Clock, rewardPresenter, services.Audio);
+            }
+            else if (dailyChallengeCard != null)
             {
                 dailyChallengeCard.Bind(services.DailyChallenges, services.Progress, services.PowerUps);
             }
+
+            if (ranksPanel != null)
+            {
+                ranksPanel.Bind(services.Milestones, services.Progress, services.PowerUps, rewardPresenter, services.Audio);
+            }
+
+            services.DailyRewards.Changed += RefreshBadges;
+            services.Missions.Changed += RefreshBadges;
+            services.Milestones.Changed += RefreshBadges;
+            services.DailyChallenges.Changed += RefreshBadges;
+            RefreshBadges();
+            AddListener(dailyRewardsButton, OnDailyRewardsClicked);
+            AddListener(missionsButton, OnMissionsClicked);
+            AddListener(rankButton, OnRankClicked);
 
             AddListener(playButton, OnPlayClicked);
             AddListener(settingsButton, OnSettingsClicked);
@@ -146,6 +211,30 @@ namespace DesiMerge.UI
         /// <summary>Closes the topmost open panel. Returns false when no panel was open.</summary>
         internal bool HandleBack()
         {
+            if (rewardPresenter != null && rewardPresenter.IsShowing)
+            {
+                rewardPresenter.Collect();
+                return true;
+            }
+
+            if (dailyRewardsPanel != null && dailyRewardsPanel.IsOpen)
+            {
+                dailyRewardsPanel.Close();
+                return true;
+            }
+
+            if (missionsPanel != null && missionsPanel.IsOpen)
+            {
+                missionsPanel.Close();
+                return true;
+            }
+
+            if (ranksPanel != null && ranksPanel.IsOpen)
+            {
+                ranksPanel.Close();
+                return true;
+            }
+
             if (settingsPanel != null && settingsPanel.IsOpen)
             {
                 settingsPanel.Close();
@@ -173,6 +262,17 @@ namespace DesiMerge.UI
             RemoveListener(settingsButton, OnSettingsClicked);
             RemoveListener(collectionButton, OnCollectionClicked);
             RemoveListener(achievementsButton, OnAchievementsClicked);
+            RemoveListener(dailyRewardsButton, OnDailyRewardsClicked);
+            RemoveListener(missionsButton, OnMissionsClicked);
+            RemoveListener(rankButton, OnRankClicked);
+            if (_services != null)
+            {
+                _services.DailyRewards.Changed -= RefreshBadges;
+                _services.Missions.Changed -= RefreshBadges;
+                _services.Milestones.Changed -= RefreshBadges;
+                _services.DailyChallenges.Changed -= RefreshBadges;
+            }
+
             _ownedServices?.Dispose();
             _ownedServices = null;
         }
@@ -188,7 +288,9 @@ namespace DesiMerge.UI
                 ? "Your progress was restored from a backup."
                 : outcome == LoadOutcome.ResetToDefaults
                     ? "Saved progress couldn't be read, so a fresh profile was started. A copy of the old file was kept."
-                    : string.Empty;
+                    : outcome == LoadOutcome.ReadFailed
+                        ? "Your saved progress couldn't be opened right now. It is safe; restart the game to load it."
+                        : string.Empty;
             saveNoticeText.gameObject.SetActive(saveNoticeText.text.Length > 0);
         }
 
@@ -200,7 +302,7 @@ namespace DesiMerge.UI
             }
 
             // The navigator already ignores repeat requests; disabling the buttons makes that visible.
-            foreach (var button in new[] { playButton, settingsButton, collectionButton, achievementsButton })
+            foreach (var button in new[] { playButton, settingsButton, collectionButton, achievementsButton, dailyRewardsButton, missionsButton, rankButton })
             {
                 if (button != null)
                 {
@@ -233,7 +335,71 @@ namespace DesiMerge.UI
             }
         }
 
-        private bool CanOpenPanel() => _services == null || !_services.Navigator.IsLoading;
+        private void OnDailyRewardsClicked()
+        {
+            if (dailyRewardsPanel != null && CanOpenPanel())
+            {
+                dailyRewardsPanel.Open();
+            }
+        }
+
+        private void OnMissionsClicked()
+        {
+            if (missionsPanel != null && CanOpenPanel())
+            {
+                missionsPanel.Open();
+            }
+        }
+
+        private void OnRankClicked()
+        {
+            if (ranksPanel != null && CanOpenPanel())
+            {
+                ranksPanel.Open();
+            }
+        }
+
+        /// <summary>Notification dots and the rank card. Event-driven: called when a reward service changes.</summary>
+        private void RefreshBadges()
+        {
+            if (_services == null)
+            {
+                return;
+            }
+
+            SetActive(dailyRewardsDot, _services.DailyRewards.CanClaim);
+            SetActive(missionsDot, _services.Missions.ClaimableCount > 0 || _services.DailyChallenges.CanClaim);
+            SetActive(rankDot, _services.Milestones.ClaimableCount > 0);
+
+            var milestones = _services.Milestones;
+            var current = milestones.Current;
+            var next = milestones.Next;
+            if (rankTitleText != null)
+            {
+                rankTitleText.text = current != null ? current.title : "New Player";
+            }
+
+            if (rankProgressText != null)
+            {
+                rankProgressText.text = next != null ? $"Next: {next.title} at {next.score}" : "Top rank reached!";
+            }
+
+            if (rankProgressFill != null)
+            {
+                rankProgressFill.fillAmount = milestones.ProgressToNext;
+            }
+        }
+
+        private static void SetActive(GameObject target, bool active)
+        {
+            if (target != null)
+            {
+                target.SetActive(active);
+            }
+        }
+
+        /// <summary>One panel at a time, and none while a scene is loading.</summary>
+        private bool CanOpenPanel() => (_services == null || !_services.Navigator.IsLoading) && !AnyPanelOpen;
 
         private static void AddListener(Button button, UnityEngine.Events.UnityAction action)
         {

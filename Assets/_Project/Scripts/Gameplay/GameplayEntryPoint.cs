@@ -67,6 +67,29 @@ namespace DesiMerge.Gameplay
             hud.BindAudio(services.Audio);
             Loop = new GameplayLoop(gameplayConfig, board, dropController, hud, services, () => Time.time);
             Loop.Begin();
+            ShowTutorialIfNeeded(services);
+        }
+
+        /// <summary>Only before the first completed game; players who already finished a game never see it.</summary>
+        private void ShowTutorialIfNeeded(GameServices services)
+        {
+            var settings = services.Settings;
+            if (settings.TutorialCompleted)
+            {
+                return;
+            }
+
+            if (services.Progress.GamesPlayed > 0)
+            {
+                settings.TutorialCompleted = true;
+                return;
+            }
+
+            hud.ShowTutorial(() =>
+            {
+                settings.TutorialCompleted = true;
+                settings.Flush();
+            });
         }
 
         private void Start()
@@ -90,7 +113,15 @@ namespace DesiMerge.Gameplay
             _backButton = null;
         }
 
-        private void OnBackPressed() => Loop?.HandleBack();
+        private void OnBackPressed()
+        {
+            if (hud != null && hud.CloseTutorial())
+            {
+                return;
+            }
+
+            Loop?.HandleBack();
+        }
 
         /// <summary>Pause when the app is backgrounded. Editor focus changes are ignored so clicking another window doesn't pause.</summary>
         private void OnApplicationPause(bool paused)

@@ -43,6 +43,9 @@ namespace DesiMerge.Configuration
         [SerializeField] private PowerUpCatalog powerUps;
         [Tooltip("Cosmetic definitions (foundation; not shown in the game yet).")]
         [SerializeField] private CosmeticCatalog cosmetics;
+        [SerializeField] private DailyRewardCatalog dailyRewards;
+        [SerializeField] private MissionCatalog missions;
+        [SerializeField] private MilestoneCatalog milestones;
 
         [Header("Development builds only")]
         [SerializeField] private bool simulateRewardedAds = true;
@@ -58,6 +61,9 @@ namespace DesiMerge.Configuration
         public DailyChallengeCatalog DailyChallenges => dailyChallenges;
         public PowerUpCatalog PowerUps => powerUps;
         public CosmeticCatalog Cosmetics => cosmetics;
+        public DailyRewardCatalog DailyRewards => dailyRewards;
+        public MissionCatalog Missions => missions;
+        public MilestoneCatalog Milestones => milestones;
         public SettingsData DefaultSettings => defaultSettings;
         public bool SimulateRewardedAds => simulateRewardedAds;
         public bool LogAnalyticsEvents => logAnalyticsEvents;

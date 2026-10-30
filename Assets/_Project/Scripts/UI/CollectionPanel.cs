@@ -115,11 +115,23 @@ namespace DesiMerge.UI
                 }
                 else
                 {
-                    slot.Show(sprite, LockedTint, "???", false);
+                    slot.Show(sprite, LockedTint, LockedHint(level), false);
                 }
             }
 
             SetCounter($"{discovered} / {count} discovered");
+        }
+
+        /// <summary>Names only the already-discovered item that makes this one, so future items stay a surprise.</summary>
+        private string LockedHint(int level)
+        {
+            if (level == 0)
+            {
+                return "Drop it";
+            }
+
+            var previous = _content.Get(level - 1);
+            return previous != null && _progress.IsDiscovered(previous.Id) ? $"2× {previous.DisplayName}" : "???";
         }
 
         private void EnsureSlots(int count)

@@ -7,8 +7,8 @@ using UnityEngine.UI;
 namespace DesiMerge.Editor.Content
 {
     /// <summary>
-    /// MainMenu.unity: illustrated title, today's challenge card, Play, Collection, Awards and Settings, best score
-    /// and a save-recovery notice. No buttons for features that don't exist (e.g. a shop).
+    /// MainMenu.unity: rank card, title, best score, Play, Daily Rewards, Missions (with today's challenge), Collection,
+    /// Awards and Settings, plus the reward popup. No buttons for features that don't exist (e.g. a shop).
     /// </summary>
     internal static class MainMenuSceneBuilder
     {
@@ -30,18 +30,25 @@ namespace DesiMerge.Editor.Content
 
             var safe = factory.SafeArea(root);
             var content = UiFactory.Place(UiFactory.Rect("Content", safe), new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(1080f, 1920f));
-            EditorRefs.Set(safe.gameObject.AddComponent<ResponsiveScaler>(), ("targets", new Object[] { content }));
+            var scaler = safe.gameObject.AddComponent<ResponsiveScaler>();
 
             var progression = AssetDatabase.LoadAssetAtPath<MergeProgression>(ContentPaths.MergeProgressionPath);
-            AddItemDecor(factory, content, progression, "aam", new Vector2(-392f, 846f), 160f, 14f);
-            AddItemDecor(factory, content, progression, "chai", new Vector2(398f, 842f), 170f, -10f);
-            AddItemDecor(factory, content, progression, "rickshaw", new Vector2(-370f, -790f), 190f, -8f);
-            AddItemDecor(factory, content, progression, "mango_shake", new Vector2(378f, -800f), 170f, 9f);
-            AddItemDecor(factory, content, progression, "tamatar", new Vector2(-150f, -830f), 96f, -14f);
-            AddItemDecor(factory, content, progression, "nimbu", new Vector2(160f, -840f), 90f, 18f);
+            AddItemDecor(factory, content, progression, "aam", new Vector2(-410f, 520f), 150f, 14f);
+            AddItemDecor(factory, content, progression, "chai", new Vector2(414f, 506f), 160f, -10f);
+            AddItemDecor(factory, content, progression, "rickshaw", new Vector2(-380f, -820f), 180f, -8f);
+            AddItemDecor(factory, content, progression, "mango_shake", new Vector2(390f, -826f), 160f, 9f);
+            AddItemDecor(factory, content, progression, "tamatar", new Vector2(-150f, -858f), 92f, -14f);
+            AddItemDecor(factory, content, progression, "nimbu", new Vector2(160f, -866f), 86f, 18f);
+
+            var (rank, rankTitle, rankProgress, rankFill, rankDot) = BuildRankCard(factory, content);
+            UiFactory.Entrance(rank.gameObject, 0f, new Vector2(0f, 120f));
+            var settings = factory.Button(content, "SettingsButton", string.Empty, theme.deep, new Vector2(140f, 140f), icon: GameArtGenerator.Icon("Gear"));
+            UiFactory.Place((RectTransform)settings.transform, new Vector2(0.5f, 0.5f), new Vector2(436f, 846f), new Vector2(140f, 140f));
+            UiFactory.Record(settings.transform);
+            UiFactory.Entrance(settings.gameObject, 0.04f, new Vector2(0f, 120f));
 
             var plate = factory.Panel(content, "TitlePlate", theme.deep, theme.accent, 8f).rectTransform;
-            UiFactory.Place(plate, new Vector2(0.5f, 0.5f), new Vector2(0f, 600f), new Vector2(900f, 320f));
+            UiFactory.Place(plate, new Vector2(0.5f, 0.5f), new Vector2(0f, 560f), new Vector2(880f, 300f));
             var plateStrip = factory.Strip(plate, "Strip", 28f).rectTransform;
             plateStrip.anchorMin = new Vector2(0f, 0f);
             plateStrip.anchorMax = new Vector2(1f, 0f);
@@ -52,39 +59,49 @@ namespace DesiMerge.Editor.Content
             GameplaySceneBuilder.AddShadow(title.gameObject, theme, 0.5f, 10f);
             UiFactory.Stretch(title.rectTransform, 20f, 20f, 18f, 92f);
             var tagline = factory.Text(plate, "Tagline", "Milao  •  Barhao  •  Jeeto", theme.bodySize + 4, theme.accent, body: true);
-            UiFactory.Place(tagline.rectTransform, new Vector2(0.5f, 0f), new Vector2(0f, 44f), new Vector2(820f, 60f));
-            factory.Ornament(plate, "OrnamentLeft", new Vector2(0f, 0.5f), new Vector2(-46f, 0f), 130f);
-            factory.Ornament(plate, "OrnamentRight", new Vector2(1f, 0.5f), new Vector2(46f, 0f), 130f);
-            UiFactory.Entrance(plate.gameObject, 0f, new Vector2(0f, 220f));
-
-            var daily = BuildDailyChallengeCard(factory, content);
-            UiFactory.Entrance(daily.gameObject, 0.12f, new Vector2(0f, -60f));
-
-            var play = factory.Button(content, "PlayButton", "PLAY", theme.primary, new Vector2(660f, 210f), 112, GameArtGenerator.Icon("Play"));
-            UiFactory.Place((RectTransform)play.transform, new Vector2(0.5f, 0.5f), new Vector2(0f, -70f), new Vector2(660f, 210f));
-            UiFactory.Record(play.transform);
-            UiFactory.Entrance(play.gameObject, 0.22f, new Vector2(0f, -80f));
-
-            var collection = IconTile(factory, content, "CollectionButton", "COLLECTION", "Grid", theme.secondary, Color.white, -300f, 0.3f);
-            var achievements = IconTile(factory, content, "AchievementsButton", "AWARDS", "Trophy", theme.accent, theme.deep, 0f, 0.34f);
-            var settings = IconTile(factory, content, "SettingsButton", "SETTINGS", "Gear", theme.deep, Color.white, 300f, 0.38f);
+            UiFactory.Place(tagline.rectTransform, new Vector2(0.5f, 0f), new Vector2(0f, 44f), new Vector2(800f, 60f));
+            factory.Ornament(plate, "OrnamentLeft", new Vector2(0f, 0.5f), new Vector2(-40f, 0f), 120f);
+            factory.Ornament(plate, "OrnamentRight", new Vector2(1f, 0.5f), new Vector2(40f, 0f), 120f);
+            UiFactory.Entrance(plate.gameObject, 0.06f, new Vector2(0f, 220f));
 
             var bestBadge = factory.Image(content, "BestBadge", theme.pill, theme.deep).rectTransform;
-            UiFactory.Place(bestBadge, new Vector2(0.5f, 0.5f), new Vector2(0f, -600f), new Vector2(500f, 96f));
+            UiFactory.Place(bestBadge, new Vector2(0.5f, 0.5f), new Vector2(0f, 340f), new Vector2(480f, 92f));
             var bestIcon = factory.Image(bestBadge, "Icon", GameArtGenerator.Icon("Crown"), theme.accent);
-            UiFactory.Place(bestIcon.rectTransform, new Vector2(0f, 0.5f), new Vector2(40f, 2f), new Vector2(54f, 54f));
-            var best = factory.Text(bestBadge, "BestScore", string.Empty, 46, theme.textLight);
+            UiFactory.Place(bestIcon.rectTransform, new Vector2(0f, 0.5f), new Vector2(40f, 2f), new Vector2(52f, 52f));
+            var best = factory.Text(bestBadge, "BestScore", string.Empty, 44, theme.textLight);
             UiFactory.Stretch(best.rectTransform, 90f, 40f, 0f, 2f);
-            UiFactory.Entrance(bestBadge.gameObject, 0.46f, new Vector2(0f, -40f));
+            UiFactory.Entrance(bestBadge.gameObject, 0.1f, new Vector2(0f, 60f));
+
+            var play = factory.Button(content, "PlayButton", "PLAY", theme.primary, new Vector2(680f, 210f), 112, GameArtGenerator.Icon("Play"));
+            UiFactory.Place((RectTransform)play.transform, new Vector2(0.5f, 0.5f), new Vector2(0f, 150f), new Vector2(680f, 210f));
+            UiFactory.Record(play.transform);
+            UiFactory.Entrance(play.gameObject, 0.16f, new Vector2(0f, -80f));
+            UiFactory.Punch(play.gameObject, 0.06f, 0.5f, true);
+
+            var (daily, dailyDot) = FeatureTile(factory, content, "DailyRewardsButton", "DAILY REWARDS", "Gift", theme.accent, theme.deep, new Vector2(-226f, -150f), 0.22f);
+            var (missions, missionsDot) = FeatureTile(factory, content, "MissionsButton", "MISSIONS", "Missions", theme.secondary, Color.white, new Vector2(226f, -150f), 0.26f);
+            var (collection, _) = FeatureTile(factory, content, "CollectionButton", "COLLECTION", "Grid", theme.deep, Color.white, new Vector2(-226f, -440f), 0.3f, false);
+            var (achievements, _) = FeatureTile(factory, content, "AchievementsButton", "AWARDS", "Trophy", theme.primary, Color.white, new Vector2(226f, -440f), 0.34f, false);
 
             var notice = factory.Text(content, "SaveNotice", string.Empty, 32, theme.danger, body: true);
             notice.horizontalOverflow = HorizontalWrapMode.Wrap;
-            UiFactory.Place(notice.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0f, -700f), new Vector2(940f, 110f));
+            UiFactory.Place(notice.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0f, -660f), new Vector2(940f, 110f));
             notice.gameObject.SetActive(false);
 
             var settingsPanel = InstantiatePanel(ContentPaths.SettingsPanelPrefabPath, root);
             var collectionPanel = InstantiatePanel(ContentPaths.CollectionPanelPrefabPath, root);
             var achievementsPanel = InstantiatePanel(ContentPaths.AchievementsPanelPrefabPath, root);
+            var challenge = BuildDailyChallengeCard(factory, content);
+            var dailyPanel = RewardScreensBuilder.BuildDailyRewardsPanel(factory, root);
+            var missionsPanel = RewardScreensBuilder.BuildMissionsPanel(factory, root, challenge);
+            var ranksPanel = RewardScreensBuilder.BuildRanksPanel(factory, root);
+            var presenter = RewardScreensBuilder.BuildRewardPresenter(factory, root);
+
+            EditorRefs.Set(scaler, ("targets", new Object[]
+            {
+                content, Card(dailyPanel.transform), Card(missionsPanel.transform), Card(ranksPanel.transform), Card(presenter.transform),
+                Card(settingsPanel.transform), Card(collectionPanel.transform), Card(achievementsPanel.transform),
+            }));
 
             UiFactory.EventSystem();
 
@@ -96,8 +113,76 @@ namespace DesiMerge.Editor.Content
                 ("settingsPanel", settingsPanel.GetComponent<SettingsPanel>()),
                 ("collectionPanel", collectionPanel.GetComponent<CollectionPanel>()),
                 ("achievementsPanel", achievementsPanel.GetComponent<AchievementsPanel>()),
-                ("dailyChallengeCard", daily),
+                ("dailyChallengeCard", challenge),
+                ("dailyRewardsButton", daily), ("missionsButton", missions), ("rankButton", rank),
+                ("dailyRewardsDot", dailyDot), ("missionsDot", missionsDot), ("rankDot", rankDot),
+                ("rankTitleText", rankTitle), ("rankProgressText", rankProgress), ("rankProgressFill", rankFill),
+                ("dailyRewardsPanel", dailyPanel), ("missionsPanel", missionsPanel), ("ranksPanel", ranksPanel), ("rewardPresenter", presenter),
                 ("developmentConfig", AssetDatabase.LoadAssetAtPath<GameConfig>(FoundationSetup.GameConfigPath)));
+        }
+
+        private static RectTransform Card(Transform panel) => (RectTransform)panel.Find("Card");
+
+        private static (Button, Text, Text, Image, GameObject) BuildRankCard(UiFactory factory, Transform parent)
+        {
+            var theme = factory.Theme;
+            var button = factory.Button(parent, "RankButton", string.Empty, theme.deep, new Vector2(700f, 150f));
+            var rect = (RectTransform)button.transform;
+            UiFactory.Place(rect, new Vector2(0.5f, 0.5f), new Vector2(-150f, 846f), new Vector2(700f, 150f));
+            UiFactory.Record(rect);
+            var disc = factory.Image(rect, "MedalDisc", theme.disc, theme.accent);
+            UiFactory.Place(disc.rectTransform, new Vector2(0f, 0.5f), new Vector2(24f, 6f), new Vector2(110f, 110f));
+            var medal = factory.Image(disc.transform, "Medal", GameArtGenerator.Icon("Medal"), theme.deep);
+            UiFactory.Stretch(medal.rectTransform, 20f, 20f, 20f, 20f);
+            var title = factory.Text(rect, "RankTitle", "New Player", 44, theme.accent, TextAnchor.MiddleLeft);
+            UiFactory.Place(title.rectTransform, new Vector2(0f, 1f), new Vector2(160f, -16f), new Vector2(500f, 52f));
+            var track = factory.Image(rect, "Track", theme.pill, new Color(1f, 1f, 1f, 0.16f));
+            UiFactory.Place(track.rectTransform, new Vector2(0f, 0.5f), new Vector2(160f, 2f), new Vector2(480f, 22f));
+            var fill = factory.Image(track.transform, "Fill", theme.pill, theme.accent);
+            fill.type = Image.Type.Filled;
+            fill.fillMethod = Image.FillMethod.Horizontal;
+            fill.fillOrigin = (int)Image.OriginHorizontal.Left;
+            fill.fillAmount = 0f;
+            UiFactory.Stretch(fill.rectTransform);
+            var next = factory.Text(rect, "Next", string.Empty, 26, new Color(1f, 1f, 1f, 0.85f), TextAnchor.MiddleLeft, body: true);
+            next.fontStyle = FontStyle.Normal;
+            UiFactory.Place(next.rectTransform, new Vector2(0f, 0f), new Vector2(160f, 22f), new Vector2(500f, 36f));
+            var dot = Dot(factory, rect, new Vector2(1f, 1f), new Vector2(-10f, -10f));
+            return (button, title, next, fill, dot);
+        }
+
+        private static (Button, GameObject) FeatureTile(UiFactory factory, Transform parent, string name, string caption, string icon, Color color, Color iconColor,
+            Vector2 position, float delay, bool withDot = true)
+        {
+            var theme = factory.Theme;
+            var size = withDot ? new Vector2(420f, 250f) : new Vector2(420f, 220f);
+            var button = factory.Button(parent, name, string.Empty, color, size);
+            var rect = (RectTransform)button.transform;
+            UiFactory.Place(rect, new Vector2(0.5f, 0.5f), position, size);
+            UiFactory.Record(rect);
+            var iconImage = factory.Image(rect, "TileIcon", GameArtGenerator.Icon(icon), iconColor);
+            UiFactory.Place(iconImage.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0f, 34f), new Vector2(110f, 110f));
+            var label = factory.Text(rect, "Caption", caption, 44, iconColor);
+            UiFactory.Place(label.rectTransform, new Vector2(0.5f, 0f), new Vector2(0f, 46f), new Vector2(size.x - 20f, 56f));
+            GameObject dot = null;
+            if (withDot)
+            {
+                dot = Dot(factory, rect, new Vector2(1f, 1f), new Vector2(-14f, -14f));
+            }
+
+            UiFactory.Entrance(rect.gameObject, delay, new Vector2(0f, -80f));
+            return (button, dot);
+        }
+
+        private static GameObject Dot(UiFactory factory, RectTransform parent, Vector2 anchor, Vector2 position)
+        {
+            var dot = factory.Image(parent, "Dot", factory.Theme.disc, factory.Theme.danger);
+            UiFactory.Place(dot.rectTransform, anchor, position, new Vector2(52f, 52f));
+            var mark = factory.Text(dot.transform, "Mark", "!", 38, Color.white);
+            UiFactory.Stretch(mark.rectTransform, 0f, 0f, 0f, 2f);
+            UiFactory.Punch(dot.gameObject, 0.2f, 0.4f, true);
+            dot.gameObject.SetActive(false);
+            return dot.gameObject;
         }
 
         internal static void BuildBackground(UiFactory factory, Transform root)
@@ -139,19 +224,6 @@ namespace DesiMerge.Editor.Content
             image.preserveAspect = true;
             UiFactory.Place(image.rectTransform, new Vector2(0.5f, 0.5f), position, new Vector2(size, size));
             image.rectTransform.localRotation = Quaternion.Euler(0f, 0f, rotation);
-        }
-
-        private static Button IconTile(UiFactory factory, Transform parent, string name, string caption, string icon, Color color, Color iconColor, float x, float delay)
-        {
-            var theme = factory.Theme;
-            var tile = UiFactory.Place(UiFactory.Rect(name + "Tile", parent), new Vector2(0.5f, 0.5f), new Vector2(x, -350f), new Vector2(240f, 270f));
-            var button = factory.Button(tile, name, string.Empty, color, new Vector2(190f, 190f), icon: GameArtGenerator.Icon(icon), iconColor: iconColor);
-            UiFactory.Place((RectTransform)button.transform, new Vector2(0.5f, 1f), Vector2.zero, new Vector2(190f, 190f));
-            UiFactory.Record(button.transform);
-            var label = factory.Text(tile, "Caption", caption, 36, theme.deep);
-            UiFactory.Place(label.rectTransform, new Vector2(0.5f, 0f), new Vector2(0f, 6f), new Vector2(260f, 56f));
-            UiFactory.Entrance(tile.gameObject, delay, new Vector2(0f, -80f));
-            return button;
         }
 
         private static GameObject InstantiatePanel(string prefabPath, Transform parent)

@@ -101,7 +101,7 @@ namespace DesiMerge.Tests.PlayMode
             MergeOnePair(2f);
 
             var toasts = _rig.View.Toasts;
-            Assert.AreEqual(1, toasts.FindAll(t => t.Contains("L1")).Count, "Discovery toast once.");
+            Assert.AreEqual(1, _rig.View.Discoveries.FindAll(t => t.Contains("L1")).Count, "Discovery shown once.");
             Assert.AreEqual(1, toasts.FindAll(t => t.Contains("Two Merges")).Count, "Achievement toast once.");
             Assert.AreEqual(1, toasts.FindAll(t => t.Contains("Daily challenge complete")).Count, "Daily toast once.");
         }
@@ -190,7 +190,8 @@ namespace DesiMerge.Tests.PlayMode
             Assert.AreEqual(_rig.Progression.Count, panel.Slots.Count);
             Assert.IsTrue(panel.Slots[0].ShowsDiscovered);
             Assert.IsFalse(panel.Slots[1].ShowsDiscovered);
-            Assert.AreEqual("???", panel.Slots[1].LabelText);
+            Assert.AreEqual($"2× {_rig.Progression.Get(0).DisplayName}", panel.Slots[1].LabelText, "A locked item hints at the discovered item that makes it.");
+            Assert.AreEqual($"2× {_rig.Progression.Get(2).DisplayName}", panel.Slots[3].LabelText);
             Assert.IsTrue(panel.Slots[2].ShowsDiscovered);
             Assert.AreEqual($"2 / {_rig.Progression.Count} discovered", panel.CounterText);
         }

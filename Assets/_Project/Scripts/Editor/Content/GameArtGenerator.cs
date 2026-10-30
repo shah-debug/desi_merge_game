@@ -32,7 +32,7 @@ namespace DesiMerge.Editor.Content
         public static readonly string[] IconNames =
         {
             "Pause", "Play", "Hammer", "Shuffle", "Gear", "Home", "Restart", "Trophy", "Grid", "Close", "Crown", "Star",
-            "Music", "Speaker", "Lock", "Check", "Video",
+            "Music", "Speaker", "Lock", "Check", "Video", "Gift", "Calendar", "Missions", "Medal", "Back", "Unlock",
         };
 
         public static string IconPath(string name) => $"{IconFolder}/{name}.png";
@@ -321,6 +321,66 @@ namespace DesiMerge.Editor.Content
                     return p => Sdf.Union(Sdf.Capsule(p, new Vector2(-0.52f, 0.02f), new Vector2(-0.16f, -0.36f), 0.13f), Sdf.Capsule(p, new Vector2(-0.16f, -0.36f), new Vector2(0.56f, 0.44f), 0.13f));
                 case "Video":
                     return p => Sdf.Subtract(Sdf.Box(p, Vector2.zero, new Vector2(0.74f, 0.52f), 0.16f), Sdf.Polygon(p, new[] { new Vector2(-0.16f, 0.26f), new Vector2(-0.16f, -0.26f), new Vector2(0.28f, 0f) }) - 0.04f);
+                case "Gift":
+                    return p =>
+                    {
+                        var box = Sdf.Union(Sdf.Box(p, new Vector2(0f, -0.3f), new Vector2(0.58f, 0.4f), 0.06f), Sdf.Box(p, new Vector2(0f, 0.2f), new Vector2(0.7f, 0.14f), 0.05f));
+                        box = Sdf.Subtract(box, Sdf.Box(p, new Vector2(0f, 0.05f), new Vector2(0.8f, 0.025f), 0f));
+                        box = Sdf.Subtract(box, Sdf.Box(p, new Vector2(0f, -0.1f), new Vector2(0.045f, 0.7f), 0f));
+                        var bow = Sdf.Union(Mathf.Abs(Sdf.Ellipse(Sdf.Rotate(p, new Vector2(-0.22f, 0.5f), -25f), new Vector2(-0.22f, 0.5f), new Vector2(0.22f, 0.13f))) - 0.06f,
+                            Mathf.Abs(Sdf.Ellipse(Sdf.Rotate(p, new Vector2(0.22f, 0.5f), 25f), new Vector2(0.22f, 0.5f), new Vector2(0.22f, 0.13f))) - 0.06f);
+                        return Sdf.Union(box, bow);
+                    };
+                case "Calendar":
+                    return p =>
+                    {
+                        var frame = Sdf.Subtract(Sdf.Box(p, new Vector2(0f, -0.1f), new Vector2(0.68f, 0.6f), 0.12f), Sdf.Box(p, new Vector2(0f, -0.24f), new Vector2(0.54f, 0.38f), 0.04f));
+                        var rings = Sdf.Union(Sdf.Capsule(p, new Vector2(-0.32f, 0.46f), new Vector2(-0.32f, 0.74f), 0.08f), Sdf.Capsule(p, new Vector2(0.32f, 0.46f), new Vector2(0.32f, 0.74f), 0.08f));
+                        var cells = float.MaxValue;
+                        foreach (var x in new[] { -0.3f, 0f, 0.3f })
+                        {
+                            foreach (var y in new[] { -0.08f, -0.4f })
+                            {
+                                cells = Sdf.Union(cells, Sdf.Box(p, new Vector2(x, y), new Vector2(0.09f, 0.09f), 0.03f));
+                            }
+                        }
+
+                        return Sdf.Union(Sdf.Union(frame, rings), cells);
+                    };
+                case "Missions":
+                    return p =>
+                    {
+                        var board = Sdf.Subtract(Sdf.Box(p, new Vector2(0f, -0.08f), new Vector2(0.56f, 0.7f), 0.1f), Sdf.Box(p, new Vector2(0f, -0.14f), new Vector2(0.43f, 0.55f), 0.04f));
+                        var clip = Sdf.Box(p, new Vector2(0f, 0.64f), new Vector2(0.24f, 0.12f), 0.06f);
+                        var rows = float.MaxValue;
+                        foreach (var y in new[] { 0.2f, -0.12f, -0.44f })
+                        {
+                            rows = Sdf.Union(rows, Sdf.Circle(p, new Vector2(-0.24f, y), 0.07f));
+                            rows = Sdf.Union(rows, Sdf.Capsule(p, new Vector2(-0.06f, y), new Vector2(0.26f, y), 0.05f));
+                        }
+
+                        return Sdf.Union(Sdf.Union(board, clip), rows);
+                    };
+                case "Medal":
+                    var medalStar = ItemArtGenerator.StarVertices(new Vector2(0f, -0.3f), 5, 0.22f, 0.1f, Mathf.PI * 0.5f);
+                    return p =>
+                    {
+                        var ribbons = Sdf.Union(
+                            Sdf.Polygon(p, new[] { new Vector2(-0.46f, 0.82f), new Vector2(-0.16f, 0.82f), new Vector2(0.1f, 0.12f), new Vector2(-0.2f, 0.12f) }),
+                            Sdf.Polygon(p, new[] { new Vector2(0.16f, 0.82f), new Vector2(0.46f, 0.82f), new Vector2(0.2f, 0.12f), new Vector2(-0.1f, 0.12f) }));
+                        var disc = Sdf.Subtract(Sdf.Circle(p, new Vector2(0f, -0.3f), 0.44f), Mathf.Abs(Sdf.Circle(p, new Vector2(0f, -0.3f), 0.33f)) - 0.03f);
+                        return Sdf.Union(Sdf.Subtract(ribbons, Sdf.Circle(p, new Vector2(0f, -0.3f), 0.5f)), Sdf.Subtract(disc, Sdf.Polygon(p, medalStar)));
+                    };
+                case "Back":
+                    return p => Sdf.Union(Sdf.Capsule(p, new Vector2(-0.5f, 0f), new Vector2(0.58f, 0f), 0.12f),
+                        Sdf.Union(Sdf.Capsule(p, new Vector2(-0.52f, 0f), new Vector2(-0.06f, 0.46f), 0.12f), Sdf.Capsule(p, new Vector2(-0.52f, 0f), new Vector2(-0.06f, -0.46f), 0.12f)));
+                case "Unlock":
+                    return p =>
+                    {
+                        var body = Sdf.Box(p, new Vector2(-0.1f, -0.3f), new Vector2(0.48f, 0.36f), 0.1f);
+                        var shackle = Sdf.Union(Sdf.Arc(p, new Vector2(0.26f, 0.32f), 0.28f, 0f, Mathf.PI, 0.15f), Sdf.Box(p, new Vector2(0.54f, 0.2f), new Vector2(0.075f, 0.12f), 0f));
+                        return Sdf.Subtract(Sdf.Union(body, shackle), Sdf.Union(Sdf.Circle(p, new Vector2(-0.1f, -0.24f), 0.1f), Sdf.Box(p, new Vector2(-0.1f, -0.4f), new Vector2(0.04f, 0.12f), 0f)));
+                    };
                 default:
                     throw new ArgumentException($"Unknown icon {name}");
             }

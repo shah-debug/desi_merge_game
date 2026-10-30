@@ -1,0 +1,209 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16b91ad5c4eb6af46b83a1f21705efd4, type: 3}
+  m_Name: Missions
+  m_EditorClassIdentifier: DesiMerge.Runtime::DesiMerge.Progression.MissionCatalog
+  missions:
+  - id: d_play_1
+    title: Warm Up
+    description: Finish 1 game
+    period: 0
+    type: 0
+    target: 1
+    itemId: 
+    powerUpId: 
+    reward:
+      type: 2
+      amount: 1
+      powerUpId: hammer
+  - id: d_merge_10
+    title: Quick Mixer
+    description: Merge 10 times
+    period: 0
+    type: 1
+    target: 10
+    itemId: 
+    powerUpId: 
+    reward:
+      type: 2
+      amount: 1
+      powerUpId: shuffle
+  - id: d_score_300
+    title: Good Round
+    description: Score 300 in one game
+    period: 0
+    type: 2
+    target: 300
+    itemId: 
+    powerUpId: 
+    reward:
+      type: 2
+      amount: 1
+      powerUpId: hammer
+  - id: d_play_3
+    title: Three Rounds
+    description: Finish 3 games
+    period: 0
+    type: 0
+    target: 3
+    itemId: 
+    powerUpId: 
+    reward:
+      type: 2
+      amount: 1
+      powerUpId: shuffle
+  - id: d_merge_25
+    title: Busy Hands
+    description: Merge 25 times
+    period: 0
+    type: 1
+    target: 25
+    itemId: 
+    powerUpId: 
+    reward:
+      type: 2
+      amount: 1
+      powerUpId: hammer
+  - id: d_create_roti
+    title: Garam Roti
+    description: Make a Roti (or better)
+    period: 0
+    type: 3
+    target: 1
+    itemId: roti
+    powerUpId: 
+    reward:
+      type: 2
+      amount: 1
+      powerUpId: shuffle
+  - id: d_use_hammer
+    title: Smash!
+    description: Use the Hammer once
+    period: 0
+    type: 4
+    target: 1
+    itemId: 
+    powerUpId: hammer
+    reward:
+      type: 2
+      amount: 1
+      powerUpId: shuffle
+  - id: d_use_shuffle
+    title: Mix It Up
+    description: Use Shuffle once
+    period: 0
+    type: 4
+    target: 1
+    itemId: 
+    powerUpId: shuffle
+    reward:
+      type: 2
+      amount: 1
+      powerUpId: hammer
+  - id: d_score_500
+    title: Big Round
+    description: Score 500 in one game
+    period: 0
+    type: 2
+    target: 500
+    itemId: 
+    powerUpId: 
+    reward:
+      type: 2
+      amount: 1
+      powerUpId: hammer
+  - id: d_no_power
+    title: Pure Skill
+    description: Finish a game without power-ups
+    period: 0
+    type: 5
+    target: 1
+    itemId: 
+    powerUpId: 
+    reward:
+      type: 2
+      amount: 1
+      powerUpId: shuffle
+  - id: w_play_15
+    title: Regular Player
+    description: Finish 15 games this week
+    period: 1
+    type: 0
+    target: 15
+    itemId: 
+    powerUpId: 
+    reward:
+      type: 2
+      amount: 2
+      powerUpId: hammer
+  - id: w_merge_150
+    title: Merge Mela
+    description: Merge 150 times this week
+    period: 1
+    type: 1
+    target: 150
+    itemId: 
+    powerUpId: 
+    reward:
+      type: 2
+      amount: 2
+      powerUpId: shuffle
+  - id: w_score_1000
+    title: Thousand Club
+    description: Score 1000 in one game
+    period: 1
+    type: 2
+    target: 1000
+    itemId: 
+    powerUpId: 
+    reward:
+      type: 2
+      amount: 2
+      powerUpId: hammer
+  - id: w_create_chai
+    title: Chai Time
+    description: Make a Chai (or better)
+    period: 1
+    type: 3
+    target: 1
+    itemId: chai
+    powerUpId: 
+    reward:
+      type: 2
+      amount: 2
+      powerUpId: shuffle
+  - id: w_power_5
+    title: Power Player
+    description: Use 5 power-ups
+    period: 1
+    type: 4
+    target: 5
+    itemId: 
+    powerUpId: 
+    reward:
+      type: 2
+      amount: 2
+      powerUpId: hammer
+  - id: w_no_power_3
+    title: No Help Needed
+    description: Finish 3 games without power-ups
+    period: 1
+    type: 5
+    target: 3
+    itemId: 
+    powerUpId: 
+    reward:
+      type: 2
+      amount: 2
+      powerUpId: shuffle
+  dailySlots: 3
+  weeklySlots: 3

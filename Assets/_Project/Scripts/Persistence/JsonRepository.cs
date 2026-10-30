@@ -13,6 +13,8 @@ namespace DesiMerge.Persistence
         RecoveredFromBackup = 2,
         /// <summary>Neither the save nor its backup could be read. Defaults were used; the bad file was kept aside.</summary>
         ResetToDefaults = 3,
+        /// <summary>The storage threw while reading (not "missing"). Defaults are used and this session never overwrites the file.</summary>
+        ReadFailed = 4,
     }
 
     /// <summary>
@@ -26,6 +28,8 @@ namespace DesiMerge.Persistence
         private readonly ISaveStore _store;
         private readonly string _key;
         private bool _reportedSaveFailure;
+        private bool _readThrew;
+        private bool _writeBlocked;
 
         public JsonRepository(ISaveStore store, string key)
         {
@@ -58,6 +62,15 @@ namespace DesiMerge.Persistence
                 return backup;
             }
 
+            if (_readThrew)
+            {
+                // The data may be fine but temporarily unreadable: never let this session's defaults replace it.
+                Debug.LogWarning($"[Save] '{_key}' could not be read; using defaults for this session without saving over it.");
+                _writeBlocked = true;
+                outcome = LoadOutcome.ReadFailed;
+                return new T();
+            }
+
             if (!hasMain)
             {
                 outcome = LoadOutcome.NoSave;
@@ -75,6 +88,11 @@ namespace DesiMerge.Persistence
             if (data == null)
             {
                 throw new ArgumentNullException(nameof(data));
+            }
+
+            if (_writeBlocked)
+            {
+                return false;
             }
 
             try
@@ -105,6 +123,7 @@ namespace DesiMerge.Persistence
             catch (Exception e)
             {
                 Debug.LogWarning($"[Save] Could not read '{_key}'{(backup ? " backup" : string.Empty)}: {e.Message}");
+                _readThrew = true;
                 json = null;
                 return false;
             }

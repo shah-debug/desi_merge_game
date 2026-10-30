@@ -23,11 +23,15 @@ MonoBehaviour:
     musicMuted: 0
     sfxMuted: 0
     hapticsEnabled: 1
+    tutorialCompleted: 0
   audioLibrary: {fileID: 11400000, guid: d95f2ad78b2fb0544b7c7fc78ea047ab, type: 2}
   itemProgression: {fileID: 11400000, guid: 97de2c1449c8f2b488e42566646c76ad, type: 2}
   achievements: {fileID: 11400000, guid: 34fc65deec6fa2a4eb1576067465092f, type: 2}
   dailyChallenges: {fileID: 11400000, guid: 09fdbf81a95cc7f4db579da24b44eb95, type: 2}
   powerUps: {fileID: 11400000, guid: 176a2b29fb1c10b4db408ed824e22418, type: 2}
   cosmetics: {fileID: 0}
+  dailyRewards: {fileID: 11400000, guid: 38447d6118fb7554fbffdb57a7027e47, type: 2}
+  missions: {fileID: 11400000, guid: e08b6e6ba0554d04f8ddaabfd6153bc6, type: 2}
+  milestones: {fileID: 11400000, guid: 2b27985ad21a00a4f82ca9de6d46f064, type: 2}
   simulateRewardedAds: 1
   logAnalyticsEvents: 1
