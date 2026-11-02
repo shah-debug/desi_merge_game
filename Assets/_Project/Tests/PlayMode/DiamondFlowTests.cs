@@ -93,7 +93,7 @@ namespace DesiMerge.Tests.PlayMode
             GameplayEntryPoint entry = null;
             yield return Load(e => entry = e);
             var level = entry.Config.Progression.FinalLevel - 1;
-            var radius = entry.Config.Progression.Get(level).Radius;
+            var radius = entry.Config.Progression.Get(level).Radius * 2f * MergeItem.FittedRadius(entry.Config.Progression.Get(level).Sprite);
             entry.Board.SpawnLocal(level, new Vector2(-radius * 0.98f, radius + 0.1f));
             entry.Board.SpawnLocal(level, new Vector2(radius * 0.98f, radius + 0.1f));
             var deadline = Time.realtimeSinceStartup + 3f;

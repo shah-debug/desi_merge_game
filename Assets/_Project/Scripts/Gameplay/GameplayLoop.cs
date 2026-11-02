@@ -237,13 +237,13 @@ namespace DesiMerge.Gameplay
                     break;
                 case PowerUpResult.NoCharges:
                     var price = PowerUps.PriceOf(id);
-                    _view.ShowToast(price > 0 ? $"Need {price} diamonds. Play and claim rewards to earn more." : "No uses left this game");
+                    _view.ShowToast(price > 0 ? DesiMerge.Localization.Loc.F("Need {0} diamonds. Play and claim rewards to earn more.", price) : DesiMerge.Localization.Loc.T("No uses left this game"));
                     break;
                 case PowerUpResult.NothingToTarget:
-                    _view.ShowToast("Nothing to use it on yet");
+                    _view.ShowToast(DesiMerge.Localization.Loc.T("Nothing to use it on yet"));
                     break;
                 case PowerUpResult.NoRoom:
-                    _view.ShowToast("Not enough room to shuffle");
+                    _view.ShowToast(DesiMerge.Localization.Loc.T("Not enough room to shuffle"));
                     break;
             }
 
@@ -547,34 +547,29 @@ namespace DesiMerge.Gameplay
         {
             _sessionAchievements++;
             _services.Audio.PlaySfx(SfxCue.Unlock);
-            _view.ShowToast($"Award unlocked: {achievement.title}");
+            _view.ShowToast(DesiMerge.Localization.Loc.F("Award unlocked: {0}", DesiMerge.Localization.Loc.Raw(achievement.title)));
         }
 
         private void OnMissionCompleted(DesiMerge.Progression.MissionDefinition mission)
         {
             _sessionMissions++;
             _services.Audio.PlaySfx(SfxCue.MissionComplete);
-            _view.ShowToast($"Mission complete: {mission.title}");
+            _view.ShowToast(DesiMerge.Localization.Loc.F("Mission complete: {0}", DesiMerge.Localization.Loc.Raw(mission.title)));
         }
 
         private void OnMilestoneReached(DesiMerge.Progression.MilestoneDefinition milestone)
         {
             _sessionRank = milestone.title;
             _services.Audio.PlaySfx(SfxCue.Unlock);
-            _view.ShowToast($"New rank: {milestone.title}!");
+            _view.ShowToast(DesiMerge.Localization.Loc.F("New rank: {0}!", DesiMerge.Localization.Loc.Raw(milestone.title)));
         }
 
-        private void OnDailyChallengeCompleted(DesiMerge.Progression.DailyChallengeDefinition challenge) => _view.ShowToast("Daily challenge complete!");
+        private void OnDailyChallengeCompleted(DesiMerge.Progression.DailyChallengeDefinition challenge) => _view.ShowToast(DesiMerge.Localization.Loc.T("Daily challenge complete!"));
 
         private void OnPowerUpUsed(string id)
         {
-            var definition = _services.PowerUps.Find(id);
             _services.Audio.PlaySfx(SfxCue.PowerUp);
             _services.Analytics.TrackEvent(AnalyticsEvents.PowerUpUsed, new Dictionary<string, object> { { "id", id } });
-            if (definition != null)
-            {
-                _view.ShowToast($"{definition.title}!");
-            }
         }
 
         private void ExitTargeting(bool restoreInput)
@@ -681,7 +676,7 @@ namespace DesiMerge.Gameplay
             _drop.ShowPreview(_progression.Get(Queue.Current));
             _services.Audio.PlayMusic(MusicTrack.Gameplay);
             _services.Analytics.TrackEvent(AnalyticsEvents.Revived);
-            _view.ShowToast("Revived! Keep going");
+            _view.ShowToast(DesiMerge.Localization.Loc.T("Revived! Keep going"));
             RefreshPowerUps();
         }
 

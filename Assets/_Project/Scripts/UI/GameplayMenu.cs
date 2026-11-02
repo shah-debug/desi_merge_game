@@ -94,6 +94,11 @@ namespace DesiMerge.UI
                 skins.Closed += OnSkinsClosed;
             }
 
+            if (dailyRewards != null)
+            {
+                dailyRewards.Closed += OnSkinsClosed;
+            }
+
             if (!_opening)
             {
                 SetVisible(false, immediate: true);
@@ -131,6 +136,7 @@ namespace DesiMerge.UI
             collection?.Bind(services.Progress, services.ItemContent, audio);
             settings?.Bind(services.Settings, audio);
             dailyRewards?.Bind(services.DailyRewards, services.PowerUps, rewardPresenter, audio);
+            dailyRewards?.SetClock(services.Clock);
             missions?.Bind(services.Missions, services.DailyChallenges, services.Progress, services.PowerUps, services.Clock, rewardPresenter, audio);
             skins?.Bind(services.Cosmetics, services.Progress, services.ItemContent, audio);
             collection?.BindSkins(services.Cosmetics);
@@ -231,16 +237,21 @@ namespace DesiMerge.UI
         }
 
         /// <summary>Opens only the Skins screen (from the Skin tag); closing it returns straight to the game.</summary>
-        public void OpenSkinsOnly()
+        public void OpenSkinsOnly() => OpenOnly(skins);
+
+        /// <summary>Opens only Daily Rewards (from the diamonds "+"); closing it returns straight to the game.</summary>
+        public void OpenDailyRewardsOnly() => OpenOnly(dailyRewards);
+
+        private void OpenOnly(MenuPanel panel)
         {
-            if (skins == null || _services == null)
+            if (panel == null || _services == null)
             {
                 return;
             }
 
             _opening = true;
             _skinsOnly = true;
-            skins.Open();
+            panel.Open();
         }
 
         private void OnSkinsClosed()

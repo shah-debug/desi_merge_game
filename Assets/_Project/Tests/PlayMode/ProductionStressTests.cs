@@ -309,7 +309,7 @@ namespace DesiMerge.Tests.PlayMode
             yield return LoadGameplay(e => entry = e);
             var ledger = new Ledger(entry);
             var final = entry.Config.Progression.FinalLevel;
-            var radius = entry.Config.Progression.Get(final).Radius;
+            var radius = entry.Config.Progression.Get(final).Radius * 2f * MergeItem.FittedRadius(entry.Config.Progression.Get(final).Sprite);
             entry.Board.SpawnLocal(final, new Vector2(-radius * 0.98f, radius + 0.1f));
             entry.Board.SpawnLocal(final, new Vector2(radius * 0.98f, radius + 0.1f));
             yield return new WaitForSeconds(2f);

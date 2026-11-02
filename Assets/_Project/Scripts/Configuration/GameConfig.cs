@@ -46,6 +46,8 @@ namespace DesiMerge.Configuration
         [SerializeField] private DailyRewardCatalog dailyRewards;
         [SerializeField] private MissionCatalog missions;
         [SerializeField] private MilestoneCatalog milestones;
+        [SerializeField] private TextAsset localizationTable;
+        [SerializeField] private Font urduFont;
 
         [Header("Development builds only")]
         [SerializeField] private bool simulateRewardedAds = true;
@@ -64,6 +66,8 @@ namespace DesiMerge.Configuration
         public DailyRewardCatalog DailyRewards => dailyRewards;
         public MissionCatalog Missions => missions;
         public MilestoneCatalog Milestones => milestones;
+        public TextAsset LocalizationTable => localizationTable;
+        public Font UrduFont => urduFont;
         public SettingsData DefaultSettings => defaultSettings;
         public bool SimulateRewardedAds => simulateRewardedAds;
         public bool LogAnalyticsEvents => logAnalyticsEvents;

@@ -92,6 +92,11 @@ namespace DesiMerge.Editor.Content
                 image.type = UnityEngine.UI.Image.Type.Sliced;
             }
 
+            if (sprite != null && sprite == _theme.pill)
+            {
+                image.gameObject.AddComponent<PillShape>();
+            }
+
             return image;
         }
 
@@ -141,6 +146,7 @@ namespace DesiMerge.Editor.Content
             text.supportRichText = true;
             text.horizontalOverflow = HorizontalWrapMode.Overflow;
             text.verticalOverflow = VerticalWrapMode.Overflow;
+            text.gameObject.AddComponent<DesiMerge.Localization.LocalizedText>().SetKey(LocalizationKey(content));
             if (outline)
             {
                 var effect = text.gameObject.AddComponent<Outline>();
@@ -164,6 +170,13 @@ namespace DesiMerge.Editor.Content
             var text = instance.transform.Find("Label").GetComponent<Text>();
             text.text = label;
             text.fontSize = fontSize > 0 ? fontSize : _theme.buttonSize;
+            var localized = text.GetComponent<DesiMerge.Localization.LocalizedText>();
+            if (localized == null)
+            {
+                localized = text.gameObject.AddComponent<DesiMerge.Localization.LocalizedText>();
+            }
+
+            localized.SetKey(LocalizationKey(label));
             Record(rect, image, text);
 
             if (icon != null)
@@ -223,6 +236,10 @@ namespace DesiMerge.Editor.Content
             return fill;
         }
 
+        /// <summary>Fixed English text becomes its own translation key; numbers, symbols and the rich-text logo don't.</summary>
+        internal static string LocalizationKey(string content) =>
+            !string.IsNullOrEmpty(content) && content.IndexOf('<') < 0 && System.Text.RegularExpressions.Regex.IsMatch(content, "[A-Za-z]{2}") ? content : string.Empty;
+
         public static void Record(params Object[] modified)
         {
             foreach (var target in modified)
@@ -268,7 +285,7 @@ namespace DesiMerge.Editor.Content
             shadow.effectColor = new Color(0f, 0f, 0f, 0.3f);
             shadow.effectDistance = new Vector2(0f, -16f);
 
-            var ribbon = Panel(card, "Header", header ?? _theme.deep).rectTransform;
+            var ribbon = Panel(card, "Header", header ?? _theme.primary).rectTransform;
             ribbon.anchorMin = new Vector2(0f, 1f);
             ribbon.anchorMax = new Vector2(1f, 1f);
             ribbon.pivot = new Vector2(0.5f, 1f);

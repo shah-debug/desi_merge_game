@@ -167,14 +167,14 @@ namespace DesiMerge.UI
 
                 var state = _shown[i];
                 var reward = state.Definition.reward;
-                cards[i].Show(state.Definition.id, state.Definition.title, state.Definition.description, state.Progress, state.Target,
+                cards[i].Show(state.Definition.id, DesiMerge.Localization.Loc.T(state.Definition.title), DesiMerge.Localization.Loc.T(state.Definition.description), state.Progress, state.Target,
                     _presenter != null ? _presenter.Describe(reward) : string.Empty, _presenter != null ? _presenter.IconFor(reward) : null,
                     state.CanClaim, state.Claimed, animate: IsOpen);
             }
 
             if (emptyText != null)
             {
-                emptyText.text = Tab == MissionTab.Completed ? "Claimed missions appear here." : "All done! New missions arrive soon.";
+                emptyText.text = DesiMerge.Localization.Loc.T(Tab == MissionTab.Completed ? "Claimed missions appear here." : "All done! New missions arrive soon.");
                 emptyText.gameObject.SetActive(_shown.Count == 0);
             }
 
@@ -216,10 +216,10 @@ namespace DesiMerge.UI
             {
                 var daysToMonday = ((int)DayOfWeek.Monday - (int)now.DayOfWeek + 7) % 7;
                 var nextWeek = now.Date.AddDays(daysToMonday == 0 ? 7 : daysToMonday);
-                return "New weekly missions in " + Format(nextWeek - now);
+                return DesiMerge.Localization.Loc.F("New weekly missions in {0}", Format(nextWeek - now));
             }
 
-            return Tab == MissionTab.Daily ? "New daily missions in " + Format(nextDay - now) : string.Empty;
+            return Tab == MissionTab.Daily ? DesiMerge.Localization.Loc.F("New daily missions in {0}", Format(nextDay - now)) : string.Empty;
         }
 
         private static string Format(TimeSpan span) => span.TotalHours >= 24 ? $"{(int)span.TotalDays}d {span.Hours}h" : $"{(int)span.TotalHours}h {span.Minutes}m";
@@ -244,16 +244,16 @@ namespace DesiMerge.UI
             if (result == ClaimResult.Claimed)
             {
                 SetStatus(string.Empty);
-                _presenter?.Show("MISSION COMPLETE", state.Definition.title, new[] { state.Definition.reward });
+                _presenter?.Show(DesiMerge.Localization.Loc.T("MISSION COMPLETE"), DesiMerge.Localization.Loc.T(state.Definition.title), new[] { state.Definition.reward });
             }
             else if (result == ClaimResult.StorageFull)
             {
                 var definition = _powerUps?.Find(state.Definition.reward.powerUpId);
-                SetStatus(definition != null ? $"{definition.title} storage is full. Use one in a game, then claim." : "Storage is full. Use a power-up first.");
+                SetStatus(definition != null ? DesiMerge.Localization.Loc.F("{0} storage is full. Use one in a game, then claim.", DesiMerge.Localization.Loc.T(definition.title)) : DesiMerge.Localization.Loc.T("Storage is full. Use a power-up first."));
             }
             else if (result == ClaimResult.Failed)
             {
-                SetStatus("The reward couldn't be saved. Please try again.");
+                SetStatus(DesiMerge.Localization.Loc.T("The reward couldn't be saved. Please try again."));
             }
         }
 

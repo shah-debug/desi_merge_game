@@ -130,12 +130,12 @@ namespace DesiMerge.Editor.Content
             {
                 var rect = (RectTransform)challenge.transform;
                 rect.SetParent(card, false);
-                UiFactory.Place(rect, new Vector2(0.5f, 1f), new Vector2(0f, -346f), new Vector2(920f, 370f));
+                UiFactory.Place(rect, new Vector2(0.5f, 1f), new Vector2(0f, -344f), new Vector2(920f, 400f));
                 rect.localScale = new Vector3(0.96f, 0.96f, 1f);
                 UiFactory.Record(rect);
             }
 
-            var list = UiFactory.Place(UiFactory.Rect("List", card), new Vector2(0.5f, 1f), new Vector2(0f, -718f), new Vector2(900f, 1000f));
+            var list = UiFactory.Place(UiFactory.Rect("List", card), new Vector2(0.5f, 1f), new Vector2(0f, -746f), new Vector2(900f, 1000f));
             var cards = new Object[6];
             for (var i = 0; i < cards.Length; i++)
             {
@@ -153,7 +153,7 @@ namespace DesiMerge.Editor.Content
                 ("tabLabels", tabLabels), ("tabSelectedColor", theme.deep), ("tabNormalColor", ArtCanvas.Hex("#F1E6D2")),
                 ("tabSelectedText", theme.accent), ("tabNormalText", theme.mutedText), ("dailyChallengeCard", challenge), ("list", list),
                 ("cards", cards), ("emptyText", empty), ("resetText", reset), ("statusText", status),
-                ("listTopWithChallenge", -718f), ("listTopWithoutChallenge", -350f));
+                ("listTopWithChallenge", -746f), ("listTopWithoutChallenge", -350f));
             return panel;
         }
 
@@ -181,8 +181,14 @@ namespace DesiMerge.Editor.Content
 
         internal static Button CloseButton(UiFactory factory, RectTransform card)
         {
-            var close = factory.Button(card, "CloseButton", string.Empty, factory.Theme.danger, new Vector2(112f, 112f), icon: GameArtGenerator.Icon("Close"));
-            UiFactory.Place((RectTransform)close.transform, new Vector2(1f, 1f), new Vector2(-6f, 6f), new Vector2(112f, 112f));
+            var close = factory.Button(card, "CloseButton", string.Empty, factory.Theme.danger, new Vector2(100f, 100f), icon: GameArtGenerator.Icon("Close"));
+            UiFactory.Place((RectTransform)close.transform, new Vector2(1f, 1f), new Vector2(-30f, -38f), new Vector2(100f, 100f));
+            var ornament = card.Find("Header/OrnamentRight");
+            if (ornament != null)
+            {
+                ornament.gameObject.SetActive(false);
+            }
+
             UiFactory.Record(close.transform);
             return close;
         }

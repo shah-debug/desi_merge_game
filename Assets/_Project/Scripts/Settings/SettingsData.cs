@@ -3,13 +3,13 @@ using System;
 namespace DesiMerge.Settings
 {
     /// <summary>
-    /// Version 2 added the mute flags; version 3 added tutorialCompleted. Version 1 saves load fine: JsonUtility keeps the field defaults below
+    /// Version 2 added the mute flags; version 3 added tutorialCompleted; version 4 added language. Version 1 saves load fine: JsonUtility keeps the field defaults below
     /// for fields missing from the file, so old players start unmuted.
     /// </summary>
     [Serializable]
     public sealed class SettingsData
     {
-        public const int CurrentSchemaVersion = 3;
+        public const int CurrentSchemaVersion = 4;
 
         public int schemaVersion = CurrentSchemaVersion;
         public float musicVolume = 0.8f;
@@ -18,5 +18,6 @@ namespace DesiMerge.Settings
         public bool sfxMuted;
         public bool hapticsEnabled = true;
         public bool tutorialCompleted;
+        public string language = "en";
     }
 }

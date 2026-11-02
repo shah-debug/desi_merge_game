@@ -70,6 +70,25 @@ namespace DesiMerge.Tests.PlayMode
         }
 
         [UnityTest]
+        public IEnumerator Colliders_FitTheDrawnItem_SoItemsTouch()
+        {
+            GameplayEntryPoint entry = null;
+            yield return Load(e => entry = e);
+            var tomato = entry.Board.SpawnLocal(3, new Vector2(-1f, 0.8f));
+            var roti = entry.Board.SpawnLocal(4, new Vector2(1f, 0.8f));
+            yield return null;
+            foreach (var item in new[] { tomato, roti })
+            {
+                var radius = item.GetComponent<CircleCollider2D>().radius;
+                Assert.Less(radius, 0.49f, $"{item.Definition.DisplayName}: the circle hugs the drawing, not the whole picture.");
+                Assert.GreaterOrEqual(radius, 0.34f);
+            }
+
+            yield return new WaitForSeconds(1.5f);
+            yield return SceneCapture.Capture(SceneManager.GetSceneByName(GameplayScene), "items-fitted-9x16.png", 540, 960);
+        }
+
+        [UnityTest]
         public IEnumerator Hammer_ZoomsIn_ThenSwingsAndSmashes_ThenZoomsBack()
         {
             GameplayEntryPoint entry = null;

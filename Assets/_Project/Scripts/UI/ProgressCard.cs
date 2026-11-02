@@ -60,7 +60,7 @@ namespace DesiMerge.UI
             Id = id;
             SetText(titleText, title);
             SetText(descriptionText, description);
-            SetText(progressText, done ? "Done" : $"{Math.Min(current, target)} / {target}");
+            SetText(progressText, done ? DesiMerge.Localization.Loc.T("Done") : $"{Math.Min(current, target)} / {target}");
             SetText(rewardText, rewardLabel);
             if (rewardIcon != null)
             {

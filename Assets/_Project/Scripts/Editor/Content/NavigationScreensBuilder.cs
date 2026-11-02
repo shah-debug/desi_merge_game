@@ -17,6 +17,7 @@ namespace DesiMerge.Editor.Content
             var tabButtons = new Object[2];
             var tabBackgrounds = new Object[2];
             var tabLabels = new Object[2];
+            var tabIcons = new Object[2];
             var names = new[] { ("ACHIEVEMENTS", "Trophy"), ("SCORE", "Chart") };
             for (var i = 0; i < names.Length; i++)
             {
@@ -26,6 +27,7 @@ namespace DesiMerge.Editor.Content
                 tabButtons[i] = tab;
                 tabBackgrounds[i] = tab.GetComponent<Image>();
                 tabLabels[i] = tab.transform.Find("Label").GetComponent<Text>();
+                tabIcons[i] = tab.transform.Find("Icon").GetComponent<Image>();
             }
 
             var note = factory.Text(card, "Note", string.Empty, 30, theme.mutedText, body: true);
@@ -51,7 +53,7 @@ namespace DesiMerge.Editor.Content
 
             var panel = transition.gameObject.AddComponent<RecordsPanel>();
             EditorRefs.Set(panel, ("transition", transition), ("closeButton", close), ("tabButtons", tabButtons), ("tabBackgrounds", tabBackgrounds),
-                ("tabLabels", tabLabels), ("tabSelectedColor", theme.deep), ("tabNormalColor", ArtCanvas.Hex("#F1E6D2")),
+                ("tabLabels", tabLabels), ("tabIcons", tabIcons), ("tabSelectedColor", theme.deep), ("tabNormalColor", ArtCanvas.Hex("#F1E6D2")),
                 ("tabSelectedText", theme.accent), ("tabNormalText", theme.mutedText),
                 ("achievementsPage", achievementsPage.gameObject), ("scorePage", scorePage.gameObject),
                 ("achievementsScroll", achievementScroll), ("scoreScroll", scoreScroll),

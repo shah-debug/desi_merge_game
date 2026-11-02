@@ -50,6 +50,19 @@ namespace DesiMerge.Settings
             set => Set(ref _data.hapticsEnabled, value);
         }
 
+        public string Language
+        {
+            get => string.IsNullOrEmpty(_data.language) ? "en" : _data.language;
+            set
+            {
+                if (_data.language != value)
+                {
+                    _data.language = value;
+                    MarkChanged();
+                }
+            }
+        }
+
         public bool TutorialCompleted
         {
             get => _data.tutorialCompleted;
@@ -109,6 +122,7 @@ namespace DesiMerge.Settings
                 sfxMuted = source.sfxMuted,
                 hapticsEnabled = source.hapticsEnabled,
                 tutorialCompleted = source.tutorialCompleted,
+                language = source.language,
             };
         }
 

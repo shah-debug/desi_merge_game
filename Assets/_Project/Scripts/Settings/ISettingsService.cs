@@ -16,6 +16,9 @@ namespace DesiMerge.Settings
         /// <summary>The first-game tutorial was finished or skipped.</summary>
         bool TutorialCompleted { get; set; }
 
+        /// <summary>UI language code (en, ur, zh, es, pt, fr, de, it, ms). English by default.</summary>
+        string Language { get; set; }
+
         event Action Changed;
 
         void Flush();

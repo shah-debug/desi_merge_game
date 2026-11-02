@@ -24,6 +24,7 @@ MonoBehaviour:
     sfxMuted: 0
     hapticsEnabled: 1
     tutorialCompleted: 0
+    language: en
   audioLibrary: {fileID: 11400000, guid: d95f2ad78b2fb0544b7c7fc78ea047ab, type: 2}
   itemProgression: {fileID: 11400000, guid: 97de2c1449c8f2b488e42566646c76ad, type: 2}
   achievements: {fileID: 11400000, guid: 34fc65deec6fa2a4eb1576067465092f, type: 2}
@@ -33,5 +34,7 @@ MonoBehaviour:
   dailyRewards: {fileID: 11400000, guid: 38447d6118fb7554fbffdb57a7027e47, type: 2}
   missions: {fileID: 11400000, guid: e08b6e6ba0554d04f8ddaabfd6153bc6, type: 2}
   milestones: {fileID: 11400000, guid: 2b27985ad21a00a4f82ca9de6d46f064, type: 2}
+  localizationTable: {fileID: 4900000, guid: 62affa869648eee488a458a01f5dd4ad, type: 3}
+  urduFont: {fileID: 12800000, guid: 428440a73462b0f468a8d7e8ddcbf3ed, type: 3}
   simulateRewardedAds: 1
   logAnalyticsEvents: 1

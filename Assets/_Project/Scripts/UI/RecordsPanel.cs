@@ -25,6 +25,7 @@ namespace DesiMerge.UI
         [SerializeField] private Button[] tabButtons = Array.Empty<Button>();
         [SerializeField] private Image[] tabBackgrounds = Array.Empty<Image>();
         [SerializeField] private Text[] tabLabels = Array.Empty<Text>();
+        [SerializeField] private Image[] tabIcons = Array.Empty<Image>();
         [SerializeField] private Color tabSelectedColor = Color.white;
         [SerializeField] private Color tabNormalColor = Color.white;
         [SerializeField] private Color tabSelectedText = Color.white;
@@ -72,6 +73,8 @@ namespace DesiMerge.UI
         public string RankLabel => rankText != null ? rankText.text : string.Empty;
         public bool AchievementsPageVisible => achievementsPage != null && achievementsPage.activeSelf;
         public bool ScorePageVisible => scorePage != null && scorePage.activeSelf;
+        public Color TabIconColor(RecordsTab tab) => (int)tab < tabIcons.Length && tabIcons[(int)tab] != null ? tabIcons[(int)tab].color : Color.clear;
+        public Color TabColor(RecordsTab tab) => (int)tab < tabBackgrounds.Length && tabBackgrounds[(int)tab] != null ? tabBackgrounds[(int)tab].color : Color.clear;
 
         public void Bind(IAchievementService achievements, IPlayerProgressService progress, IMilestoneService milestones, MergeProgression content,
             IClock clock, IAudioService audio)
@@ -137,6 +140,11 @@ namespace DesiMerge.UI
                 {
                     tabLabels[i].color = i == (int)tab ? tabSelectedText : tabNormalText;
                 }
+
+                if (i < tabIcons.Length && tabIcons[i] != null)
+                {
+                    tabIcons[i].color = i == (int)tab ? tabSelectedText : tabNormalText;
+                }
             }
 
             if (achievementsPage != null)
@@ -176,7 +184,7 @@ namespace DesiMerge.UI
             var definitions = _achievements.Definitions;
             if (achievementSummary != null)
             {
-                achievementSummary.text = $"{_achievements.UnlockedCount} / {definitions.Count} unlocked";
+                achievementSummary.text = DesiMerge.Localization.Loc.F("{0} / {1} unlocked", _achievements.UnlockedCount, definitions.Count);
             }
 
             if (achievementTemplate == null || achievementList == null)
@@ -200,8 +208,8 @@ namespace DesiMerge.UI
 
                 var achievement = definitions[i];
                 var unlocked = _achievements.IsUnlocked(achievement.id);
-                var reward = achievement.reward.IsSomething ? (unlocked ? "Received" : RewardText(achievement.reward)) : string.Empty;
-                row.Show(achievement.id, achievement.title, achievement.description, _achievements.ProgressOf(achievement), _achievements.TargetOf(achievement),
+                var reward = achievement.reward.IsSomething ? (unlocked ? DesiMerge.Localization.Loc.T("Received") : RewardText(achievement.reward)) : string.Empty;
+                row.Show(achievement.id, DesiMerge.Localization.Loc.T(achievement.title), DesiMerge.Localization.Loc.T(achievement.description), _achievements.ProgressOf(achievement), _achievements.TargetOf(achievement),
                     reward, null, claimable: false, done: unlocked, animate: IsOpen);
                 row.SetLeadingIcon(IconFor(achievement), unlocked);
             }
@@ -212,10 +220,10 @@ namespace DesiMerge.UI
             SetText(bestText, _progress.HighScore.ToString());
             SetText(gamesText, _progress.GamesPlayed.ToString());
             SetText(mergesText, _progress.TotalMerges.ToString());
-            SetText(streakText, $"{_progress.DisplayedStreak()}  (best {_progress.BestStreak})");
+            SetText(streakText, DesiMerge.Localization.Loc.F("{0}  (best {1})", _progress.DisplayedStreak(), _progress.BestStreak));
 
             var highest = HighestItem();
-            SetText(highestItemText, highest != null ? highest.DisplayName : "None yet");
+            SetText(highestItemText, DesiMerge.Localization.Loc.T(highest != null ? highest.DisplayName : "None yet"));
             if (highestItemImage != null)
             {
                 highestItemImage.sprite = highest != null ? highest.Sprite : null;
@@ -226,7 +234,7 @@ namespace DesiMerge.UI
             {
                 var current = _milestones?.Current;
                 var next = _milestones?.Next;
-                rankText.text = (current != null ? current.title : "New Player") + (next != null ? $"   •   next: {next.title} at {next.score}" : "   •   top rank");
+                rankText.text = next != null ? DesiMerge.Localization.Loc.F("{0}   •   next: {1} at {2}", DesiMerge.Localization.Loc.Raw(current != null ? current.title : "New Player"), DesiMerge.Localization.Loc.Raw(next.title), next.score) : DesiMerge.Localization.Loc.F("{0}   •   top rank", DesiMerge.Localization.Loc.Raw(current != null ? current.title : "New Player"));
             }
 
             var games = _progress.RecentGames;
@@ -292,7 +300,7 @@ namespace DesiMerge.UI
                 return $"×{reward.amount}";
             }
 
-            return $"{char.ToUpperInvariant(reward.powerUpId[0])}{reward.powerUpId.Substring(1)} ×{reward.amount}";
+            return $"{DesiMerge.Localization.Loc.T(char.ToUpperInvariant(reward.powerUpId[0]) + reward.powerUpId.Substring(1))} ×{reward.amount}";
         }
 
         private static void SetText(Text text, string value)

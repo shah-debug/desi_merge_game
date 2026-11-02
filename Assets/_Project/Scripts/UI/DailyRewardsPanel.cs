@@ -24,6 +24,50 @@ namespace DesiMerge.UI
         private IDailyRewardService _rewards;
         private IPowerUpService _powerUps;
         private RewardPresenter _presenter;
+        private DesiMerge.Core.IClock _clock;
+        private float _tick;
+
+        /// <summary>Text on the button while today's reward is claimed (e.g. "NEXT IN 13:42:05").</summary>
+        public string ClaimLabel => claimLabel != null ? claimLabel.text : string.Empty;
+
+        /// <summary>Clock for the countdown (rewards change at 00:00 UTC, see DayKey).</summary>
+        public void SetClock(DesiMerge.Core.IClock clock) => _clock = clock;
+
+        /// <summary>Time left until the next day's reward can be claimed.</summary>
+        public System.TimeSpan TimeToNextReward()
+        {
+            var now = (_clock ?? new DesiMerge.Core.SystemClock()).UtcNow;
+            return now.Date.AddDays(1) - now;
+        }
+
+        private void Update()
+        {
+            if (_rewards == null || _rewards.CanClaim || !IsOpen)
+            {
+                enabled = false;
+                return;
+            }
+
+            _tick -= Time.unscaledDeltaTime;
+            if (_tick > 0f)
+            {
+                return;
+            }
+
+            _tick = 1f;
+            var left = TimeToNextReward();
+            if (left.TotalSeconds <= 1)
+            {
+                _rewards.Refresh();
+                Refresh();
+                return;
+            }
+
+            if (claimLabel != null)
+            {
+                claimLabel.text = DesiMerge.Localization.Loc.F("NEXT IN {0}", $"{(int)left.TotalHours:00}:{left.Minutes:00}:{left.Seconds:00}");
+            }
+        }
 
         public IReadOnlyList<DailyRewardTile> Tiles => tiles;
         public bool ClaimInteractable => claimButton != null && claimButton.interactable;
@@ -89,15 +133,19 @@ namespace DesiMerge.UI
 
             if (claimLabel != null)
             {
-                claimLabel.text = _rewards.CanClaim ? "CLAIM" : "SEE YOU TOMORROW";
+                var left = TimeToNextReward();
+                claimLabel.text = _rewards.CanClaim ? DesiMerge.Localization.Loc.T("CLAIM") : DesiMerge.Localization.Loc.F("NEXT IN {0}", $"{(int)left.TotalHours:00}:{left.Minutes:00}:{left.Seconds:00}");
             }
+
+            _tick = 1f;
+            enabled = !_rewards.CanClaim;
 
             if (streakText != null)
             {
-                streakText.text = _rewards.Streak > 0 ? $"Streak: {_rewards.Streak} day{(_rewards.Streak == 1 ? string.Empty : "s")}" : "Claim every day to build a streak";
+                streakText.text = _rewards.Streak > 0 ? DesiMerge.Localization.Loc.F(_rewards.Streak == 1 ? "Streak: {0} day" : "Streak: {0} days", _rewards.Streak) : DesiMerge.Localization.Loc.T("Claim every day to build a streak");
             }
 
-            SetStatus(_rewards.ClockMovedBack ? "Your device date looks earlier than before. Rewards continue when that day comes again." : string.Empty);
+            SetStatus(_rewards.ClockMovedBack ? DesiMerge.Localization.Loc.T("Your device date looks earlier than before. Rewards continue when that day comes again.") : string.Empty);
         }
 
         private void OnClaim()
@@ -115,13 +163,13 @@ namespace DesiMerge.UI
             switch (result)
             {
                 case ClaimResult.Claimed:
-                    _presenter?.Show($"DAY {dayIndex + 1} REWARD", day.title, day.rewards);
+                    _presenter?.Show(DesiMerge.Localization.Loc.F("DAY {0} REWARD", dayIndex + 1), DesiMerge.Localization.Loc.T(day.title), day.rewards);
                     break;
                 case ClaimResult.StorageFull:
                     SetStatus(StorageFullMessage(day.rewards));
                     break;
                 case ClaimResult.Failed:
-                    SetStatus("The reward couldn't be saved. Please try again.");
+                    SetStatus(DesiMerge.Localization.Loc.T("The reward couldn't be saved. Please try again."));
                     break;
             }
 
@@ -134,11 +182,11 @@ namespace DesiMerge.UI
                 var definition = _powerUps?.Find(reward.powerUpId);
                 if (definition != null && !_powerUps.CanGrant(reward.powerUpId, reward.amount))
                 {
-                    return $"{definition.title} storage is full ({_powerUps.SavedCharges(reward.powerUpId)}/{definition.maxSavedCharges}). Use one in a game, then claim.";
+                    return DesiMerge.Localization.Loc.F("{0} storage is full ({1}/{2}). Use one in a game, then claim.", DesiMerge.Localization.Loc.T(definition.title), _powerUps.SavedCharges(reward.powerUpId), definition.maxSavedCharges);
                 }
             }
 
-            return "Storage is full. Use a power-up in a game, then claim.";
+            return DesiMerge.Localization.Loc.T("Storage is full. Use a power-up in a game, then claim.");
         }
 
         /// <summary>The tile shows the diamonds first when a day has them.</summary>

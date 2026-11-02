@@ -27,6 +27,7 @@ namespace DesiMerge.Editor
             var previousSetup = EditorSceneManager.GetSceneManagerSetup().Where(s => !string.IsNullOrEmpty(s.path)).ToArray();
             var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             populate();
+            DesiMerge.Editor.Content.LightThemePass.Apply(scene, DesiMerge.Editor.Content.ContentSetup.LoadTheme());
             EditorSceneManager.SaveScene(scene, path);
             Debug.Log($"[Setup] Created {path}");
 

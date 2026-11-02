@@ -71,6 +71,8 @@ namespace DesiMerge.Gameplay
             board.SkinSprite = Skin;
             dropController.SkinSprite = Skin;
             hud.SkinSprite = Skin;
+            var preview = gameplayConfig.Progression.Get(Mathf.Min(5, gameplayConfig.Progression.Count - 1));
+            hud.SetSkinPreview(Skin(preview) ?? preview.Sprite);
             _cosmetics = services.Cosmetics;
             _cosmetics.Changed += OnSkinChanged;
             Loop = new GameplayLoop(gameplayConfig, board, dropController, hud, services, () => Time.time);
@@ -126,6 +128,8 @@ namespace DesiMerge.Gameplay
         /// <summary>A new skin applies at once: items on the board, the drop preview and NEXT all switch.</summary>
         private void OnSkinChanged()
         {
+            var preview = gameplayConfig.Progression.Get(Mathf.Min(5, gameplayConfig.Progression.Count - 1));
+            hud.SetSkinPreview(_cosmetics.Selected(DesiMerge.Cosmetics.CosmeticKind.ItemSkin)?.SpriteFor(5) ?? preview.Sprite);
             board.RefreshSkins();
             Loop?.RefreshItemPreviews();
         }

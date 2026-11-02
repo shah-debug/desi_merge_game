@@ -33,7 +33,7 @@ namespace DesiMerge.Editor.Content
         {
             "Pause", "Play", "Hammer", "Shuffle", "Gear", "Home", "Restart", "Trophy", "Grid", "Close", "Crown", "Star",
             "Music", "Speaker", "Lock", "Check", "Video", "Gift", "Calendar", "Missions", "Medal", "Back", "Unlock",
-            "Menu", "Podium", "Profile", "Help", "Chart", "Diamond",
+            "Menu", "Podium", "Profile", "Help", "Chart", "Diamond", "Globe",
         };
 
         private static readonly Vector2[] GemOutline =
@@ -69,6 +69,7 @@ namespace DesiMerge.Editor.Content
 
             Sprite(overwrite, IconPath("HammerArt"), 256, 256, HammerArt, 200, Vector4.zero);
             Sprite(overwrite, IconPath("DiamondArt"), 128, 128, DiamondArt, 100, Vector4.zero);
+            Sprite(overwrite, IconPath("ShuffleBoxArt"), 256, 256, ShuffleBoxArt, 200, Vector4.zero);
 
             EnsureAppIcon(overwrite);
         }
@@ -413,6 +414,10 @@ namespace DesiMerge.Editor.Content
                         var stem = Sdf.Capsule(p, new Vector2(0f, -0.02f), new Vector2(0f, -0.2f), 0.085f);
                         return Sdf.Union(Sdf.Union(hook, stem), Sdf.Circle(p, new Vector2(0f, -0.52f), 0.11f));
                     };
+                case "Globe":
+                    return p => Sdf.Union(Mathf.Abs(Sdf.Circle(p, Vector2.zero, 0.72f)) - 0.08f,
+                        Sdf.Union(Mathf.Abs(Sdf.Ellipse(p, Vector2.zero, new Vector2(0.32f, 0.72f))) - 0.07f,
+                            Sdf.Intersect(Sdf.Circle(p, Vector2.zero, 0.72f), Sdf.Union(Mathf.Abs(p.y) - 0.06f, Mathf.Abs(Mathf.Abs(p.y) - 0.38f) - 0.05f))));
                 case "Diamond":
                     return p => Sdf.Polygon(p, GemOutline) - 0.04f;
                 case "Chart":
@@ -476,6 +481,35 @@ namespace DesiMerge.Editor.Content
             a.Stroke(p => Mathf.Max(gem(p) + 0.03f, Mathf.Abs(p.y - 0.12f)), 0.045f, ArtCanvas.WithAlpha(Ink, 0.55f));
             a.Stroke(gem, 0.07f, Ink);
             a.Fill(p => Sdf.Circle(p, new Vector2(-0.3f, 0.3f), 0.08f), ArtCanvas.WithAlpha(Color.white, 0.9f));
+        }
+
+        /// <summary>Illustrated mystery box for Shuffle: a 3D teal crate (lit lid, shaded sides) tied with a magenta ribbon.</summary>
+        private static void ShuffleBoxArt(ArtCanvas a)
+        {
+            var top = new[] { new Vector2(0f, 0.66f), new Vector2(0.66f, 0.34f), new Vector2(0f, 0.02f), new Vector2(-0.66f, 0.34f) };
+            var left = new[] { new Vector2(-0.66f, 0.34f), new Vector2(0f, 0.02f), new Vector2(0f, -0.8f), new Vector2(-0.66f, -0.48f) };
+            var right = new[] { new Vector2(0f, 0.02f), new Vector2(0.66f, 0.34f), new Vector2(0.66f, -0.48f), new Vector2(0f, -0.8f) };
+            Func<Vector2, float> whole = p => Mathf.Min(Sdf.Polygon(p, top), Mathf.Min(Sdf.Polygon(p, left), Sdf.Polygon(p, right)));
+            a.Fill(p => whole(p) - 0.05f, Ink);
+            a.Fill(p => Sdf.Polygon(p, left), p => Color.Lerp(ArtCanvas.Hex("#1CC2A6"), ArtCanvas.Hex("#0C8A76"), Mathf.Clamp01(-p.y * 0.8f + 0.3f)));
+            a.Fill(p => Sdf.Polygon(p, right), p => Color.Lerp(ArtCanvas.Hex("#0E9F8A"), ArtCanvas.Hex("#076656"), Mathf.Clamp01(-p.y * 0.8f + 0.3f)));
+            a.Fill(p => Sdf.Polygon(p, top), p => Color.Lerp(ArtCanvas.Hex("#9DF3E2"), ArtCanvas.Hex("#4FD9BF"), Mathf.Clamp01((0.66f - p.y) * 1.4f)));
+
+            // Ribbon: a band down the middle of each side and a cross on the lid.
+            var ribbonLight = ArtCanvas.Hex("#FF5AB0");
+            var ribbonDark = ArtCanvas.Hex("#B5136C");
+            a.FillInside(p => Mathf.Max(Sdf.Polygon(p, left), Mathf.Abs(p.x + 0.33f) - 0.07f), ribbonLight);
+            a.FillInside(p => Mathf.Max(Sdf.Polygon(p, right), Mathf.Abs(p.x - 0.33f) - 0.07f), ribbonDark);
+            a.FillInside(p => Mathf.Max(Sdf.Polygon(p, top), Mathf.Abs(p.y - 0.34f - 0.485f * p.x) - 0.075f), ribbonLight);
+            a.FillInside(p => Mathf.Max(Sdf.Polygon(p, top), Mathf.Abs(p.y - 0.34f + 0.485f * p.x) - 0.075f), ribbonLight);
+            a.Stroke(p => Mathf.Min(Sdf.Polygon(p, top), Sdf.Polygon(p, right)), 0.035f, ArtCanvas.WithAlpha(Ink, 0.45f));
+
+            // Bow on the lid.
+            a.Body(p => Sdf.Ellipse(p, new Vector2(-0.17f, 0.5f), new Vector2(0.17f, 0.11f)), 0.045f, Ink, ribbonLight, ribbonDark);
+            a.Body(p => Sdf.Ellipse(p, new Vector2(0.17f, 0.5f), new Vector2(0.17f, 0.11f)), 0.045f, Ink, ribbonLight, ribbonDark);
+            a.Body(p => Sdf.Circle(p, new Vector2(0f, 0.47f), 0.08f), 0.045f, Ink, ribbonLight, ribbonDark);
+            a.Stroke(whole, 0.07f, Ink);
+            a.Fill(p => Sdf.Circle(p, new Vector2(-0.42f, 0f), 0.05f), ArtCanvas.WithAlpha(Color.white, 0.75f));
         }
 
         /// <summary>Illustrated hammer for the in-game smash (wooden handle, saffron head with a truck-art band).</summary>

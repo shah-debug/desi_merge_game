@@ -23,6 +23,8 @@ namespace DesiMerge.Editor.Content
         public const string DailyRewardsPath = ContentPaths.ProgressionFolder + "/DailyRewards.asset";
         public const string MissionsPath = ContentPaths.ProgressionFolder + "/Missions.asset";
         public const string MilestonesPath = ContentPaths.ProgressionFolder + "/Milestones.asset";
+        public const string LocalizationTablePath = "Assets/_Project/Localization/Strings.txt";
+        public const string UrduFontPath = "Assets/_Project/Art/Fonts/NotoNaskhArabic.ttf";
 
         [MenuItem("Desi Merge/Setup/Apply Phase 6.6 Experience (rebuilds scenes)")]
         public static void Apply()
@@ -368,6 +370,12 @@ namespace DesiMerge.Editor.Content
             Assign("dailyRewards", AssetDatabase.LoadAssetAtPath<DailyRewardCatalog>(DailyRewardsPath));
             Assign("missions", AssetDatabase.LoadAssetAtPath<MissionCatalog>(MissionsPath));
             Assign("milestones", AssetDatabase.LoadAssetAtPath<MilestoneCatalog>(MilestonesPath));
+
+            // Translations (key = English text) and the font that has the Urdu presentation forms.
+            AssetDatabase.ImportAsset(LocalizationTablePath);
+            AssetDatabase.ImportAsset(UrduFontPath);
+            Assign("localizationTable", AssetDatabase.LoadAssetAtPath<TextAsset>(LocalizationTablePath));
+            Assign("urduFont", AssetDatabase.LoadAssetAtPath<Font>(UrduFontPath));
             serialized.ApplyModifiedPropertiesWithoutUndo();
         }
 

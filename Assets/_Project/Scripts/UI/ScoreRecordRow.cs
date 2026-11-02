@@ -30,7 +30,7 @@ namespace DesiMerge.UI
             if (dateText != null)
             {
                 var days = today - record.day;
-                dateText.text = days <= 0 ? "Today" : days == 1 ? "Yesterday" : $"{days} days ago";
+                dateText.text = days <= 0 ? DesiMerge.Localization.Loc.T("Today") : days == 1 ? DesiMerge.Localization.Loc.T("Yesterday") : DesiMerge.Localization.Loc.F("{0} days ago", days);
             }
 
             if (newBestBadge != null)

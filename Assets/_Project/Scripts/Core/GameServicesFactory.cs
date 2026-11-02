@@ -31,6 +31,7 @@ namespace DesiMerge.Core
                 : new UnavailableRewardedAdService();
 
             var settings = new SettingsService(saveStore, config.DefaultSettings);
+            DesiMerge.Localization.Loc.Initialize(config.LocalizationTable != null ? config.LocalizationTable.text : null, config.UrduFont, settings.Language);
             IAudioService audio = audioHost != null && config.AudioLibrary != null
                 ? new AudioService(audioHost, config.AudioLibrary, settings)
                 : new SilentAudioService();

@@ -58,6 +58,61 @@ namespace DesiMerge.Gameplay
 
             spriteRenderer.sprite = skinSprite != null ? skinSprite : Definition.Sprite;
             spriteRenderer.color = skinSprite != null ? Color.white : Definition.SpriteColor;
+            FitCollider();
+        }
+
+        private static readonly System.Collections.Generic.Dictionary<Sprite, float> FitCache = new System.Collections.Generic.Dictionary<Sprite, float>();
+        private static readonly System.Collections.Generic.List<Vector2> ShapeBuffer = new System.Collections.Generic.List<Vector2>();
+        private static readonly System.Collections.Generic.List<float> DistanceBuffer = new System.Collections.Generic.List<float>();
+
+        /// <summary>
+        /// Collision circle that matches the drawn item instead of its whole square picture, so items rest against each
+        /// other with no visible gap. Uses the sprite's generated outline (70th percentile of its distance from the
+        /// centre, so thin stems or steam don't count) and is cached per sprite, so every skin fits its own art.
+        /// </summary>
+        private void FitCollider()
+        {
+            var circle = GetComponent<CircleCollider2D>();
+            if (circle != null && spriteRenderer != null)
+            {
+                circle.radius = FittedRadius(spriteRenderer.sprite);
+            }
+        }
+
+        internal static float FittedRadius(Sprite sprite)
+        {
+            if (sprite == null)
+            {
+                return 0.5f;
+            }
+
+            if (FitCache.TryGetValue(sprite, out var cached))
+            {
+                return cached;
+            }
+
+            DistanceBuffer.Clear();
+            for (var shape = 0; shape < sprite.GetPhysicsShapeCount(); shape++)
+            {
+                ShapeBuffer.Clear();
+                sprite.GetPhysicsShape(shape, ShapeBuffer);
+                foreach (var point in ShapeBuffer)
+                {
+                    DistanceBuffer.Add(point.magnitude);
+                }
+            }
+
+            var radius = 0.5f;
+            var width = sprite.bounds.size.x;
+            if (DistanceBuffer.Count >= 3 && width > 0f)
+            {
+                DistanceBuffer.Sort();
+                var distance = DistanceBuffer[Mathf.Clamp(Mathf.RoundToInt((DistanceBuffer.Count - 1) * 0.7f), 0, DistanceBuffer.Count - 1)];
+                radius = Mathf.Clamp(distance / width, 0.34f, 0.5f);
+            }
+
+            FitCache[sprite] = radius;
+            return radius;
         }
 
         /// <summary>Visual-only: the art glides from a previous world position to the body (Shuffle).</summary>
@@ -110,6 +165,7 @@ namespace DesiMerge.Gameplay
             {
                 spriteRenderer.sprite = definition.Sprite;
                 spriteRenderer.color = definition.SpriteColor;
+                FitCollider();
             }
 
             if (label != null)

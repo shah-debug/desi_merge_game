@@ -121,7 +121,7 @@ namespace DesiMerge.UI
 
             if (nextLabel != null)
             {
-                nextLabel.text = Page + 1 >= pages.Length ? "LET'S PLAY" : "NEXT";
+                nextLabel.text = DesiMerge.Localization.Loc.T(Page + 1 >= pages.Length ? "LET'S PLAY" : "NEXT");
             }
         }
 

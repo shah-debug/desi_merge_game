@@ -20,9 +20,11 @@ MonoBehaviour:
   danger: {r: 1, g: 0.36862746, b: 0.34117648, a: 1}
   textDark: {r: 0.16470589, g: 0.101960786, b: 0.2, a: 1}
   textLight: {r: 1, g: 1, b: 1, a: 1}
-  overlay: {r: 0.07, g: 0.05, b: 0.14, a: 0.7}
+  overlay: {r: 0.12, g: 0.09, b: 0.2, a: 0.45}
   card: {r: 1, g: 0.9764706, b: 0.93333334, a: 1}
   mutedText: {r: 0.36078432, g: 0.32941177, b: 0.4509804, a: 1}
+  glass: {r: 1, g: 1, b: 1, a: 0.86}
+  accentText: {r: 0.81960785, g: 0.4509804, b: 0, a: 1}
   roundedPanel: {fileID: 21300000, guid: dda96a57630ad804086496977d001736, type: 3}
   paintedFrame: {fileID: 21300000, guid: fda62aa36ceccec4aa46f19c136f4901, type: 3}
   pattern: {fileID: 21300000, guid: 6e8f99671a074944589b784ec65f6776, type: 3}

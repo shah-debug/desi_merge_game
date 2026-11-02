@@ -64,7 +64,7 @@ namespace DesiMerge.UI
             var best = _progress?.HighScore ?? 0;
             if (bestText != null)
             {
-                bestText.text = $"Best score  {best}";
+                bestText.text = DesiMerge.Localization.Loc.F("Best score  {0}", best);
             }
 
             var definitions = _milestones.Definitions;
@@ -84,8 +84,8 @@ namespace DesiMerge.UI
                 var milestone = definitions[i];
                 var reached = _milestones.IsReached(milestone.id);
                 var claimed = _milestones.IsClaimed(milestone.id) || (reached && !milestone.reward.IsSomething);
-                var description = reached ? milestone.description : $"Reach a best score of {milestone.score}";
-                cards[i].Show(milestone.id, milestone.title, description, Math.Min(best, milestone.score), Math.Max(1, milestone.score),
+                var description = reached ? DesiMerge.Localization.Loc.T(milestone.description) : DesiMerge.Localization.Loc.F("Reach a best score of {0}", milestone.score);
+                cards[i].Show(milestone.id, DesiMerge.Localization.Loc.T(milestone.title), description, Math.Min(best, milestone.score), Math.Max(1, milestone.score),
                     _presenter != null ? _presenter.Describe(milestone.reward) : string.Empty, _presenter != null ? _presenter.IconFor(milestone.reward) : null,
                     reached && !claimed, claimed, animate: IsOpen);
             }
@@ -103,16 +103,16 @@ namespace DesiMerge.UI
             if (result == ClaimResult.Claimed)
             {
                 SetStatus(string.Empty);
-                _presenter?.Show("NEW RANK", milestone.title, new[] { milestone.reward });
+                _presenter?.Show(DesiMerge.Localization.Loc.T("NEW RANK"), DesiMerge.Localization.Loc.T(milestone.title), new[] { milestone.reward });
             }
             else if (result == ClaimResult.StorageFull)
             {
                 var definition = _powerUps?.Find(milestone.reward.powerUpId);
-                SetStatus(definition != null ? $"{definition.title} storage is full. Use one in a game, then claim." : "Storage is full. Use a power-up first.");
+                SetStatus(definition != null ? DesiMerge.Localization.Loc.F("{0} storage is full. Use one in a game, then claim.", DesiMerge.Localization.Loc.T(definition.title)) : DesiMerge.Localization.Loc.T("Storage is full. Use a power-up first."));
             }
             else if (result == ClaimResult.Failed)
             {
-                SetStatus("The reward couldn't be saved. Please try again.");
+                SetStatus(DesiMerge.Localization.Loc.T("The reward couldn't be saved. Please try again."));
             }
         }
 

@@ -155,7 +155,7 @@ namespace DesiMerge.UI
                 var skin = Page;
                 var skinSprite = skin?.SpriteFor(level);
                 var sprite = skinSprite != null ? skinSprite : definition.Sprite != null ? definition.Sprite : placeholderSprite;
-                var name = skin?.NameFor(level) ?? definition.DisplayName;
+                var name = DesiMerge.Localization.Loc.T(skin?.NameFor(level) ?? definition.DisplayName);
                 if (IsFound(level))
                 {
                     discovered++;
@@ -170,13 +170,13 @@ namespace DesiMerge.UI
             var page = Page;
             if (skinTitle != null)
             {
-                skinTitle.text = page != null ? page.title.ToUpperInvariant() : string.Empty;
+                skinTitle.text = page != null ? DesiMerge.Localization.Loc.T(page.title).ToUpperInvariant() : string.Empty;
             }
 
             previousSkinButton?.gameObject.SetActive(_skins.Count > 1);
             nextSkinButton?.gameObject.SetActive(_skins.Count > 1);
             var locked = page != null && _cosmetics != null && !_cosmetics.IsOwned(page.id);
-            SetCounter(locked ? $"Unlock {page.title} in Skins ({page.price} diamonds)" : $"{discovered} / {count} discovered" + (_skins.Count > 1 ? $"   •   {TotalFound()} / {count * _skins.Count} in all" : string.Empty));
+            SetCounter(locked ? DesiMerge.Localization.Loc.F("Unlock {0} in Skins ({1} diamonds)", DesiMerge.Localization.Loc.Raw(page.title), page.price) : DesiMerge.Localization.Loc.F("{0} / {1} discovered", discovered, count) + (_skins.Count > 1 ? "   •   " + DesiMerge.Localization.Loc.F("{0} / {1} in all", TotalFound(), count * _skins.Count) : string.Empty));
         }
 
         /// <summary>Names only the already-discovered item that makes this one, so future items stay a surprise.</summary>
@@ -184,12 +184,12 @@ namespace DesiMerge.UI
         {
             if (level == 0)
             {
-                return "Drop it";
+                return DesiMerge.Localization.Loc.T("Drop it");
             }
 
             var previous = _content.Get(level - 1);
             var name = Page?.NameFor(level - 1) ?? previous?.DisplayName;
-            return previous != null && IsFound(level - 1) ? $"2× {name}" : "???";
+            return previous != null && IsFound(level - 1) ? $"2× {DesiMerge.Localization.Loc.Raw(name)}" : "???";
         }
 
         /// <summary>Default items use the saved discoveries; skin items count once made or dropped with that skin.</summary>

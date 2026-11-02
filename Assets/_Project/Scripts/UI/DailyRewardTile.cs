@@ -27,7 +27,7 @@ namespace DesiMerge.UI
             State = state;
             if (dayText != null)
             {
-                dayText.text = $"DAY {index + 1}";
+                dayText.text = DesiMerge.Localization.Loc.F("DAY {0}", index + 1);
             }
 
             if (icon != null)

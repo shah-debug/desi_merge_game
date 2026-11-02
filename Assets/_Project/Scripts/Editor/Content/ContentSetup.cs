@@ -109,7 +109,9 @@ namespace DesiMerge.Editor.Content
             theme.danger = ArtCanvas.Hex("#FF5E57");
             theme.textDark = ArtCanvas.Hex("#2A1A33");
             theme.textLight = Color.white;
-            theme.overlay = new Color(0.07f, 0.05f, 0.14f, 0.7f);
+            theme.overlay = new Color(0.12f, 0.09f, 0.2f, 0.45f);
+            theme.glass = new Color(1f, 1f, 1f, 0.86f);
+            theme.accentText = ArtCanvas.Hex("#D17300");
             theme.card = ArtCanvas.Hex("#FFF9EE");
             theme.mutedText = ArtCanvas.Hex("#5C5473");
             theme.panel = GameArtGenerator.Load(GameArtGenerator.PanelPath);
@@ -292,21 +294,78 @@ namespace DesiMerge.Editor.Content
             var theme = factory.Theme;
             var host = UiFactory.Rect("Host", null);
             host.sizeDelta = new Vector2(1080f, 1920f);
-            var (transition, card) = factory.Modal(host, "SettingsPanel", new Vector2(920f, 980f), "SETTINGS");
+            var (transition, card) = factory.Modal(host, "SettingsPanel", new Vector2(920f, 1180f), "SETTINGS");
 
             var musicIcon = factory.Image(card, "MusicIcon", GameArtGenerator.Icon("Music"), theme.primary);
-            UiFactory.Place(musicIcon.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(-370f, 205f), new Vector2(64f, 64f));
+            UiFactory.Place(musicIcon.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(-370f, 305f), new Vector2(64f, 64f));
             var musicLabel = factory.Text(card, "MusicLabel", "Music", theme.bodySize + 6, theme.textDark, TextAnchor.MiddleLeft);
-            UiFactory.Place(musicLabel.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(-30f, 205f), new Vector2(600f, 70f));
-            var musicSlider = factory.Slider(card, "MusicSlider", new Vector2(-120f, 110f), 540f);
-            var musicMute = factory.Toggle(card, "MusicMute", "Mute", new Vector2(300f, 110f));
+            UiFactory.Place(musicLabel.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(-30f, 305f), new Vector2(600f, 70f));
+            var musicSlider = factory.Slider(card, "MusicSlider", new Vector2(-120f, 210f), 540f);
+            var musicMute = factory.Toggle(card, "MusicMute", "Mute", new Vector2(300f, 210f));
 
             var sfxIcon = factory.Image(card, "SfxIcon", GameArtGenerator.Icon("Speaker"), theme.secondary);
-            UiFactory.Place(sfxIcon.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(-370f, -15f), new Vector2(64f, 64f));
+            UiFactory.Place(sfxIcon.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(-370f, 85f), new Vector2(64f, 64f));
             var sfxLabel = factory.Text(card, "SfxLabel", "Sound Effects", theme.bodySize + 6, theme.textDark, TextAnchor.MiddleLeft);
-            UiFactory.Place(sfxLabel.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(-30f, -15f), new Vector2(600f, 70f));
-            var sfxSlider = factory.Slider(card, "SfxSlider", new Vector2(-120f, -110f), 540f);
-            var sfxMute = factory.Toggle(card, "SfxMute", "Mute", new Vector2(300f, -110f));
+            UiFactory.Place(sfxLabel.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(-30f, 85f), new Vector2(600f, 70f));
+            var sfxSlider = factory.Slider(card, "SfxSlider", new Vector2(-120f, -10f), 540f);
+            var sfxMute = factory.Toggle(card, "SfxMute", "Mute", new Vector2(300f, -10f));
+
+            var languageIcon = factory.Image(card, "LanguageIcon", GameArtGenerator.Icon("Globe"), theme.deep);
+            UiFactory.Place(languageIcon.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(-370f, -135f), new Vector2(64f, 64f));
+            var languageCaption = factory.Text(card, "LanguageCaption", "Language", theme.bodySize + 6, theme.textDark, TextAnchor.MiddleLeft);
+            UiFactory.Place(languageCaption.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(-30f, -135f), new Vector2(600f, 70f));
+            // Dropdown: the box shows the current language; tapping it opens the list above it.
+            var languageBox = factory.Button(card, "LanguageBox", string.Empty, Color.white, new Vector2(640f, 100f));
+            UiFactory.Place((RectTransform)languageBox.transform, new Vector2(0.5f, 0.5f), new Vector2(0f, -235f), new Vector2(640f, 100f));
+            UiFactory.Record(languageBox.transform);
+            languageBox.transform.Find("Label").gameObject.SetActive(false);
+            var boxRim = factory.Image(languageBox.transform, "Rim", theme.panel, new Color(theme.deep.r, theme.deep.g, theme.deep.b, 0.18f));
+            UiFactory.Stretch(boxRim.rectTransform, -3f, -3f, -3f, -3f);
+            boxRim.transform.SetAsFirstSibling();
+            var languageLabel = factory.Text(languageBox.transform, "Language", string.Empty, 44, theme.textDark, TextAnchor.MiddleLeft);
+            languageLabel.text = "English";
+            UiFactory.Stretch(languageLabel.rectTransform, 36f, 100f, 0f, 4f + theme.buttonLip);
+            var chevron = factory.Image(languageBox.transform, "Chevron", GameArtGenerator.Icon("Back"), theme.primary);
+            UiFactory.Place(chevron.rectTransform, new Vector2(1f, 0.5f), new Vector2(-30f, theme.buttonLip * 0.5f), new Vector2(52f, 52f));
+            chevron.rectTransform.localRotation = Quaternion.Euler(0f, 0f, 90f);
+
+            var languageList = UiFactory.Stretch(UiFactory.Rect("LanguageList", card));
+            var blockerImage = factory.Image(languageList, "Blocker", null, new Color(1f, 1f, 1f, 0.01f), raycast: true);
+            UiFactory.Stretch(blockerImage.rectTransform, -400f, -400f, -400f, -400f);
+            var blocker = blockerImage.gameObject.AddComponent<Button>();
+            blocker.transition = Selectable.Transition.None;
+            var languages = DesiMerge.Localization.Loc.Languages;
+            const float rowHeight = 76f;
+            var listHeight = languages.Length * rowHeight + 24f;
+            var sheet = factory.Panel(languageList, "Sheet", Color.white, new Color(theme.deep.r, theme.deep.g, theme.deep.b, 0.16f), 3f).rectTransform;
+            UiFactory.Place(sheet, new Vector2(0.5f, 0.5f), new Vector2(0f, -235f + 50f + 12f + listHeight * 0.5f), new Vector2(640f, listHeight));
+            sheet.pivot = new Vector2(0.5f, 0.5f);
+            sheet.anchoredPosition = new Vector2(0f, -235f + 50f + 12f + listHeight * 0.5f);
+            GameplaySceneBuilder.AddShadow(sheet.gameObject, theme, 0.25f, 10f);
+            var options = new Button[languages.Length];
+            var optionLabels = new Text[languages.Length];
+            var optionChecks = new GameObject[languages.Length];
+            for (var i = 0; i < languages.Length; i++)
+            {
+                var row = factory.Image(sheet, "Option_" + languages[i].Code, theme.pill, i % 2 == 0 ? new Color(theme.deep.r, theme.deep.g, theme.deep.b, 0.05f) : new Color(1f, 1f, 1f, 0.01f), raycast: true);
+                UiFactory.Place(row.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -12f - i * rowHeight), new Vector2(600f, rowHeight - 6f));
+                var option = row.gameObject.AddComponent<Button>();
+                var colors = option.colors;
+                colors.pressedColor = new Color(0.85f, 0.85f, 0.85f);
+                option.colors = colors;
+                var label = factory.Text(row.transform, "Label", string.Empty, 38, theme.textDark, TextAnchor.MiddleLeft, body: true);
+                Object.DestroyImmediate(label.GetComponent<DesiMerge.Localization.LocalizedText>());
+                label.text = languages[i].Code == "ur" ? string.Empty : languages[i].NativeName;
+                UiFactory.Stretch(label.rectTransform, 30f, 90f, 0f, 0f);
+                var check = factory.Image(row.transform, "Check", GameArtGenerator.Icon("Check"), theme.secondary);
+                UiFactory.Place(check.rectTransform, new Vector2(1f, 0.5f), new Vector2(-24f, 0f), new Vector2(44f, 44f));
+                check.gameObject.SetActive(i == 0);
+                options[i] = option;
+                optionLabels[i] = label;
+                optionChecks[i] = check.gameObject;
+            }
+
+            languageList.gameObject.SetActive(false);
 
             var close = factory.Button(card, "CloseButton", "DONE", theme.primary, new Vector2(520f, 150f), icon: GameArtGenerator.Icon("Check"));
             UiFactory.Place((RectTransform)close.transform, new Vector2(0.5f, 0f), new Vector2(0f, 70f), new Vector2(520f, 150f));
@@ -315,8 +374,12 @@ namespace DesiMerge.Editor.Content
             var panel = transition.gameObject.AddComponent<SettingsPanel>();
             EditorRefs.Set(panel,
                 ("transition", transition), ("musicSlider", musicSlider), ("musicMuteToggle", musicMute),
-                ("sfxSlider", sfxSlider), ("sfxMuteToggle", sfxMute), ("closeButton", close));
+                ("sfxSlider", sfxSlider), ("sfxMuteToggle", sfxMute), ("closeButton", close),
+                ("languageButton", languageBox), ("languageLabel", languageLabel), ("languageList", languageList.gameObject),
+                ("languageListBlocker", blocker), ("languageOptions", options), ("languageOptionLabels", optionLabels),
+                ("languageOptionChecks", optionChecks));
 
+            LightThemePass.Apply(transition.gameObject, theme);
             PrefabUtility.SaveAsPrefabAsset(transition.gameObject, ContentPaths.SettingsPanelPrefabPath);
             Object.DestroyImmediate(host.gameObject);
         }

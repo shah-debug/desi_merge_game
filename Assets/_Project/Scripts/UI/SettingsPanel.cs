@@ -21,10 +21,18 @@ namespace DesiMerge.UI
         [SerializeField] private Slider sfxSlider;
         [SerializeField] private Toggle sfxMuteToggle;
         [SerializeField] private Button closeButton;
+        [SerializeField] private Button languageButton;
+        [SerializeField] private Text languageLabel;
+        [SerializeField] private GameObject languageList;
+        [SerializeField] private Button languageListBlocker;
+        [SerializeField] private Button[] languageOptions = Array.Empty<Button>();
+        [SerializeField] private Text[] languageOptionLabels = Array.Empty<Text>();
+        [SerializeField] private GameObject[] languageOptionChecks = Array.Empty<GameObject>();
 
         private ISettingsService _settings;
         private IAudioService _audio;
         private bool _opening;
+        private bool _languageWired;
 
         public event Action Closed;
 
@@ -80,6 +88,9 @@ namespace DesiMerge.UI
                 closeButton.onClick.AddListener(Close);
             }
 
+            WireLanguagePicker();
+            ShowLanguage();
+
             foreach (var feedback in GetComponentsInChildren<ButtonFeedback>(true))
             {
                 feedback.Bind(audio);
@@ -87,6 +98,118 @@ namespace DesiMerge.UI
 
             Refresh();
         }
+
+        public string LanguageLabel => languageLabel != null ? languageLabel.text : string.Empty;
+
+        public bool LanguageListOpen => languageList != null && languageList.activeSelf;
+
+        public int LanguageOptionCount => languageOptions.Length;
+
+        /// <summary>Opens or closes the language dropdown.</summary>
+        public void ToggleLanguageList()
+        {
+            if (LanguageListOpen)
+            {
+                CloseLanguageList();
+            }
+            else
+            {
+                OpenLanguageList();
+            }
+        }
+
+        public void OpenLanguageList()
+        {
+            if (languageList == null)
+            {
+                return;
+            }
+
+            ShowLanguage();
+            languageList.SetActive(true);
+            languageList.transform.SetAsLastSibling();
+        }
+
+        public void CloseLanguageList()
+        {
+            if (languageList != null)
+            {
+                languageList.SetActive(false);
+            }
+        }
+
+        /// <summary>Changes the UI language at once (every screen updates), saves it and closes the dropdown.</summary>
+        public void SelectLanguage(string code)
+        {
+            CloseLanguageList();
+            if (_settings == null || !DesiMerge.Localization.Loc.IsKnown(code))
+            {
+                return;
+            }
+
+            _settings.Language = code;
+            DesiMerge.Localization.Loc.SetLanguage(code);
+            _settings.Flush();
+            ShowLanguage();
+        }
+
+        private void WireLanguagePicker()
+        {
+            if (_languageWired)
+            {
+                return;
+            }
+
+            _languageWired = true;
+            languageButton?.onClick.AddListener(ToggleLanguageList);
+            languageListBlocker?.onClick.AddListener(CloseLanguageList);
+            var languages = DesiMerge.Localization.Loc.Languages;
+            for (var i = 0; i < languageOptions.Length && i < languages.Length; i++)
+            {
+                var code = languages[i].Code;
+                languageOptions[i]?.onClick.AddListener(() => SelectLanguage(code));
+            }
+
+            CloseLanguageList();
+        }
+
+        private void ShowLanguage()
+        {
+            var languages = DesiMerge.Localization.Loc.Languages;
+            if (languageLabel != null)
+            {
+                languageLabel.text = NativeName(DesiMerge.Localization.Loc.Info(DesiMerge.Localization.Loc.Current));
+            }
+
+            // Each option is written in its own language and font, whatever the current UI language is.
+            for (var i = 0; i < languageOptionLabels.Length && i < languages.Length; i++)
+            {
+                var label = languageOptionLabels[i];
+                if (label != null)
+                {
+                    if (_optionFont == null)
+                    {
+                        _optionFont = label.font;
+                    }
+
+                    label.font = DesiMerge.Localization.Loc.FontForLanguage(languages[i].Code, _optionFont);
+                    label.text = NativeName(languages[i]);
+                }
+            }
+
+            for (var i = 0; i < languageOptionChecks.Length && i < languages.Length; i++)
+            {
+                if (languageOptionChecks[i] != null)
+                {
+                    languageOptionChecks[i].SetActive(languages[i].Code == DesiMerge.Localization.Loc.Current);
+                }
+            }
+        }
+
+        private Font _optionFont;
+
+        private static string NativeName(DesiMerge.Localization.Loc.LanguageInfo info) =>
+            info.RightToLeft ? DesiMerge.Localization.UrduShaper.Shape(info.NativeName) : info.NativeName;
 
         public void Open()
         {
@@ -110,6 +233,7 @@ namespace DesiMerge.UI
             }
 
             _settings?.Flush();
+            CloseLanguageList();
             if (transition != null)
             {
                 transition.Hide();

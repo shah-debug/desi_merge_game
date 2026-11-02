@@ -1,0 +1,268 @@
+key	ur	zh	es	pt	fr	de	it	ms
+Best score\nGames completed\nTotal merges\nHighest item\nDay streak	بہترین اسکور\nمکمل گیمز\nکل ملاپ\nسب سے بڑی چیز\nدنوں کا سلسلہ	最高分\n完成局数\n合成总数\n最大物品\n连续天数	Récord\nPartidas jugadas\nFusiones totales\nObjeto más alto\nRacha	Recorde\nPartidas concluídas\nFusões totais\nMaior item\nSequência	Record\nParties terminées\nFusions totales\nPlus gros objet\nSérie	Rekord\nBeendete Spiele\nFusionen gesamt\nHöchstes Item\nSerie	Record\nPartite finite\nFusioni totali\nOggetto più alto\nSerie	Skor terbaik\nPermainan selesai\nJumlah gabungan\nItem tertinggi\nRentetan
++{0} diamonds	+{0} ہیرے	+{0} 钻石	+{0} diamantes	+{0} diamantes	+{0} diamants	+{0} Diamanten	+{0} diamanti	+{0} berlian
++{0} over your old best	پرانے ریکارڈ سے +{0}	比旧纪录多 +{0}	+{0} sobre tu récord anterior	+{0} acima do seu recorde	+{0} de plus que ton record	+{0} über deinem alten Rekord	+{0} oltre il tuo record	+{0} melebihi rekod lama
+A Hammer to start	شروعات کے لیے ہتھوڑا	开局送锤子	Un martillo para empezar	Um martelo para começar	Un marteau pour commencer	Ein Hammer zum Start	Un martello per iniziare	Tukul untuk bermula
+A Shuffle	ایک شفل	一次洗牌	Una mezcla	Um embaralhar	Un mélange	Ein Mischen	Un mescola	Satu kocok
+A best score of 1200	بہترین اسکور 1200	最高分 1200	Récord de 1200	Recorde de 1200	Record de 1200	Rekord von 1200	Record di 1200	Skor terbaik 1200
+A best score of 1800	بہترین اسکور 1800	最高分 1800	Récord de 1800	Recorde de 1800	Record de 1800	Rekord von 1800	Record di 1800	Skor terbaik 1800
+A best score of 250	بہترین اسکور 250	最高分 250	Récord de 250	Recorde de 250	Record de 250	Rekord von 250	Record di 250	Skor terbaik 250
+A best score of 2500	بہترین اسکور 2500	最高分 2500	Récord de 2500	Recorde de 2500	Record de 2500	Rekord von 2500	Record di 2500	Skor terbaik 2500
+A best score of 500	بہترین اسکور 500	最高分 500	Récord de 500	Recorde de 500	Record de 500	Rekord von 500	Record di 500	Skor terbaik 500
+A best score of 800	بہترین اسکور 800	最高分 800	Récord de 800	Recorde de 800	Record de 800	Rekord von 800	Record di 800	Skor terbaik 800
+ACHIEVEMENTS	کامیابیاں	成就	LOGROS	CONQUISTAS	SUCCÈS	ERFOLGE	OBIETTIVI	PENCAPAIAN
+AIM AND DROP	نشانہ لیں اور گرائیں	瞄准并放下	APUNTA Y SUELTA	MIRE E SOLTE	VISE ET LÂCHE	ZIELEN & FALLEN LASSEN	MIRA E LASCIA	SASAR DAN JATUHKAN
+AWARDS	انعامات	奖杯	PREMIOS	PRÊMIOS	TROPHÉES	PREISE	PREMI	ANUGERAH
+Aam	آم	芒果						
+Aam Ki Baat	آم کی بات	芒果话题						
+Aam Season	آم کا موسم	芒果季	Temporada de Aam	Temporada de Aam	Saison des Aam	Aam-Saison	Stagione di Aam	Musim Aam
+All Aboard!	سب سوار ہوں!	全体上车！	¡Todos a bordo!	Todos a bordo!	Tout le monde à bord !	Alle einsteigen!	Tutti a bordo!	Semua naik!
+All done! New missions arrive soon.	سب مکمل! نئے مشن جلد آئیں گے۔	全部完成！新任务即将到来。	¡Todo listo! Pronto llegan nuevas misiones.	Tudo feito! Novas missões em breve.	Tout est fait ! De nouvelles missions arrivent bientôt.	Alles erledigt! Bald gibt es neue Missionen.	Tutto fatto! Nuove missioni in arrivo.	Semua selesai! Misi baharu akan tiba.
+Another Hammer	ایک اور ہتھوڑا	再来一把锤子	Otro martillo	Outro martelo	Un autre marteau	Noch ein Hammer	Un altro martello	Satu lagi tukul
+Another Shuffle	ایک اور شفل	再来一次洗牌	Otra mezcla	Outro embaralhar	Un autre mélange	Noch ein Mischen	Un altro mescola	Satu lagi kocok
+Award unlocked: {0}	انعام کھلا: {0}	解锁奖杯：{0}	Premio desbloqueado: {0}	Prêmio desbloqueado: {0}	Trophée débloqué : {0}	Preis freigeschaltet: {0}	Premio sbloccato: {0}	Anugerah dibuka: {0}
+BEST	بہترین	最高	RÉCORD	RECORDE	RECORD	REKORD	RECORD	TERBAIK
+BIGGEST ITEM	سب سے بڑی چیز	最大物品	OBJETO MÁS GRANDE	MAIOR ITEM	PLUS GROS OBJET	GRÖSSTES ITEM	OGGETTO PIÙ GRANDE	ITEM TERBESAR
+Barfi	برفی							
+Bazaar Regular	بازار کا مستقل گاہک	集市常客						
+Best  {0}	بہترین  {0}	最高  {0}	Récord  {0}	Recorde  {0}	Record  {0}	Rekord  {0}	Record  {0}	Terbaik  {0}
+Best score  {0}	بہترین اسکور  {0}	最高分  {0}	Récord  {0}	Recorde  {0}	Record  {0}	Rekord  {0}	Record  {0}	Skor terbaik  {0}
+Big Round	بڑا راؤنڈ	大回合	Gran ronda	Grande rodada	Grande partie	Große Runde	Gran partita	Pusingan besar
+Big Score	بڑا اسکور	高分	Gran puntuación	Grande pontuação	Gros score	Hohe Punktzahl	Gran punteggio	Skor besar
+Biryani	بریانی	印度香饭						
+Bun Kabab	بن کباب	汉堡烤肉						
+Bus	بس	巴士	Autobús	Ônibus	Bus	Bus	Autobus	Bas
+Bus Badshah	بس بادشاہ	巴士之王						
+Busy Bazaar	مصروف بازار	热闹集市	Bazar ajetreado	Bazar movimentado	Bazar animé	Belebter Basar	Bazar affollato	Bazar sibuk
+Busy Hands	مصروف ہاتھ	忙碌的手	Manos ocupadas	Mãos ocupadas	Mains occupées	Fleißige Hände	Mani occupate	Tangan sibuk
+CANCEL	منسوخ	取消	CANCELAR	CANCELAR	ANNULER	ABBRECHEN	ANNULLA	BATAL
+CLAIM	حاصل کریں	领取	RECLAMAR	RESGATAR	RÉCUPÉRER	ABHOLEN	RISCATTA	TUNTUT
+COLLECT	لیں	收下	RECOGER	COLETAR	PRENDRE	EINSAMMELN	RACCOGLI	KUTIP
+COLLECTION	کلیکشن	收藏	COLECCIÓN	COLEÇÃO	COLLECTION	SAMMLUNG	COLLEZIONE	KOLEKSI
+COMPLETED	مکمل	已完成	COMPLETADAS	CONCLUÍDAS	TERMINÉES	ERLEDIGT	COMPLETATE	SELESAI
+CONTINUE	جاری رکھیں	继续	CONTINUAR	CONTINUAR	CONTINUER	WEITER	CONTINUA	TERUSKAN
+Can't claim yet: use some first	ابھی نہیں لے سکتے: پہلے کچھ استعمال کریں	还不能领取：请先使用一些	Aún no: usa algunos primero	Ainda não: use alguns antes	Pas encore : utilise-en d’abord	Noch nicht: erst welche benutzen	Non ancora: usane prima qualcuno	Belum boleh: guna dahulu
+Chaat	چاٹ	恰特小吃						
+Chai	چائے	奶茶						
+Chai Break	چائے کا وقفہ	奶茶时间	Pausa de chai	Pausa para chai	Pause chai	Chai-Pause	Pausa chai	Rehat chai
+Chai Champion	چائے چیمپئن	奶茶冠军						
+Chai Time	چائے کا وقت	奶茶时刻	Hora del chai	Hora do chai	L’heure du chai	Chai-Zeit	Ora del chai	Masa chai
+Cham Cham	چم چم							
+Claim every day to build a streak	سلسلہ بنانے کے لیے روز انعام لیں	每天领取以保持连续	Reclama cada día para hacer una racha	Resgate todo dia para manter a sequência	Récupère chaque jour pour une série	Hol es täglich ab für eine Serie	Riscatta ogni giorno per una serie	Tuntut setiap hari untuk rentetan
+Claim {0}!	{0} حاصل کریں!	领取 {0}！	¡Reclama {0}!	Resgate {0}!	Récupère {0} !	Hol dir {0}!	Riscatta {0}!	Tuntut {0}!
+Claimed missions appear here.	لیے گئے مشن یہاں نظر آئیں گے۔	已领取的任务会显示在这里。	Las misiones reclamadas aparecen aquí.	Missões resgatadas aparecem aqui.	Les missions récupérées apparaissent ici.	Abgeholte Missionen erscheinen hier.	Le missioni riscattate appaiono qui.	Misi yang dituntut muncul di sini.
+Create a Chai (or better)	چائے بنائیں (یا بہتر)	合成奶茶（或更高）	Crea un Chai (o mejor)	Crie um Chai (ou melhor)	Crée un Chai (ou mieux)	Erstelle einen Chai (oder besser)	Crea un Chai (o meglio)	Cipta Chai (atau lebih)
+Create an Aam (or better)	آم بنائیں (یا بہتر)	合成芒果（或更高）	Crea un Aam (o mejor)	Crie um Aam (ou melhor)	Crée un Aam (ou mieux)	Erstelle eine Aam (oder besser)	Crea un Aam (o meglio)	Cipta Aam (atau lebih)
+DAILY	روزانہ	每日	DIARIAS	DIÁRIAS	QUOTIDIEN	TÄGLICH	GIORNALIERE	HARIAN
+DAILY REWARDS	روزانہ انعامات	每日奖励	PREMIOS DIARIOS	PRÊMIOS DIÁRIOS	RÉCOMPENSES	TAGESBELOHNUNG	PREMI GIORNALIERI	GANJARAN HARIAN
+DAY STREAK	دنوں کا سلسلہ	连续天数	RACHA	SEQUÊNCIA	SÉRIE	SERIE	SERIE	RENTETAN
+DAY {0}	دن {0}	第{0}天	DÍA {0}	DIA {0}	JOUR {0}	TAG {0}	GIORNO {0}	HARI {0}
+DAY {0} REWARD	دن {0} کا انعام	第{0}天奖励	PREMIO DEL DÍA {0}	PRÊMIO DO DIA {0}	RÉCOMPENSE JOUR {0}	BELOHNUNG TAG {0}	PREMIO GIORNO {0}	GANJARAN HARI {0}
+DONE	ٹھیک ہے	完成	LISTO	PRONTO	TERMINÉ	FERTIG	FATTO	SELESAI
+Daily challenge complete!	روزانہ چیلنج مکمل!	每日挑战完成！	¡Desafío diario completado!	Desafio diário concluído!	Défi du jour réussi !	Tagesaufgabe geschafft!	Sfida giornaliera completata!	Cabaran harian selesai!
+Day streak: {0}	دنوں کا سلسلہ: {0}	连续天数：{0}	Racha: {0}	Sequência: {0}	Série : {0}	Serie: {0}	Serie: {0}	Rentetan: {0}
+Desi Bazaar	دیسی بازار	德西集市						
+Dhaba Star	ڈھابہ اسٹار	路边摊明星						
+Discover Chai	چائے دریافت کریں	发现奶茶	Descubre el Chai	Descubra o Chai	Découvre le Chai	Entdecke Chai	Scopri il Chai	Temui Chai
+Discover the Aam	آم دریافت کریں	发现芒果	Descubre el Aam	Descubra o Aam	Découvre l’Aam	Entdecke die Aam	Scopri l’Aam	Temui Aam
+Discover the Bus	بس دریافت کریں	发现巴士	Descubre el autobús	Descubra o ônibus	Découvre le bus	Entdecke den Bus	Scopri l’autobus	Temui bas
+Done	مکمل	完成	Hecho	Feito	Fait	Erledigt	Fatto	Siap
+Double Hammer	دوگنا ہتھوڑا	双倍锤子	Martillo doble	Martelo duplo	Double marteau	Doppelhammer	Martello doppio	Tukul berganda
+Double Shuffle	دوگنا شفل	双倍洗牌	Mezcla doble	Embaralhar duplo	Double mélange	Doppelt mischen	Mescola doppio	Kocok berganda
+Drag left or right to aim, then let go to drop.	نشانہ لینے کے لیے دائیں بائیں کھینچیں، پھر چھوڑ دیں۔	左右拖动瞄准，松手即可放下。	Arrastra a izquierda o derecha para apuntar y suelta para soltar.	Arraste para os lados para mirar e solte para largar.	Glisse à gauche ou à droite pour viser, puis relâche.	Ziehe nach links oder rechts zum Zielen und lass los.	Trascina a sinistra o a destra per mirare, poi rilascia.	Seret ke kiri atau kanan untuk sasar, kemudian lepaskan.
+Drag to aim  •  Lift to drop	کھینچ کر نشانہ  •  چھوڑ کر گرائیں	拖动瞄准  •  松手放下	Arrastra para apuntar  •  Suelta para soltar	Arraste para mirar  •  Solte para largar	Glisse pour viser  •  Relâche pour lâcher	Ziehen zum Zielen  •  Loslassen	Trascina per mirare  •  Rilascia	Seret untuk sasar  •  Lepas untuk jatuh
+Drop it	گرائیں	放下它	Suéltalo	Solte	Lâche-le	Fallen lassen	Lascialo	Jatuhkan
+Finish 1 game	1 گیم مکمل کریں	完成 1 局	Termina 1 partida	Termine 1 partida	Termine 1 partie	Beende 1 Spiel	Finisci 1 partita	Tamatkan 1 permainan
+Finish 10 games	10 گیمز مکمل کریں	完成 10 局	Termina 10 partidas	Termine 10 partidas	Termine 10 parties	Beende 10 Spiele	Finisci 10 partite	Tamatkan 10 permainan
+Finish 15 games this week	اس ہفتے 15 گیمز مکمل کریں	本周完成 15 局	Termina 15 partidas esta semana	Termine 15 partidas nesta semana	Termine 15 parties cette semaine	Beende 15 Spiele diese Woche	Finisci 15 partite questa settimana	Tamatkan 15 permainan minggu ini
+Finish 3 games	3 گیمز مکمل کریں	完成 3 局	Termina 3 partidas	Termine 3 partidas	Termine 3 parties	Beende 3 Spiele	Finisci 3 partite	Tamatkan 3 permainan
+Finish 3 games today	آج 3 گیمز مکمل کریں	今天完成 3 局	Termina 3 partidas hoy	Termine 3 partidas hoje	Termine 3 parties aujourd’hui	Beende heute 3 Spiele	Finisci 3 partite oggi	Tamatkan 3 permainan hari ini
+Finish 3 games without power-ups	پاور اپس کے بغیر 3 گیمز مکمل کریں	不用道具完成 3 局	Termina 3 partidas sin potenciadores	Termine 3 partidas sem poderes	Termine 3 parties sans bonus	Beende 3 Spiele ohne Power-ups	Finisci 3 partite senza potenziamenti	Tamatkan 3 permainan tanpa kuasa
+Finish a game on 3 days in a row	لگاتار 3 دن گیم مکمل کریں	连续 3 天完成一局	Termina una partida 3 días seguidos	Termine uma partida 3 dias seguidos	Termine une partie 3 jours de suite	Beende an 3 Tagen in Folge ein Spiel	Finisci una partita 3 giorni di fila	Tamatkan permainan 3 hari berturut-turut
+Finish a game to start a streak	سلسلہ شروع کرنے کے لیے گیم مکمل کریں	完成一局开始连续	Termina una partida para empezar una racha	Termine uma partida para começar a sequência	Termine une partie pour lancer une série	Beende ein Spiel für eine Serie	Finisci una partita per iniziare una serie	Tamatkan permainan untuk mulakan rentetan
+Finish a game to start your score history.	اسکور کی تاریخ کے لیے ایک گیم مکمل کریں۔	完成一局即可开始记录分数。	Termina una partida para empezar tu historial.	Termine uma partida para começar seu histórico.	Termine une partie pour commencer ton historique.	Beende ein Spiel für deinen Verlauf.	Finisci una partita per iniziare la cronologia.	Tamatkan permainan untuk mula sejarah skor.
+Finish a game without power-ups	پاور اپس کے بغیر گیم مکمل کریں	不用道具完成一局	Termina una partida sin potenciadores	Termine uma partida sem poderes	Termine une partie sans bonus	Beende ein Spiel ohne Power-ups	Finisci una partita senza potenziamenti	Tamatkan permainan tanpa kuasa
+Finish your first game	اپنا پہلا گیم مکمل کریں	完成第一局	Termina tu primera partida	Termine sua primeira partida	Termine ta première partie	Beende dein erstes Spiel	Finisci la tua prima partita	Tamatkan permainan pertama
+First Game	پہلا گیم	第一局	Primera partida	Primeira partida	Première partie	Erstes Spiel	Prima partita	Permainan pertama
+First Merge	پہلا ملاپ	首次合成	Primera fusión	Primeira fusão	Première fusion	Erste Fusion	Prima fusione	Gabungan pertama
+Food Cart	کھانے کا ٹھیلا	小吃车	Carrito de comida	Carrinho de comida	Chariot à nourriture	Imbisswagen	Carretto del cibo	Kereta makanan
+GAME OVER	گیم ختم	游戏结束	FIN DEL JUEGO	FIM DE JOGO	PARTIE TERMINÉE	SPIEL VORBEI	FINE PARTITA	PERMAINAN TAMAT
+GAMES	گیمز	局数	PARTIDAS	PARTIDAS	PARTIES	SPIELE	PARTITE	PERMAINAN
+Garam Roti	گرم روٹی	热烤饼						
+Gol Gappa	گول گپا	脆球						
+Good Round	اچھا راؤنڈ	好回合	Buena ronda	Boa rodada	Bonne partie	Gute Runde	Bella partita	Pusingan baik
+Gulab Jamun	گلاب جامن	玫瑰甜球						
+HOME	ہوم	主页	INICIO	INÍCIO	ACCUEIL	START	HOME	UTAMA
+HOW TO PLAY	کیسے کھیلیں	玩法	CÓMO JUGAR	COMO JOGAR	COMMENT JOUER	SO GEHT’S	COME GIOCARE	CARA BERMAIN
+Hammer	ہتھوڑا	锤子	Martillo	Martelo	Marteau	Hammer	Martello	Tukul
+Hammer smashes one item. Shuffle mixes the board. You get free uses every game.	ہتھوڑا ایک چیز توڑتا ہے۔ شفل بورڈ ملاتا ہے۔ ہر گیم میں مفت استعمال ملتا ہے۔	锤子砸碎一个物品，洗牌打乱棋盘。每局都有免费次数。	El martillo rompe un objeto. Mezclar reordena el tablero. Tienes usos gratis en cada partida.	O martelo quebra um item. Embaralhar mistura o tabuleiro. Você ganha usos grátis a cada partida.	Le marteau casse un objet. Le mélange mélange le plateau. Utilisations gratuites à chaque partie.	Der Hammer zerschlägt ein Item. Mischen mischt das Feld. Jedes Spiel gibt es Gratis-Nutzungen.	Il martello rompe un oggetto. Mescola rimescola il tavolo. Usi gratuiti a ogni partita.	Tukul memecahkan satu item. Kocok mengacau papan. Penggunaan percuma setiap permainan.
+High Scorer	ہائی اسکورر	高分玩家	Gran anotador	Grande pontuador	As du score	Punktejäger	Campione di punti	Penjaring skor
+In progress	جاری ہے	进行中	En curso	Em andamento	En cours	Läuft	In corso	Sedang berjalan
+Jalebi	جلیبی	炸糖圈						
+KEEP PLAYING	کھیلتے رہیں	继续游戏	SEGUIR JUGANDO	CONTINUAR JOGANDO	CONTINUER	WEITERSPIELEN	CONTINUA A GIOCARE	TERUS BERMAIN
+Keep items below the dashed line. If they stay above it too long, the game ends.	چیزوں کو نقطہ دار لکیر سے نیچے رکھیں۔ زیادہ دیر اوپر رہیں تو گیم ختم۔	让物品保持在虚线以下。停留太久游戏就会结束。	Mantén los objetos bajo la línea. Si se quedan arriba mucho tiempo, termina la partida.	Mantenha os itens abaixo da linha. Se ficarem acima por muito tempo, o jogo acaba.	Garde les objets sous la ligne. S’ils restent au-dessus trop longtemps, la partie se termine.	Halte die Items unter der Linie. Bleiben sie zu lange darüber, endet das Spiel.	Tieni gli oggetti sotto la linea. Se restano sopra troppo a lungo, la partita finisce.	Pastikan item di bawah garisan. Jika terlalu lama di atas, permainan tamat.
+Kheer	کھیر	米布丁						
+LET'S PLAY	چلو کھیلیں	开始玩吧	¡A JUGAR!	VAMOS JOGAR	C’EST PARTI	LOS GEHT’S	GIOCHIAMO	JOM MAIN
+Ladoo	لڈو	甜球						
+Language	زبان	语言	Idioma	Idioma	Langue	Sprache	Lingua	Bahasa
+MAIN MENU	مین مینو	主菜单	MENÚ PRINCIPAL	MENU PRINCIPAL	MENU PRINCIPAL	HAUPTMENÜ	MENU PRINCIPALE	MENU UTAMA
+MATCH TO MERGE	ملا کر جوڑیں	配对合成	UNE PARA FUSIONAR	COMBINE PARA FUNDIR	ASSOCIE POUR FUSIONNER	GLEICHE VERSCHMELZEN	ABBINA PER UNIRE	PADAN UNTUK GABUNG
+MENU	مینو	菜单	MENÚ	MENU	MENU	MENÜ	MENU	MENU
+MERGES	ملاپ	合成数	FUSIONES	FUSÕES	FUSIONS	FUSIONEN	FUSIONI	GABUNGAN
+MISSION COMPLETE	مشن مکمل	任务完成	MISIÓN COMPLETA	MISSÃO CONCLUÍDA	MISSION ACCOMPLIE	MISSION ERFÜLLT	MISSIONE COMPLETATA	MISI SELESAI
+MISSIONS	مشن	任务	MISIONES	MISSÕES	MISSIONS	MISSIONEN	MISSIONI	MISI
+Make a Chai (or better)	چائے بنائیں (یا بہتر)	合成奶茶（或更高）	Haz un Chai (o mejor)	Faça um Chai (ou melhor)	Fais un Chai (ou mieux)	Mach einen Chai (oder besser)	Fai un Chai (o meglio)	Buat Chai (atau lebih)
+Make a Roti (or better)	روٹی بنائیں (یا بہتر)	合成烤饼（或更高）	Haz un Roti (o mejor)	Faça um Roti (ou melhor)	Fais un Roti (ou mieux)	Mach ein Roti (oder besser)	Fai un Roti (o meglio)	Buat Roti (atau lebih)
+Mango Shake	مینگو شیک	芒果奶昔	Batido de mango	Vitamina de manga	Milk-shake mangue	Mango-Shake	Frullato di mango	Susu kocak mangga
+Mela bundle!	میلہ بنڈل!	集市大礼包！	¡Paquete Mela!	Pacote Mela!	Pack Mela !	Mela-Paket!	Pacchetto Mela!	Pakej Mela!
+Merge 10 times	10 بار ملائیں	合成 10 次	Fusiona 10 veces	Funda 10 vezes	Fusionne 10 fois	10-mal verschmelzen	Unisci 10 volte	Gabung 10 kali
+Merge 150 times this week	اس ہفتے 150 بار ملائیں	本周合成 150 次	Fusiona 150 veces esta semana	Funda 150 vezes nesta semana	Fusionne 150 fois cette semaine	Diese Woche 150-mal verschmelzen	Unisci 150 volte questa settimana	Gabung 150 kali minggu ini
+Merge 20 times today	آج 20 بار ملائیں	今天合成 20 次	Fusiona 20 veces hoy	Funda 20 vezes hoje	Fusionne 20 fois aujourd’hui	Heute 20-mal verschmelzen	Unisci 20 volte oggi	Gabung 20 kali hari ini
+Merge 25 times	25 بار ملائیں	合成 25 次	Fusiona 25 veces	Funda 25 vezes	Fusionne 25 fois	25-mal verschmelzen	Unisci 25 volte	Gabung 25 kali
+Merge 40 times today	آج 40 بار ملائیں	今天合成 40 次	Fusiona 40 veces hoy	Funda 40 vezes hoje	Fusionne 40 fois aujourd’hui	Heute 40-mal verschmelzen	Unisci 40 volte oggi	Gabung 40 kali hari ini
+Merge 50 times	50 بار ملائیں	合成 50 次	Fusiona 50 veces	Funda 50 vezes	Fusionne 50 fois	50-mal verschmelzen	Unisci 50 volte	Gabung 50 kali
+Merge 500 times	500 بار ملائیں	合成 500 次	Fusiona 500 veces	Funda 500 vezes	Fusionne 500 fois	500-mal verschmelzen	Unisci 500 volte	Gabung 500 kali
+Merge Mela	ملاپ میلہ	合成集市						
+Merge Ustaad	ملاپ استاد	合成大师						
+Merge two items	دو چیزیں ملائیں	合成两个物品	Fusiona dos objetos	Funda dois itens	Fusionne deux objets	Verschmelze zwei Items	Unisci due oggetti	Gabung dua item
+Milao  •  Barhao  •  Jeeto	ملاؤ  •  بڑھاؤ  •  جیتو	合成  •  升级  •  获胜						
+Mission complete: {0}	مشن مکمل: {0}	任务完成：{0}	Misión completa: {0}	Missão concluída: {0}	Mission accomplie : {0}	Mission erfüllt: {0}	Missione completata: {0}	Misi selesai: {0}
+Mithai	مٹھائی	甜点						
+Mithai Box	مٹھائی کا ڈبہ	甜点盒	Caja de Mithai	Caixa de Mithai	Boîte de Mithai	Mithai-Box	Scatola di Mithai	Kotak Mithai
+Mithai Thaal	مٹھائی کا تھال	甜点拼盘	Bandeja de Mithai	Bandeja de Mithai	Plateau de Mithai	Mithai-Platte	Vassoio di Mithai	Dulang Mithai
+Mix It Up	ملا دو	打乱一下	Mézclalo	Misture	Mélange tout	Misch es	Mescola tutto	Kocokkan
+Mixer	ملانے والا	合成者	Mezclador	Misturador	Mixeur	Mixer	Mescolatore	Pengadun
+Music	موسیقی	音乐	Música	Música	Musique	Musik	Musica	Muzik
+Mute	خاموش	静音	Silencio	Mudo	Muet	Stumm	Muto	Senyap
+NEW	نیا	新	NUEVO	NOVO	NOUVEAU	NEU	NUOVO	BARU
+NEW BEST	نیا ریکارڈ	新纪录	NUEVO RÉCORD	NOVO RECORDE	NOUVEAU RECORD	NEUER REKORD	NUOVO RECORD	REKOD BARU
+NEW BEST!	نیا ریکارڈ!	新纪录！	¡NUEVO RÉCORD!	NOVO RECORDE!	NOUVEAU RECORD !	NEUER REKORD!	NUOVO RECORD!	REKOD BARU!
+NEW RANK	نیا درجہ	新等级	NUEVO RANGO	NOVA PATENTE	NOUVEAU RANG	NEUER RANG	NUOVO GRADO	PANGKAT BARU
+NEXT	اگلا	下一个	SIGUIENTE	PRÓXIMO	SUIVANT	WEITER	AVANTI	SETERUSNYA
+NEXT IN {0}	اگلا {0} میں	{0} 后可领	SIGUIENTE EN {0}	PRÓXIMO EM {0}	PROCHAIN DANS {0}	NÄCHSTE IN {0}	PROSSIMO TRA {0}	SETERUSNYA {0}
+Naya Khiladi	نیا کھلاڑی	新手玩家						
+Need {0} diamonds. Play and claim rewards to earn more.	{0} ہیرے چاہئیں۔ مزید کے لیے کھیلیں اور انعامات لیں۔	需要 {0} 钻石。玩游戏并领取奖励来获得更多。	Necesitas {0} diamantes. Juega y reclama premios para ganar más.	Precisa de {0} diamantes. Jogue e resgate prêmios para ganhar mais.	Il faut {0} diamants. Joue et récupère des récompenses.	Du brauchst {0} Diamanten. Spiele und hol Belohnungen.	Servono {0} diamanti. Gioca e riscatta premi per averne altri.	Perlu {0} berlian. Main dan tuntut ganjaran untuk lebih.
+Need {0} diamonds. Play games and claim Daily Rewards to earn more.	{0} ہیرے چاہئیں۔ گیمز کھیلیں اور روزانہ انعامات لیں۔	需要 {0} 钻石。玩游戏并领取每日奖励来获得更多。	Necesitas {0} diamantes. Juega y reclama los premios diarios.	Precisa de {0} diamantes. Jogue e resgate os prêmios diários.	Il faut {0} diamants. Joue et récupère les récompenses du jour.	Du brauchst {0} Diamanten. Spiele und hol Tagesbelohnungen.	Servono {0} diamanti. Gioca e riscatta i premi giornalieri.	Perlu {0} berlian. Main dan tuntut ganjaran harian.
+New Player	نیا کھلاڑی	新玩家	Jugador nuevo	Novo jogador	Nouveau joueur	Neuer Spieler	Nuovo giocatore	Pemain baharu
+New daily missions in {0}	نئے روزانہ مشن {0} میں	新每日任务：{0} 后	Nuevas misiones diarias en {0}	Novas missões diárias em {0}	Nouvelles missions dans {0}	Neue Tagesmissionen in {0}	Nuove missioni giornaliere tra {0}	Misi harian baharu dalam {0}
+New discovery: {0}!	نئی دریافت: {0}!	新发现：{0}！	¡Nuevo descubrimiento: {0}!	Nova descoberta: {0}!	Nouvelle découverte : {0} !	Neue Entdeckung: {0}!	Nuova scoperta: {0}!	Penemuan baharu: {0}!
+New rank: {0}	نیا درجہ: {0}	新等级：{0}	Nuevo rango: {0}	Nova patente: {0}	Nouveau rang : {0}	Neuer Rang: {0}	Nuovo grado: {0}	Pangkat baharu: {0}
+New rank: {0}!	نیا درجہ: {0}!	新等级：{0}！	¡Nuevo rango: {0}!	Nova patente: {0}!	Nouveau rang : {0} !	Neuer Rang: {0}!	Nuovo grado: {0}!	Pangkat baharu: {0}!
+New weekly missions in {0}	نئے ہفتہ وار مشن {0} میں	新每周任务：{0} 后	Nuevas misiones semanales en {0}	Novas missões semanais em {0}	Nouvelles missions hebdo dans {0}	Neue Wochenmissionen in {0}	Nuove missioni settimanali tra {0}	Misi mingguan baharu dalam {0}
+New: {0}	نیا: {0}	新：{0}	Nuevo: {0}	Novo: {0}	Nouveau : {0}	Neu: {0}	Nuovo: {0}	Baharu: {0}
+Next: {0} at {1}	اگلا: {0} پر {1}	下一级：{0}（{1}）	Siguiente: {0} con {1}	Próximo: {0} com {1}	Suivant : {0} à {1}	Nächster: {0} bei {1}	Prossimo: {0} a {1}	Seterusnya: {0} pada {1}
+Nihari	نہاری	炖牛肉						
+Nimbu	نمبو	柠檬						
+No Help Needed	مدد کی ضرورت نہیں	无需帮助	Sin ayuda	Sem ajuda	Sans aide	Keine Hilfe nötig	Nessun aiuto	Tanpa bantuan
+No challenge today	آج کوئی چیلنج نہیں	今天没有挑战	Hoy no hay desafío	Sem desafio hoje	Pas de défi aujourd’hui	Heute keine Aufgabe	Nessuna sfida oggi	Tiada cabaran hari ini
+No uses left this game	اس گیم میں استعمال ختم	本局次数已用完	No quedan usos en esta partida	Sem usos nesta partida	Plus d’utilisations cette partie	Keine Nutzungen mehr in diesem Spiel	Nessun uso rimasto in questa partita	Tiada lagi penggunaan permainan ini
+None yet	ابھی کوئی نہیں	暂无	Aún ninguno	Nenhum ainda	Aucun pour l’instant	Noch keins	Ancora nessuno	Belum ada
+Not enough room to shuffle	شفل کے لیے جگہ کم ہے	空间不足，无法洗牌	No hay espacio para mezclar	Sem espaço para embaralhar	Pas assez de place pour mélanger	Nicht genug Platz zum Mischen	Spazio insufficiente per mescolare	Tiada ruang untuk kocok
+Nothing to use it on yet	ابھی استعمال کے لیے کچھ نہیں	还没有可用的目标	Aún no hay en qué usarlo	Nada para usar ainda	Rien à cibler pour l’instant	Noch nichts zum Benutzen	Ancora niente su cui usarlo	Belum ada sasaran
+Numbers	اعداد	数字	Números	Números	Nombres	Zahlen	Numeri	Nombor
+PAUSED	رکا ہوا	已暂停	PAUSA	PAUSADO	PAUSE	PAUSE	IN PAUSA	DIJEDA
+PERSONAL BEST	ذاتی ریکارڈ	个人最佳	MEJOR PERSONAL	MELHOR PESSOAL	MEILLEUR SCORE	PERSÖNLICHER REKORD	MIGLIOR RISULTATO	TERBAIK PERIBADI
+PLAY	کھیلیں	开始	JUGAR	JOGAR	JOUER	SPIELEN	GIOCA	MAIN
+PLAY AGAIN	دوبارہ کھیلیں	再玩一次	JUGAR DE NUEVO	JOGAR DE NOVO	REJOUER	NOCHMAL	GIOCA ANCORA	MAIN SEMULA
+POWER-UPS	پاور اپس	道具	POTENCIADORES	PODERES	BONUS	POWER-UPS	POTENZIAMENTI	KUASA
+Pakora	پکوڑا	炸蔬菜						
+Paratha Roll	پراٹھا رول	手抓饼卷						
+Patti	پتی	叶子						
+Peda	پیڑا	奶糕						
+Personal records on this phone	اس فون پر ذاتی ریکارڈ	本机个人记录	Récords personales en este teléfono	Recordes pessoais neste celular	Records personnels sur ce téléphone	Persönliche Rekorde auf diesem Handy	Record personali su questo telefono	Rekod peribadi di telefon ini
+Power Player	پاور پلیئر	道具达人	Jugador poderoso	Jogador poderoso	Joueur bonus	Power-Spieler	Giocatore potente	Pemain berkuasa
+Pure Skill	خالص مہارت	纯粹技巧	Pura habilidad	Pura habilidade	Pur talent	Reines Können	Pura abilità	Kemahiran tulen
+Pyaz	پیاز	洋葱						
+Quick Mixer	تیز ملانے والا	快速合成	Mezcla rápida	Mistura rápida	Fusion rapide	Schnellmixer	Mescola veloce	Pengadun pantas
+RANKS	درجات	等级	RANGOS	PATENTES	RANGS	RÄNGE	GRADI	PANGKAT
+RECENT GAMES	حالیہ گیمز	最近对局	PARTIDAS RECIENTES	PARTIDAS RECENTES	PARTIES RÉCENTES	LETZTE SPIELE	PARTITE RECENTI	PERMAINAN TERKINI
+RECORDS	ریکارڈز	记录	RÉCORDS	RECORDES	RECORDS	REKORDE	RECORD	REKOD
+RESTART	دوبارہ شروع	重新开始	REINICIAR	REINICIAR	RECOMMENCER	NEUSTART	RICOMINCIA	MULA SEMULA
+RESUME	جاری رکھیں	继续	REANUDAR	RETOMAR	REPRENDRE	FORTSETZEN	RIPRENDI	SAMBUNG
+RETURN TO GAME	گیم پر واپس	返回游戏	VOLVER AL JUEGO	VOLTAR AO JOGO	RETOUR AU JEU	ZURÜCK ZUM SPIEL	TORNA AL GIOCO	KEMBALI KE PERMAINAN
+REWARD!	انعام!	奖励！	¡PREMIO!	PRÊMIO!	RÉCOMPENSE !	BELOHNUNG!	PREMIO!	GANJARAN!
+Rasmalai	رس ملائی	奶酪甜丸						
+Reach a best score of 1000	بہترین اسکور 1000 تک پہنچیں	最高分达到 1000	Alcanza un récord de 1000	Alcance recorde de 1000	Atteins un record de 1000	Erreiche einen Rekord von 1000	Raggiungi un record di 1000	Capai skor terbaik 1000
+Reach a best score of 500	بہترین اسکور 500 تک پہنچیں	最高分达到 500	Alcanza un récord de 500	Alcance recorde de 500	Atteins un record de 500	Erreiche einen Rekord von 500	Raggiungi un record di 500	Capai skor terbaik 500
+Reach a best score of {0}	بہترین اسکور {0} تک پہنچیں	最高分达到 {0}	Alcanza un récord de {0}	Alcance recorde de {0}	Atteins un record de {0}	Erreiche einen Rekord von {0}	Raggiungi un record di {0}	Capai skor terbaik {0}
+Received	مل گیا	已获得	Recibido	Recebido	Reçu	Erhalten	Ricevuto	Diterima
+Regular	باقاعدہ	常客	Habitual	Frequente	Habitué	Stammspieler	Abituale	Tetap
+Regular Player	باقاعدہ کھلاڑی	常客玩家	Jugador habitual	Jogador frequente	Joueur régulier	Stammspieler	Giocatore abituale	Pemain tetap
+Restart this game?	یہ گیم دوبارہ شروع کریں؟	重新开始本局？	¿Reiniciar esta partida?	Reiniciar esta partida?	Recommencer cette partie ?	Dieses Spiel neu starten?	Ricominciare la partita?	Mula semula permainan ini?
+Revived! Keep going	دوبارہ زندہ! جاری رکھیں	复活！继续加油	¡Revivido! Sigue	Reviveu! Continue	Ressuscité ! Continue	Wiederbelebt! Weiter	Rianimato! Continua	Dihidupkan! Teruskan
+Reward: {0}	انعام: {0}	奖励：{0}	Premio: {0}	Prêmio: {0}	Récompense : {0}	Belohnung: {0}	Premio: {0}	Ganjaran: {0}
+Rewards are added to your power-ups. Missing a day starts again from Day 1.	انعامات آپ کے پاور اپس میں شامل ہوتے ہیں۔ ایک دن چھوڑنے پر دن 1 سے شروع۔	奖励会加入你的道具。错过一天将从第 1 天重新开始。	Los premios se suman a tus potenciadores. Si faltas un día, vuelves al día 1.	Os prêmios vão para seus poderes. Perder um dia recomeça no dia 1.	Les récompenses s’ajoutent à tes bonus. Un jour manqué recommence au jour 1.	Belohnungen gehen auf deine Power-ups. Ein verpasster Tag beginnt wieder bei Tag 1.	I premi vanno ai tuoi potenziamenti. Saltare un giorno ricomincia dal giorno 1.	Ganjaran ditambah ke kuasa anda. Terlepas sehari bermula semula dari Hari 1.
+Rickshaw	رکشہ	三轮车						
+Rickshaw Racer	رکشہ ریسر	三轮车赛手						
+Roti	روٹی	烤饼						
+SCORE	اسکور	得分	PUNTOS	PONTOS	SCORE	PUNKTE	PUNTI	SKOR
+SETTINGS	ترتیبات	设置	AJUSTES	AJUSTES	RÉGLAGES	EINSTELLUNGEN	IMPOSTAZIONI	TETAPAN
+SKIN	اسکن	皮肤	ASPECTO	VISUAL	SKIN	SKIN	SKIN	KULIT
+SKINS	اسکنز	皮肤	ASPECTOS	VISUAIS	SKINS	SKINS	SKIN	KULIT
+SKIP	چھوڑیں	跳过	SALTAR	PULAR	PASSER	ÜBERSPRINGEN	SALTA	LANGKAU
+Samosa	سموسہ	咖喱角						
+Saved progress couldn't be read, so a fresh profile was started. A copy of the old file was kept.	محفوظ پیش رفت پڑھی نہ جا سکی، اس لیے نیا پروفائل شروع کیا گیا۔ پرانی فائل کی کاپی رکھی گئی ہے۔	无法读取存档，已开始新档案。旧文件已备份。	No se pudo leer el progreso, así que se creó un perfil nuevo. Se guardó una copia del archivo anterior.	Não foi possível ler o progresso, então um novo perfil foi criado. Uma cópia do arquivo antigo foi mantida.	Progression illisible : un nouveau profil a été créé. Une copie de l’ancien fichier a été gardée.	Der Spielstand war nicht lesbar, daher wurde ein neues Profil angelegt. Eine Kopie wurde behalten.	Impossibile leggere i progressi: è stato creato un nuovo profilo. Una copia è stata conservata.	Kemajuan tidak dapat dibaca, profil baharu dimulakan. Salinan fail lama disimpan.
+Score 1000 in one game	ایک گیم میں 1000 اسکور	一局得 1000 分	Haz 1000 puntos en una partida	Faça 1000 pontos em uma partida	Fais 1000 points en une partie	1000 Punkte in einem Spiel	Fai 1000 punti in una partita	Skor 1000 dalam satu permainan
+Score 300 in one game	ایک گیم میں 300 اسکور	一局得 300 分	Haz 300 puntos en una partida	Faça 300 pontos em uma partida	Fais 300 points en une partie	300 Punkte in einem Spiel	Fai 300 punti in una partita	Skor 300 dalam satu permainan
+Score 500 in one game	ایک گیم میں 500 اسکور	一局得 500 分	Haz 500 puntos en una partida	Faça 500 pontos em uma partida	Fais 500 points en une partie	500 Punkte in einem Spiel	Fai 500 punti in una partita	Skor 500 dalam satu permainan
+Score 600 in one game	ایک گیم میں 600 اسکور	一局得 600 分	Haz 600 puntos en una partida	Faça 600 pontos em uma partida	Fais 600 points en une partie	600 Punkte in einem Spiel	Fai 600 punti in una partita	Skor 600 dalam satu permainan
+Score Chase	اسکور کا پیچھا	冲分	Caza de puntos	Caça aos pontos	Chasse au score	Punktejagd	Caccia ai punti	Kejar skor
+Seekh Kabab	سیخ کباب	烤肉串						
+Shuffle	شفل	洗牌	Mezclar	Embaralhar	Mélanger	Mischen	Mescola	Kocok
+Smash!	توڑ دو!	砸！	¡Rompe!	Quebre!	Casse !	Zerschlagen!	Spacca!	Hancurkan!
+Sound Effects	آواز کے اثرات	音效	Efectos de sonido	Efeitos sonoros	Effets sonores	Soundeffekte	Effetti sonori	Kesan bunyi
+Storage is full. Use a power-up first.	ذخیرہ بھرا ہے۔ پہلے پاور اپ استعمال کریں۔	存储已满。请先使用道具。	Almacén lleno. Usa un potenciador primero.	Estoque cheio. Use um poder primeiro.	Stock plein. Utilise d’abord un bonus.	Speicher voll. Nutze zuerst ein Power-up.	Spazio pieno. Usa prima un potenziamento.	Simpanan penuh. Guna kuasa dahulu.
+Storage is full. Use a power-up in a game, then claim.	ذخیرہ بھرا ہے۔ گیم میں پاور اپ استعمال کریں، پھر لیں۔	存储已满。先在游戏中使用道具再领取。	Almacén lleno. Usa un potenciador en una partida y luego reclama.	Estoque cheio. Use um poder numa partida e depois resgate.	Stock plein. Utilise un bonus en jeu, puis récupère.	Speicher voll. Nutze ein Power-up im Spiel, dann abholen.	Spazio pieno. Usa un potenziamento in partita, poi riscatta.	Simpanan penuh. Guna kuasa dalam permainan, kemudian tuntut.
+Streak: {0} day	سلسلہ: {0} دن	连续：{0} 天	Racha: {0} día	Sequência: {0} dia	Série : {0} jour	Serie: {0} Tag	Serie: {0} giorno	Rentetan: {0} hari
+Streak: {0} days	سلسلہ: {0} دن	连续：{0} 天	Racha: {0} días	Sequência: {0} dias	Série : {0} jours	Serie: {0} Tage	Serie: {0} giorni	Rentetan: {0} hari
+Street Food	اسٹریٹ فوڈ	街头小吃	Comida callejera	Comida de rua	Cuisine de rue	Streetfood	Cibo di strada	Makanan jalanan
+TODAY'S CHALLENGE	آج کا چیلنج	今日挑战	DESAFÍO DE HOY	DESAFIO DE HOJE	DÉFI DU JOUR	HEUTIGE AUFGABE	SFIDA DI OGGI	CABARAN HARI INI
+Tamatar	ٹماٹر	番茄						
+Tap an item to smash it	توڑنے کے لیے کسی چیز پر ٹیپ کریں	点击物品将其砸碎	Toca un objeto para romperlo	Toque em um item para quebrá-lo	Touche un objet pour le casser	Tippe auf ein Item, um es zu zerschlagen	Tocca un oggetto per romperlo	Ketik item untuk menghancurkannya
+The reward couldn't be saved. Please try again.	انعام محفوظ نہ ہو سکا۔ دوبارہ کوشش کریں۔	奖励未能保存，请重试。	No se pudo guardar el premio. Inténtalo de nuevo.	Não foi possível salvar o prêmio. Tente de novo.	La récompense n’a pas pu être enregistrée. Réessaie.	Die Belohnung konnte nicht gespeichert werden. Versuch es erneut.	Impossibile salvare il premio. Riprova.	Ganjaran tidak dapat disimpan. Cuba lagi.
+Thousand Club	ہزار کلب	千分俱乐部	Club de los mil	Clube dos mil	Club des mille	Tausender-Club	Club dei mille	Kelab seribu
+Thousand Points	ہزار پوائنٹس	一千分	Mil puntos	Mil pontos	Mille points	Tausend Punkte	Mille punti	Seribu mata
+Three Days Running	لگاتار تین دن	连续三天	Tres días seguidos	Três dias seguidos	Trois jours de suite	Drei Tage am Stück	Tre giorni di fila	Tiga hari berturut
+Three Rounds	تین راؤنڈ	三回合	Tres rondas	Três rodadas	Trois parties	Drei Runden	Tre partite	Tiga pusingan
+Today	آج	今天	Hoy	Hoje	Aujourd’hui	Heute	Oggi	Hari ini
+Top rank reached!	سب سے اونچا درجہ!	已达最高等级！	¡Rango máximo!	Patente máxima!	Rang maximal atteint !	Höchster Rang erreicht!	Grado massimo raggiunto!	Pangkat tertinggi dicapai!
+Truck Art	ٹرک آرٹ	卡车彩绘						
+Truck-Art Ustaad	ٹرک آرٹ استاد	卡车彩绘大师						
+Two of the same merge into the next item and score points.	دو ایک جیسی چیزیں مل کر اگلی چیز بنتی ہیں اور پوائنٹس ملتے ہیں۔	两个相同的物品会合成下一个物品并得分。	Dos iguales se fusionan en el siguiente objeto y suman puntos.	Dois iguais se fundem no próximo item e marcam pontos.	Deux identiques fusionnent en l’objet suivant et rapportent des points.	Zwei gleiche verschmelzen zum nächsten Item und bringen Punkte.	Due uguali si uniscono nell’oggetto successivo e fanno punti.	Dua yang sama bergabung jadi item seterusnya dan dapat mata.
+USE	استعمال کریں	使用	USAR	USAR	UTILISER	NUTZEN	USA	GUNA
+Unlock {0} in Skins ({1} diamonds)	{0} اسکنز میں کھولیں ({1} ہیرے)	在皮肤中解锁 {0}（{1} 钻石）	Desbloquea {0} en Aspectos ({1} diamantes)	Desbloqueie {0} em Visuais ({1} diamantes)	Débloque {0} dans Skins ({1} diamants)	Schalte {0} unter Skins frei ({1} Diamanten)	Sblocca {0} in Skin ({1} diamanti)	Buka {0} dalam Kulit ({1} berlian)
+Use 5 power-ups	5 پاور اپس استعمال کریں	使用 5 次道具	Usa 5 potenciadores	Use 5 poderes	Utilise 5 bonus	Nutze 5 Power-ups	Usa 5 potenziamenti	Guna 5 kuasa
+Use Shuffle once	ایک بار شفل استعمال کریں	使用一次洗牌	Usa Mezclar una vez	Use Embaralhar uma vez	Utilise Mélanger une fois	Nutze einmal Mischen	Usa Mescola una volta	Guna Kocok sekali
+Use the Hammer once	ایک بار ہتھوڑا استعمال کریں	使用一次锤子	Usa el martillo una vez	Use o martelo uma vez	Utilise le marteau une fois	Nutze einmal den Hammer	Usa il martello una volta	Guna tukul sekali
+WATCH THE LINE	لکیر کا دھیان رکھیں	注意警戒线	CUIDADO CON LA LÍNEA	ATENÇÃO À LINHA	ATTENTION À LA LIGNE	ACHTUNG, LINIE	ATTENTO ALLA LINEA	JAGA GARISAN
+WEEKLY	ہفتہ وار	每周	SEMANALES	SEMANAIS	HEBDO	WÖCHENTLICH	SETTIMANALI	MINGGUAN
+Warm Up	وارم اپ	热身	Calentamiento	Aquecimento	Échauffement	Aufwärmen	Riscaldamento	Memanaskan badan
+YES, RESTART	ہاں، دوبارہ شروع	是，重新开始	SÍ, REINICIAR	SIM, REINICIAR	OUI, RECOMMENCER	JA, NEUSTART	SÌ, RICOMINCIA	YA, MULA SEMULA
+YOUR SCORE	آپ کا اسکور	你的得分	TU PUNTUACIÓN	SUA PONTUAÇÃO	TON SCORE	DEINE PUNKTE	IL TUO PUNTEGGIO	SKOR ANDA
+Yesterday	کل	昨天	Ayer	Ontem	Hier	Gestern	Ieri	Semalam
+Your current score will be lost.	موجودہ اسکور ختم ہو جائے گا۔	当前得分将会丢失。	Perderás tu puntuación actual.	Sua pontuação atual será perdida.	Ton score actuel sera perdu.	Deine aktuellen Punkte gehen verloren.	Il punteggio attuale andrà perso.	Skor semasa akan hilang.
+Your device date looks earlier than before. Rewards continue when that day comes again.	آپ کے فون کی تاریخ پہلے سے پیچھے لگتی ہے۔ وہ دن آنے پر انعامات جاری رہیں گے۔	设备日期似乎比之前早。到那天后奖励将继续。	La fecha del dispositivo parece anterior. Los premios siguen cuando llegue ese día.	A data do aparelho parece anterior. Os prêmios continuam quando esse dia chegar.	La date de l’appareil semble antérieure. Les récompenses reprendront ce jour-là.	Das Gerätedatum wirkt früher als zuvor. Belohnungen gibt es wieder ab diesem Tag.	La data del dispositivo sembra precedente. I premi riprendono quando arriva quel giorno.	Tarikh peranti kelihatan lebih awal. Ganjaran disambung apabila hari itu tiba.
+Your first 100 points	آپ کے پہلے 100 پوائنٹس	你的前 100 分	Tus primeros 100 puntos	Seus primeiros 100 pontos	Tes 100 premiers points	Deine ersten 100 Punkte	I tuoi primi 100 punti	100 mata pertama anda
+Your progress was restored from a backup.	آپ کی پیش رفت بیک اپ سے بحال کی گئی۔	你的进度已从备份恢复。	Tu progreso se restauró desde una copia.	Seu progresso foi restaurado de um backup.	Ta progression a été restaurée depuis une sauvegarde.	Dein Fortschritt wurde aus einer Sicherung wiederhergestellt.	I progressi sono stati ripristinati da un backup.	Kemajuan anda dipulihkan daripada sandaran.
+Your saved progress couldn't be opened right now. It is safe; restart the game to load it.	آپ کی محفوظ پیش رفت ابھی کھل نہیں سکی۔ وہ محفوظ ہے؛ گیم دوبارہ کھولیں۔	暂时无法打开存档。存档是安全的，请重启游戏加载。	Tu progreso no se pudo abrir ahora. Está a salvo; reinicia el juego.	Seu progresso não pôde ser aberto agora. Está seguro; reinicie o jogo.	Ta progression ne peut pas s’ouvrir pour l’instant. Elle est en sécurité : relance le jeu.	Dein Fortschritt lässt sich gerade nicht öffnen. Er ist sicher; starte das Spiel neu.	I progressi non si aprono ora. Sono al sicuro: riavvia il gioco.	Kemajuan tidak dapat dibuka sekarang. Ia selamat; mulakan semula permainan.
+{0}   •   next: {1} at {2}	{0}   •   اگلا: {1} پر {2}	{0}   •   下一级：{1}（{2}）	{0}   •   siguiente: {1} con {2}	{0}   •   próximo: {1} com {2}	{0}   •   suivant : {1} à {2}	{0}   •   nächster: {1} bei {2}	{0}   •   prossimo: {1} a {2}	{0}   •   seterusnya: {1} pada {2}
+{0}   •   top rank	{0}   •   سب سے اونچا درجہ	{0}   •   最高等级	{0}   •   rango máximo	{0}   •   patente máxima	{0}   •   rang maximal	{0}   •   höchster Rang	{0}   •   grado massimo	{0}   •   pangkat tertinggi
+{0}  (best {1})	{0}  (بہترین {1})	{0}  （最佳 {1}）	{0}  (mejor {1})	{0}  (melhor {1})	{0}  (record {1})	{0}  (Rekord {1})	{0}  (record {1})	{0}  (terbaik {1})
+{0} / {1} discovered	{0} / {1} دریافت	已发现 {0} / {1}	{0} / {1} descubiertos	{0} / {1} descobertos	{0} / {1} découverts	{0} / {1} entdeckt	{0} / {1} scoperti	{0} / {1} ditemui
+{0} / {1} found	{0} / {1} ملے	已找到 {0} / {1}	{0} / {1} encontrados	{0} / {1} encontrados	{0} / {1} trouvés	{0} / {1} gefunden	{0} / {1} trovati	{0} / {1} dijumpai
+{0} / {1} in all	کل {0} / {1}	总计 {0} / {1}	{0} / {1} en total	{0} / {1} no total	{0} / {1} au total	{0} / {1} insgesamt	{0} / {1} in totale	{0} / {1} kesemuanya
+{0} / {1} unlocked	{0} / {1} کھلے	已解锁 {0} / {1}	{0} / {1} desbloqueados	{0} / {1} desbloqueados	{0} / {1} débloqués	{0} / {1} freigeschaltet	{0} / {1} sbloccati	{0} / {1} dibuka
+{0} Diamonds	{0} ہیرے	{0} 钻石	{0} diamantes	{0} diamantes	{0} diamants	{0} Diamanten	{0} diamanti	{0} berlian
+{0} award unlocked	{0} انعام کھلا	解锁 {0} 个奖杯	{0} premio desbloqueado	{0} prêmio desbloqueado	{0} trophée débloqué	{0} Preis freigeschaltet	{0} premio sbloccato	{0} anugerah dibuka
+{0} awards unlocked	{0} انعامات کھلے	解锁 {0} 个奖杯	{0} premios desbloqueados	{0} prêmios desbloqueados	{0} trophées débloqués	{0} Preise freigeschaltet	{0} premi sbloccati	{0} anugerah dibuka
+{0} days ago	{0} دن پہلے	{0} 天前	Hace {0} días	Há {0} dias	Il y a {0} jours	Vor {0} Tagen	{0} giorni fa	{0} hari lalu
+{0} merge	{0} ملاپ	合成 {0} 次	{0} fusión	{0} fusão	{0} fusion	{0} Fusion	{0} fusione	{0} gabungan
+{0} merges	{0} ملاپ	合成 {0} 次	{0} fusiones	{0} fusões	{0} fusions	{0} Fusionen	{0} fusioni	{0} gabungan
+{0} mission completed	{0} مشن مکمل	完成 {0} 个任务	{0} misión completada	{0} missão concluída	{0} mission terminée	{0} Mission erfüllt	{0} missione completata	{0} misi selesai
+{0} mission reward to claim in the menu	مینو میں {0} مشن انعام لینا ہے	菜单中有 {0} 个任务奖励待领取	{0} premio de misión por reclamar en el menú	{0} prêmio de missão para resgatar no menu	{0} récompense de mission à récupérer dans le menu	{0} Missionsbelohnung im Menü abholen	{0} premio missione da riscattare nel menu	{0} ganjaran misi untuk dituntut di menu
+{0} mission rewards to claim in the menu	مینو میں {0} مشن انعامات لینے ہیں	菜单中有 {0} 个任务奖励待领取	{0} premios de misión por reclamar en el menú	{0} prêmios de missão para resgatar no menu	{0} récompenses de mission à récupérer dans le menu	{0} Missionsbelohnungen im Menü abholen	{0} premi missione da riscattare nel menu	{0} ganjaran misi untuk dituntut di menu
+{0} missions completed	{0} مشن مکمل	完成 {0} 个任务	{0} misiones completadas	{0} missões concluídas	{0} missions terminées	{0} Missionen erfüllt	{0} missioni completate	{0} misi selesai
+{0} new items to collect	جمع کرنے کو {0} نئی چیزیں	{0} 个新物品待收集	{0} objetos nuevos para coleccionar	{0} itens novos para colecionar	{0} nouveaux objets à collectionner	{0} neue Items zum Sammeln	{0} nuovi oggetti da collezionare	{0} item baharu untuk dikumpul
+{0} storage is full ({1}/{2}). Use one in a game, then claim.	{0} کا ذخیرہ بھرا ہے ({1}/{2})۔ گیم میں ایک استعمال کریں، پھر لیں۔	{0} 已满（{1}/{2}）。先在游戏中使用一次再领取。	{0}: almacén lleno ({1}/{2}). Usa uno en una partida y reclama.	{0}: estoque cheio ({1}/{2}). Use um numa partida e resgate.	{0} : stock plein ({1}/{2}). Utilises-en un en jeu, puis récupère.	{0}: Speicher voll ({1}/{2}). Nutze eins im Spiel, dann abholen.	{0}: spazio pieno ({1}/{2}). Usane uno in partita, poi riscatta.	{0}: simpanan penuh ({1}/{2}). Guna satu dalam permainan, kemudian tuntut.
+{0} storage is full. Use one in a game, then claim.	{0} کا ذخیرہ بھرا ہے۔ گیم میں ایک استعمال کریں، پھر لیں۔	{0} 已满。先在游戏中使用一次再领取。	{0}: almacén lleno. Usa uno en una partida y reclama.	{0}: estoque cheio. Use um numa partida e resgate.	{0} : stock plein. Utilises-en un en jeu, puis récupère.	{0}: Speicher voll. Nutze eins im Spiel, dann abholen.	{0}: spazio pieno. Usane uno in partita, poi riscatta.	{0}: simpanan penuh. Guna satu dalam permainan, kemudian tuntut.
+{0} unlocked!	{0} کھل گیا!	已解锁 {0}！	¡{0} desbloqueado!	{0} desbloqueado!	{0} débloqué !	{0} freigeschaltet!	{0} sbloccato!	{0} dibuka!

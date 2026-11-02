@@ -105,9 +105,9 @@ namespace DesiMerge.UI
             {
                 case RewardType.PowerUpCharges:
                     var title = _powerUps?.Find(reward.powerUpId)?.title ?? reward.powerUpId;
-                    return $"{title} ×{reward.amount}";
+                    return $"{DesiMerge.Localization.Loc.T(title)} ×{reward.amount}";
                 case RewardType.Coins:
-                    return $"{reward.amount} Diamonds";
+                    return DesiMerge.Localization.Loc.F("{0} Diamonds", reward.amount);
                 default:
                     return string.Empty;
             }

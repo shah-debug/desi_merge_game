@@ -103,7 +103,7 @@ namespace DesiMerge.UI
                 var state = selected != null && selected.id == skin.id ? SkinRowState.InUse : owned ? SkinRowState.Owned : SkinRowState.ForSale;
                 var preview = skin.SpriteFor(previewLevel) ?? (_content != null && previewLevel < _content.Count ? _content.Get(previewLevel).Sprite : null);
                 var affordable = _wallet != null && _wallet.Coins >= skin.price;
-                _rows[i].Show(skin.id, skin.title, Progress(skin, owned), preview, state, skin.price, affordable);
+                _rows[i].Show(skin.id, DesiMerge.Localization.Loc.T(skin.title), Progress(skin, owned), preview, state, skin.price, affordable);
             }
         }
 
@@ -116,7 +116,7 @@ namespace DesiMerge.UI
                 found += IsFound(skin, level) ? 1 : 0;
             }
 
-            return owned ? $"{found} / {count} found" : $"{count} new items to collect";
+            return owned ? DesiMerge.Localization.Loc.F("{0} / {1} found", found, count) : DesiMerge.Localization.Loc.F("{0} new items to collect", count);
         }
 
         private bool IsFound(CosmeticDefinition skin, int level) =>
@@ -140,10 +140,10 @@ namespace DesiMerge.UI
                     _cosmetics.TrySelect(id);
                     _cosmetics.Flush();
                     _audio?.PlaySfx(SfxCue.Unlock);
-                    SetStatus($"{definition?.title} unlocked!");
+                    SetStatus(DesiMerge.Localization.Loc.F("{0} unlocked!", DesiMerge.Localization.Loc.Raw(definition?.title)));
                     break;
                 case CosmeticPurchase.NotEnoughDiamonds:
-                    SetStatus($"Need {definition?.price} diamonds. Play games and claim Daily Rewards to earn more.");
+                    SetStatus(DesiMerge.Localization.Loc.F("Need {0} diamonds. Play games and claim Daily Rewards to earn more.", definition?.price));
                     break;
             }
         }

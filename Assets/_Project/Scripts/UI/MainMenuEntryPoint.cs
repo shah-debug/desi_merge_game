@@ -118,7 +118,7 @@ namespace DesiMerge.UI
 
             if (bestScoreText != null)
             {
-                bestScoreText.text = services.Progress.HighScore > 0 ? $"Best  {services.Progress.HighScore}" : string.Empty;
+                bestScoreText.text = services.Progress.HighScore > 0 ? DesiMerge.Localization.Loc.F("Best  {0}", services.Progress.HighScore) : string.Empty;
             }
 
             if (bestScoreBadge != null)
@@ -159,6 +159,7 @@ namespace DesiMerge.UI
             if (dailyRewardsPanel != null)
             {
                 dailyRewardsPanel.Bind(services.DailyRewards, services.PowerUps, rewardPresenter, services.Audio);
+                dailyRewardsPanel.SetClock(services.Clock);
             }
 
             if (missionsPanel != null)
@@ -318,11 +319,11 @@ namespace DesiMerge.UI
             }
 
             saveNoticeText.text = outcome == LoadOutcome.RecoveredFromBackup
-                ? "Your progress was restored from a backup."
+                ? DesiMerge.Localization.Loc.T("Your progress was restored from a backup.")
                 : outcome == LoadOutcome.ResetToDefaults
-                    ? "Saved progress couldn't be read, so a fresh profile was started. A copy of the old file was kept."
+                    ? DesiMerge.Localization.Loc.T("Saved progress couldn't be read, so a fresh profile was started. A copy of the old file was kept.")
                     : outcome == LoadOutcome.ReadFailed
-                        ? "Your saved progress couldn't be opened right now. It is safe; restart the game to load it."
+                        ? DesiMerge.Localization.Loc.T("Your saved progress couldn't be opened right now. It is safe; restart the game to load it.")
                         : string.Empty;
             saveNoticeText.gameObject.SetActive(saveNoticeText.text.Length > 0);
         }
@@ -419,12 +420,12 @@ namespace DesiMerge.UI
             var next = milestones.Next;
             if (rankTitleText != null)
             {
-                rankTitleText.text = current != null ? current.title : "New Player";
+                rankTitleText.text = DesiMerge.Localization.Loc.T(current != null ? current.title : "New Player");
             }
 
             if (rankProgressText != null)
             {
-                rankProgressText.text = next != null ? $"Next: {next.title} at {next.score}" : "Top rank reached!";
+                rankProgressText.text = next != null ? DesiMerge.Localization.Loc.F("Next: {0} at {1}", DesiMerge.Localization.Loc.Raw(next.title), next.score) : DesiMerge.Localization.Loc.T("Top rank reached!");
             }
 
             if (rankProgressFill != null)

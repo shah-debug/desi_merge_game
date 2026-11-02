@@ -26,8 +26,11 @@ namespace DesiMerge.UI
         [SerializeField] private Button pauseButton;
         [SerializeField] private Button menuButton;
         [SerializeField] private Button skinTagButton;
+        [SerializeField] private Image skinTagPreview;
+        [SerializeField] private Button getDiamondsButton;
 
         private bool _openSkinsNext;
+        private bool _openDailyNext;
         [SerializeField] private GameplayMenu gameMenu;
         [SerializeField] private PowerUpEffects powerUpEffects;
         [SerializeField] private DiamondCounter diamondCounter;
@@ -61,6 +64,7 @@ namespace DesiMerge.UI
         [Header("Power-ups")]
         [SerializeField] private PowerUpButton[] powerUpButtons = Array.Empty<PowerUpButton>();
         [SerializeField] private GameObject targetingBanner;
+        [SerializeField] private FocusShade focusShade;
         [SerializeField] private Text targetingText;
         [SerializeField] private Button targetingCancelButton;
 
@@ -91,7 +95,9 @@ namespace DesiMerge.UI
         public bool ContinueVisible => continueButton != null && continueButton.gameObject.activeSelf;
         public bool ContinueInteractable => ContinueVisible && continueButton.interactable;
         public string ReviveStatus => reviveStatusText != null && reviveStatusText.gameObject.activeSelf ? reviveStatusText.text : string.Empty;
-        public bool TargetingVisible => targetingBanner != null && targetingBanner.activeSelf;
+        public FocusShade FocusShade => focusShade;
+        public ToastPresenter Toast => toast;
+        public bool TargetingVisible => focusShade != null ? focusShade.Visible : targetingBanner != null && targetingBanner.activeSelf;
         public PowerUpButton[] PowerUpButtons => powerUpButtons;
         public bool RestartConfirmVisible => restartConfirm != null && restartConfirm.activeSelf;
         public Sprite NextItemSprite => nextImage != null ? nextImage.sprite : null;
@@ -113,6 +119,7 @@ namespace DesiMerge.UI
             AddListener(pauseButton, OnPauseClicked);
             AddListener(menuButton, OnMenuClicked);
             AddListener(skinTagButton, OnSkinTagClicked);
+            AddListener(getDiamondsButton, OnGetDiamondsClicked);
             AddListener(resumeButton, OnResumeClicked);
             if (gameMenu != null)
             {
@@ -162,6 +169,7 @@ namespace DesiMerge.UI
             RemoveListener(pauseButton, OnPauseClicked);
             RemoveListener(menuButton, OnMenuClicked);
             RemoveListener(skinTagButton, OnSkinTagClicked);
+            RemoveListener(getDiamondsButton, OnGetDiamondsClicked);
             RemoveListener(resumeButton, OnResumeClicked);
             if (gameMenu != null)
             {
@@ -279,7 +287,7 @@ namespace DesiMerge.UI
             if (toast != null && item != null)
             {
                 var skin = SkinSprite?.Invoke(item);
-                toast.Show($"New discovery: {item.DisplayName}!", skin != null ? skin : item.Sprite);
+                toast.Show(DesiMerge.Localization.Loc.F("New discovery: {0}!", DesiMerge.Localization.Loc.Raw(item.DisplayName)), skin != null ? skin : item.Sprite);
             }
         }
 
@@ -289,7 +297,7 @@ namespace DesiMerge.UI
         {
             if (improvementText != null)
             {
-                improvementText.text = summary.Improvement > 0 && summary.PreviousBest > 0 ? $"+{summary.Improvement} over your old best" : string.Empty;
+                improvementText.text = summary.Improvement > 0 && summary.PreviousBest > 0 ? DesiMerge.Localization.Loc.F("+{0} over your old best", summary.Improvement) : string.Empty;
                 improvementText.gameObject.SetActive(improvementText.text.Length > 0);
             }
 
@@ -299,34 +307,34 @@ namespace DesiMerge.UI
             }
 
             var lines = new System.Text.StringBuilder();
-            lines.Append(summary.Merges == 1 ? "1 merge" : $"{summary.Merges} merges");
+            lines.Append(DesiMerge.Localization.Loc.F(summary.Merges == 1 ? "{0} merge" : "{0} merges", summary.Merges));
             if (summary.DiamondsEarned > 0)
             {
-                lines.Append($"   •   +{summary.DiamondsEarned} diamonds");
+                lines.Append("   •   ").Append(DesiMerge.Localization.Loc.F("+{0} diamonds", summary.DiamondsEarned));
             }
 
             if (summary.Discoveries.Count > 0)
             {
-                lines.Append("   •   New: ").Append(string.Join(", ", summary.Discoveries));
+                lines.Append("   •   ").Append(DesiMerge.Localization.Loc.F("New: {0}", string.Join(", ", System.Linq.Enumerable.Select(summary.Discoveries, DesiMerge.Localization.Loc.Raw))));
             }
 
             if (!string.IsNullOrEmpty(summary.NewRank))
             {
-                lines.Append("\nNew rank: ").Append(summary.NewRank);
+                lines.Append("\n").Append(DesiMerge.Localization.Loc.F("New rank: {0}", DesiMerge.Localization.Loc.Raw(summary.NewRank)));
             }
 
             if (summary.AchievementsUnlocked > 0)
             {
-                lines.Append(summary.AchievementsUnlocked == 1 ? "\n1 award unlocked" : $"\n{summary.AchievementsUnlocked} awards unlocked");
+                lines.Append("\n").Append(DesiMerge.Localization.Loc.F(summary.AchievementsUnlocked == 1 ? "{0} award unlocked" : "{0} awards unlocked", summary.AchievementsUnlocked));
             }
 
             if (summary.MissionsToClaim > 0)
             {
-                lines.Append(summary.MissionsToClaim == 1 ? "\n1 mission reward to claim in the menu" : $"\n{summary.MissionsToClaim} mission rewards to claim in the menu");
+                lines.Append("\n").Append(DesiMerge.Localization.Loc.F(summary.MissionsToClaim == 1 ? "{0} mission reward to claim in the menu" : "{0} mission rewards to claim in the menu", summary.MissionsToClaim));
             }
             else if (summary.MissionsCompleted > 0)
             {
-                lines.Append(summary.MissionsCompleted == 1 ? "\n1 mission completed" : $"\n{summary.MissionsCompleted} missions completed");
+                lines.Append("\n").Append(DesiMerge.Localization.Loc.F(summary.MissionsCompleted == 1 ? "{0} mission completed" : "{0} missions completed", summary.MissionsCompleted));
             }
 
             summaryText.text = lines.ToString();
@@ -360,10 +368,36 @@ namespace DesiMerge.UI
                 return;
             }
 
+            if (_openDailyNext)
+            {
+                _openDailyNext = false;
+                gameMenu.OpenDailyRewardsOnly();
+                return;
+            }
+
             gameMenu.Open();
         }
 
         internal Button SkinTagButton => skinTagButton;
+        internal Button GetDiamondsButton => getDiamondsButton;
+        public Sprite SkinTagPreview => skinTagPreview != null ? skinTagPreview.sprite : null;
+
+        /// <summary>The Skin tag shows a preview of the skin in use.</summary>
+        public void SetSkinPreview(Sprite sprite)
+        {
+            if (skinTagPreview != null && sprite != null)
+            {
+                skinTagPreview.sprite = sprite;
+            }
+        }
+
+        /// <summary>The "+" on the diamonds: real ways to earn (Daily Rewards). No ads or payments exist.</summary>
+        private void OnGetDiamondsClicked()
+        {
+            _openDailyNext = true;
+            MenuRequested?.Invoke();
+            _openDailyNext = false;
+        }
 
         /// <summary>The Skin tag under NEXT: pause like the menu, but open the Skins screen directly.</summary>
         private void OnSkinTagClicked()
@@ -410,7 +444,7 @@ namespace DesiMerge.UI
 
             if (gameOverBestText != null)
             {
-                gameOverBestText.text = $"Best  {bestScore}";
+                gameOverBestText.text = DesiMerge.Localization.Loc.F("Best  {0}", bestScore);
             }
 
             if (newBestBadge != null)
@@ -475,6 +509,12 @@ namespace DesiMerge.UI
                 powerUpEffects.SetFocus(active);
             }
 
+            // Hammer shows no hint text: the screen darkens above and below the jar instead.
+            if (focusShade != null)
+            {
+                focusShade.SetVisible(active);
+            }
+
             if (targetingText != null)
             {
                 targetingText.text = hint;
@@ -504,7 +544,7 @@ namespace DesiMerge.UI
 
             if (reviveStatusText != null)
             {
-                reviveStatusText.text = ReviveStatusFor(state);
+                reviveStatusText.text = DesiMerge.Localization.Loc.T(ReviveStatusFor(state));
                 reviveStatusText.gameObject.SetActive(visible);
             }
         }

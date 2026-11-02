@@ -112,6 +112,7 @@ namespace DesiMerge.Editor.Content
                 ("skinTitle", skinTitle), ("previousSkinButton", previous), ("nextSkinButton", next),
                 ("emptyText", empty), ("closeButton", close), ("placeholderSprite", theme.circle));
 
+            LightThemePass.Apply(transition.gameObject, ContentSetup.LoadTheme());
             PrefabUtility.SaveAsPrefabAsset(transition.gameObject, ContentPaths.CollectionPanelPrefabPath);
             Object.DestroyImmediate(host.gameObject);
         }
@@ -184,6 +185,7 @@ namespace DesiMerge.Editor.Content
                 ("transition", transition), ("statsValues", statsValues), ("summaryText", summary), ("list", list),
                 ("rowTemplate", row), ("emptyText", empty), ("closeButton", close));
 
+            LightThemePass.Apply(transition.gameObject, ContentSetup.LoadTheme());
             PrefabUtility.SaveAsPrefabAsset(transition.gameObject, ContentPaths.AchievementsPanelPrefabPath);
             Object.DestroyImmediate(host.gameObject);
         }

@@ -163,7 +163,7 @@ namespace DesiMerge.Tests.PlayMode
             for (var frame = 0; frame < 5 && punch.IsPlaying; frame++)
             {
                 Assert.AreEqual(Vector3.one * (merged.Radius * 2f), merged.transform.localScale, "Collider body scale changed during the pop.");
-                Assert.AreEqual(0.5f, merged.GetComponent<CircleCollider2D>().radius);
+                Assert.AreEqual(MergeItem.FittedRadius(merged.VisualSprite), merged.GetComponent<CircleCollider2D>().radius, "The collider keeps its fitted size during the pop.");
                 Assert.AreNotSame(merged.transform, punch.transform);
                 yield return null;
             }

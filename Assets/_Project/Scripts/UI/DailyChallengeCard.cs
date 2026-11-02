@@ -58,7 +58,7 @@ namespace DesiMerge.UI
             var challenge = _daily.Current;
             if (challenge == null)
             {
-                SetText(titleText, "No challenge today");
+                SetText(titleText, DesiMerge.Localization.Loc.T("No challenge today"));
                 SetText(descriptionText, string.Empty);
                 SetText(progressText, string.Empty);
                 SetText(statusText, string.Empty);
@@ -68,8 +68,8 @@ namespace DesiMerge.UI
             }
             else
             {
-                SetText(titleText, challenge.title);
-                SetText(descriptionText, challenge.description);
+                SetText(titleText, DesiMerge.Localization.Loc.T(challenge.title));
+                SetText(descriptionText, DesiMerge.Localization.Loc.T(challenge.description));
                 SetText(progressText, $"{_daily.Progress} / {_daily.Target}");
                 SetFill(_daily.Target > 0 ? (float)_daily.Progress / _daily.Target : 0f);
                 SetText(statusText, StatusFor(challenge));
@@ -80,7 +80,7 @@ namespace DesiMerge.UI
             if (_progress != null)
             {
                 var streak = _progress.DisplayedStreak();
-                SetText(streakText, streak > 0 ? $"Day streak: {streak}" : "Finish a game to start a streak");
+                SetText(streakText, streak > 0 ? DesiMerge.Localization.Loc.F("Day streak: {0}", streak) : DesiMerge.Localization.Loc.T("Finish a game to start a streak"));
             }
         }
 
@@ -94,7 +94,7 @@ namespace DesiMerge.UI
 
             if (_daily.CanClaim)
             {
-                return _claimFailed ? "Can't claim yet: use some first" : $"Claim {reward}!";
+                return _claimFailed ? DesiMerge.Localization.Loc.T("Can't claim yet: use some first") : DesiMerge.Localization.Loc.F("Claim {0}!", reward);
             }
 
             if (_daily.IsCompleted)
@@ -102,7 +102,7 @@ namespace DesiMerge.UI
                 return "Completed!";
             }
 
-            return string.IsNullOrEmpty(reward) ? "In progress" : $"Reward: {reward}";
+            return string.IsNullOrEmpty(reward) ? DesiMerge.Localization.Loc.T("In progress") : DesiMerge.Localization.Loc.F("Reward: {0}", reward);
         }
 
         /// <summary>"+1 Hammer", "+5 coins", or empty for no reward.</summary>

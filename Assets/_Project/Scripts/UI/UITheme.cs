@@ -22,6 +22,10 @@ namespace DesiMerge.UI
         public Color overlay = new Color(0.08f, 0.05f, 0.12f, 0.72f);
         public Color card = new Color(1f, 0.976f, 0.933f);
         public Color mutedText = new Color(0.36f, 0.33f, 0.45f);
+        [Tooltip("Frosted-glass surface used where the design once had dark navy panels.")]
+        public Color glass = new Color(1f, 1f, 1f, 0.86f);
+        [Tooltip("Saffron accents drawn on glass (darker, so they stay readable on white).")]
+        public Color accentText = new Color(0.82f, 0.45f, 0f);
 
         [Header("Sprites (generated)")]
         public Sprite roundedPanel;
