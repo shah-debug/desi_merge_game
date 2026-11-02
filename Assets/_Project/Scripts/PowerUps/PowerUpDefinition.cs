@@ -25,5 +25,8 @@ namespace DesiMerge.PowerUps
 
         [Tooltip("Most saved bonus charges (earned from rewards) the player can hold. Further grants are refused.")]
         [Min(0)] public int maxSavedCharges = 9;
+
+        [Tooltip("Diamonds for one extra use when no free uses or saved charges are left. 0 = can't be bought.")]
+        [Min(0)] public int diamondPrice;
     }
 }

@@ -19,6 +19,7 @@ namespace DesiMerge.UI
         [SerializeField] private Button claimButton;
         [SerializeField] private GameObject doneMark;
         [SerializeField] private Image background;
+        [SerializeField] private Image leadingIcon;
         [SerializeField] private Color normalColor = Color.white;
         [SerializeField] private Color claimableColor = Color.white;
         [SerializeField] private Color doneColor = Color.white;
@@ -97,6 +98,21 @@ namespace DesiMerge.UI
 
             gameObject.SetActive(true);
         }
+
+        /// <summary>Optional icon on the left (e.g. the achievement's type); dimmed while locked.</summary>
+        public void SetLeadingIcon(Sprite sprite, bool active)
+        {
+            if (leadingIcon == null)
+            {
+                return;
+            }
+
+            leadingIcon.sprite = sprite;
+            leadingIcon.enabled = sprite != null;
+            leadingIcon.color = active ? Color.white : new Color(1f, 1f, 1f, 0.35f);
+        }
+
+        public Sprite LeadingIcon => leadingIcon != null && leadingIcon.enabled ? leadingIcon.sprite : null;
 
         private void Update()
         {

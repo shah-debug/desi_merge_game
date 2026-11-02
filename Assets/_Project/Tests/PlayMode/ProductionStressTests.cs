@@ -395,7 +395,7 @@ namespace DesiMerge.Tests.PlayMode
             var buttons = new[] { menu.DailyRewardsButton, menu.MissionsButton, menu.RankButton, menu.CollectionButton, menu.AchievementsButton, menu.SettingsButton };
             var random = new System.Random(7);
 
-            int OpenCount() => new[] { menu.DailyRewards.IsOpen, menu.Missions.IsOpen, menu.Ranks.IsOpen, menu.Collection.IsOpen, menu.Achievements.IsOpen, menu.Settings.IsOpen, menu.Rewards.IsShowing }.Count(open => open);
+            int OpenCount() => new[] { menu.DailyRewards.IsOpen, menu.Missions.IsOpen, menu.Ranks.IsOpen, menu.Collection.IsOpen, menu.Records.IsOpen, menu.Settings.IsOpen, menu.Rewards.IsShowing }.Count(open => open);
 
             for (var step = 0; step < 200; step++)
             {

@@ -18,36 +18,54 @@ MonoBehaviour:
     - type: 2
       amount: 1
       powerUpId: hammer
+    - type: 1
+      amount: 20
+      powerUpId: 
     special: 0
   - title: A Shuffle
     rewards:
     - type: 2
       amount: 1
       powerUpId: shuffle
+    - type: 1
+      amount: 25
+      powerUpId: 
     special: 0
   - title: Another Hammer
     rewards:
     - type: 2
       amount: 1
       powerUpId: hammer
+    - type: 1
+      amount: 30
+      powerUpId: 
     special: 0
   - title: Another Shuffle
     rewards:
     - type: 2
       amount: 1
       powerUpId: shuffle
+    - type: 1
+      amount: 35
+      powerUpId: 
     special: 0
   - title: Double Hammer
     rewards:
     - type: 2
       amount: 2
       powerUpId: hammer
+    - type: 1
+      amount: 40
+      powerUpId: 
     special: 0
   - title: Double Shuffle
     rewards:
     - type: 2
       amount: 2
       powerUpId: shuffle
+    - type: 1
+      amount: 50
+      powerUpId: 
     special: 0
   - title: Mela bundle!
     rewards:
@@ -57,4 +75,7 @@ MonoBehaviour:
     - type: 2
       amount: 2
       powerUpId: shuffle
+    - type: 1
+      amount: 100
+      powerUpId: 
     special: 1

@@ -16,6 +16,8 @@ namespace DesiMerge.Cosmetics
         Default = 0,
         /// <summary>Owned once the achievement <c>achievementId</c> is unlocked.</summary>
         Achievement = 1,
+        /// <summary>Bought once with <c>price</c> Diamonds.</summary>
+        Diamonds = 2,
     }
 
     /// <summary>
@@ -32,5 +34,14 @@ namespace DesiMerge.Cosmetics
         public CosmeticUnlock unlock;
         public string achievementId;
         public Color tint = Color.white;
+        [Tooltip("Diamonds price for Diamonds unlocks.")]
+        [Min(0)] public int price;
+        [Tooltip("Item skins: one sprite per merge level (empty = the default item art).")]
+        public Sprite[] itemSprites = System.Array.Empty<Sprite>();
+        [Tooltip("Item skins: display names per level for the collection (empty = default names).")]
+        public string[] itemNames = System.Array.Empty<string>();
+
+        public Sprite SpriteFor(int level) => itemSprites != null && level >= 0 && level < itemSprites.Length ? itemSprites[level] : null;
+        public string NameFor(int level) => itemNames != null && level >= 0 && level < itemNames.Length ? itemNames[level] : null;
     }
 }

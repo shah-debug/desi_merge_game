@@ -62,12 +62,20 @@ namespace DesiMerge.Editor.Content
             var theme = factory.Theme;
             var host = UiFactory.Rect("Host", null);
             host.sizeDelta = new Vector2(1080f, 1920f);
-            var (transition, card) = factory.Modal(host, "CollectionPanel", new Vector2(960f, 1080f), "COLLECTION");
+            var (transition, card) = factory.Modal(host, "CollectionPanel", new Vector2(960f, 1160f), "COLLECTION");
 
-            var counter = factory.Text(card, "Counter", "0 / 0 discovered", theme.bodySize, theme.mutedText);
-            UiFactory.Place(counter.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -196f), new Vector2(800f, 56f));
+            var skinTitle = factory.Text(card, "SkinTitle", string.Empty, 48, theme.deep);
+            UiFactory.Place(skinTitle.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -186f), new Vector2(520f, 70f));
+            var previous = factory.Button(card, "PreviousSkin", string.Empty, theme.deep, new Vector2(96f, 84f), icon: GameArtGenerator.Icon("Back"));
+            UiFactory.Place((RectTransform)previous.transform, new Vector2(0.5f, 1f), new Vector2(-330f, -180f), new Vector2(96f, 84f));
+            var next = factory.Button(card, "NextSkin", string.Empty, theme.deep, new Vector2(96f, 84f), icon: GameArtGenerator.Icon("Back"));
+            UiFactory.Place((RectTransform)next.transform, new Vector2(0.5f, 1f), new Vector2(330f, -180f), new Vector2(96f, 84f));
+            next.transform.Find("Icon").localRotation = Quaternion.Euler(0f, 0f, 180f);
+            UiFactory.Record(previous.transform, next.transform);
+            var counter = factory.Text(card, "Counter", "0 / 0 discovered", 30, theme.mutedText, body: true);
+            UiFactory.Place(counter.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -262f), new Vector2(860f, 46f));
 
-            var grid = UiFactory.Place(UiFactory.Rect("Grid", card), new Vector2(0.5f, 1f), new Vector2(0f, -266f), new Vector2(910f, 540f));
+            var grid = UiFactory.Place(UiFactory.Rect("Grid", card), new Vector2(0.5f, 1f), new Vector2(0f, -318f), new Vector2(910f, 540f));
             var layout = grid.gameObject.AddComponent<GridLayoutGroup>();
             layout.cellSize = new Vector2(170f, 250f);
             layout.spacing = new Vector2(10f, 24f);
@@ -101,6 +109,7 @@ namespace DesiMerge.Editor.Content
             var panel = transition.gameObject.AddComponent<CollectionPanel>();
             EditorRefs.Set(panel,
                 ("transition", transition), ("grid", grid), ("slotTemplate", slot), ("counterText", counter),
+                ("skinTitle", skinTitle), ("previousSkinButton", previous), ("nextSkinButton", next),
                 ("emptyText", empty), ("closeButton", close), ("placeholderSprite", theme.circle));
 
             PrefabUtility.SaveAsPrefabAsset(transition.gameObject, ContentPaths.CollectionPanelPrefabPath);
@@ -151,9 +160,7 @@ namespace DesiMerge.Editor.Content
             var rowProgress = factory.Text(rowRoot, "Progress", "0 / 1", 28, theme.secondary, TextAnchor.MiddleRight);
             UiFactory.Place(rowProgress.rectTransform, new Vector2(1f, 0.5f), new Vector2(-80f, 6f), new Vector2(220f, 40f));
             var fill = factory.Image(rowRoot, "ProgressFill", theme.roundedPanel, theme.accent);
-            fill.type = Image.Type.Filled;
-            fill.fillMethod = Image.FillMethod.Horizontal;
-            fill.fillOrigin = (int)Image.OriginHorizontal.Left;
+            UiFactory.ProgressFill(fill);
             // Under the progress number (right side), clear of the description text.
             UiFactory.Place(fill.rectTransform, new Vector2(1f, 0f), new Vector2(-80f, 8f), new Vector2(220f, 6f));
             var mark = factory.Image(rowRoot, "UnlockedMark", GameArtGenerator.Icon("Star"), theme.accent);

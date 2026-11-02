@@ -30,6 +30,7 @@ namespace DesiMerge.UI
         [SerializeField] private Sprite hammerIcon;
         [SerializeField] private Sprite shuffleIcon;
         [SerializeField] private Sprite giftIcon;
+        [SerializeField] private Sprite diamondIcon;
         [SerializeField] private float raysDegreesPerSecond = 24f;
 
         private readonly Queue<(string Title, string Subtitle, RewardDefinition[] Rewards)> _queue = new Queue<(string, string, RewardDefinition[])>();
@@ -76,6 +77,11 @@ namespace DesiMerge.UI
 
         public Sprite IconFor(RewardDefinition reward)
         {
+            if (reward.type == RewardType.Coins && diamondIcon != null)
+            {
+                return diamondIcon;
+            }
+
             if (reward.type == RewardType.PowerUpCharges)
             {
                 var kind = _powerUps?.Find(reward.powerUpId)?.kind;
@@ -101,7 +107,7 @@ namespace DesiMerge.UI
                     var title = _powerUps?.Find(reward.powerUpId)?.title ?? reward.powerUpId;
                     return $"{title} ×{reward.amount}";
                 case RewardType.Coins:
-                    return $"{reward.amount} coins";
+                    return $"{reward.amount} Diamonds";
                 default:
                     return string.Empty;
             }

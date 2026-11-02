@@ -1,0 +1,140 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eda3410fcbb77824bb6b742a51cb9aa5, type: 3}
+  m_Name: Cosmetics
+  m_EditorClassIdentifier: DesiMerge.Runtime::DesiMerge.Cosmetics.CosmeticCatalog
+  cosmetics:
+  - id: desi_bazaar
+    title: Desi Bazaar
+    kind: 1
+    unlock: 0
+    achievementId: 
+    tint: {r: 1, g: 1, b: 1, a: 1}
+    price: 0
+    itemSprites: []
+    itemNames: []
+  - id: numbers
+    title: Numbers
+    kind: 1
+    unlock: 2
+    achievementId: 
+    tint: {r: 1, g: 1, b: 1, a: 1}
+    price: 250
+    itemSprites:
+    - {fileID: 21300000, guid: 8795ec6d3e2cedb4087e484c8b539f6e, type: 3}
+    - {fileID: 21300000, guid: b39ae5b33dbc3ee4e93b2f313ffca8c0, type: 3}
+    - {fileID: 21300000, guid: d7660e1cf2ef3b54fbcbd0e14edb3e8b, type: 3}
+    - {fileID: 21300000, guid: e8925124860a4ef4dace6ea0d7ca0bdf, type: 3}
+    - {fileID: 21300000, guid: fd4f7d87bc0f44a43b95e7ba035f683e, type: 3}
+    - {fileID: 21300000, guid: 5d390a50f18ad85488d287d30c8d8d09, type: 3}
+    - {fileID: 21300000, guid: e8a6803a44721ba49a411c9ae5446f4f, type: 3}
+    - {fileID: 21300000, guid: 048b5f9fe260a5a4e9293cb148e603bc, type: 3}
+    - {fileID: 21300000, guid: 8019b286527860a4492214299170504c, type: 3}
+    - {fileID: 21300000, guid: 8efa044efdaa4ef44853c99d6093db32, type: 3}
+    itemNames:
+    - 2
+    - 4
+    - 8
+    - 16
+    - 32
+    - 64
+    - 128
+    - 256
+    - 512
+    - 1024
+  - id: mithai
+    title: Mithai
+    kind: 1
+    unlock: 2
+    achievementId: 
+    tint: {r: 1, g: 1, b: 1, a: 1}
+    price: 400
+    itemSprites:
+    - {fileID: 21300000, guid: dc69ba56fc6152a4cbe91d7473b490fd, type: 3}
+    - {fileID: 21300000, guid: 25a186ed67299494ba61f1c1d8637629, type: 3}
+    - {fileID: 21300000, guid: 30e70681db33bc542803b2d395839304, type: 3}
+    - {fileID: 21300000, guid: a609684177421a14686835b366a75f5c, type: 3}
+    - {fileID: 21300000, guid: b1ae022b3d4fe6a4ca0d9b4140da0684, type: 3}
+    - {fileID: 21300000, guid: c75bb4591b756104abe80bd0030ff4de, type: 3}
+    - {fileID: 21300000, guid: fa710776915a7d54a9c190bb2c496946, type: 3}
+    - {fileID: 21300000, guid: c13b05d8c3c44334091579f7a31bdf40, type: 3}
+    - {fileID: 21300000, guid: 3407eea1d6dca724bb57b4b936f6c90f, type: 3}
+    - {fileID: 21300000, guid: 168fcca8bd02f3544a162338b0e5d2c3, type: 3}
+    itemNames:
+    - Peda
+    - Ladoo
+    - Gulab Jamun
+    - Barfi
+    - Jalebi
+    - Cham Cham
+    - Rasmalai
+    - Kheer
+    - Mithai Box
+    - Mithai Thaal
+  - id: street_food
+    title: Street Food
+    kind: 1
+    unlock: 2
+    achievementId: 
+    tint: {r: 1, g: 1, b: 1, a: 1}
+    price: 500
+    itemSprites:
+    - {fileID: 21300000, guid: f8a3f9a8a4f57324bb80f72aa8f9b3a3, type: 3}
+    - {fileID: 21300000, guid: c120a38a523a1c445b50381503cf96e9, type: 3}
+    - {fileID: 21300000, guid: b05e2b0115d303242a9210567d735276, type: 3}
+    - {fileID: 21300000, guid: 095f627a075b8f54ab5de669eca2a1c1, type: 3}
+    - {fileID: 21300000, guid: 5487f2ee9c2fa2b4fa596c2f9eb2c1b1, type: 3}
+    - {fileID: 21300000, guid: 36f80e9a341bd6547b8df249af5e4562, type: 3}
+    - {fileID: 21300000, guid: e158ae38f759b4843b5d66a4d8f7a998, type: 3}
+    - {fileID: 21300000, guid: 80ee69caddf09e84fb0c73e582fabe72, type: 3}
+    - {fileID: 21300000, guid: f25802848462d5e46a9f6fbc40c6edc3, type: 3}
+    - {fileID: 21300000, guid: 7b4b664e584706b468ec82b3a2ecca8d, type: 3}
+    itemNames:
+    - Pakora
+    - Samosa
+    - Gol Gappa
+    - Chaat
+    - Bun Kabab
+    - Paratha Roll
+    - Seekh Kabab
+    - Nihari
+    - Biryani
+    - Food Cart
+  - id: truck_art
+    title: Truck Art
+    kind: 1
+    unlock: 2
+    achievementId: 
+    tint: {r: 1, g: 1, b: 1, a: 1}
+    price: 600
+    itemSprites:
+    - {fileID: 21300000, guid: 33be2eb42467d7944bb0f39755f01f26, type: 3}
+    - {fileID: 21300000, guid: fb37b2f7c61c6d947860bb57cdb526f2, type: 3}
+    - {fileID: 21300000, guid: 7e8ac0361aabb4a4f92ad0e68dc5abbd, type: 3}
+    - {fileID: 21300000, guid: d0463c70c4a3c1742a99d90b9f8cc882, type: 3}
+    - {fileID: 21300000, guid: aeececa6287c10a46965dee8f5f629ea, type: 3}
+    - {fileID: 21300000, guid: 8e9c29f8d31437342b1945fb9af526e7, type: 3}
+    - {fileID: 21300000, guid: 5dd121c6fe096524fa6f7ee6100b40a5, type: 3}
+    - {fileID: 21300000, guid: 864c68c9bd1cb694ab87cef735311252, type: 3}
+    - {fileID: 21300000, guid: 4491041db54acae4eb73c0204a55dd3a, type: 3}
+    - {fileID: 21300000, guid: c837446c4c8eda643aacf518347959ba, type: 3}
+    itemNames:
+    - Patti
+    - Nimbu
+    - Pyaz
+    - Tamatar
+    - Roti
+    - Aam
+    - Chai
+    - Mango Shake
+    - Rickshaw
+    - Bus

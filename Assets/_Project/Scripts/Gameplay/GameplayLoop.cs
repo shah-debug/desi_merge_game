@@ -36,6 +36,12 @@ namespace DesiMerge.Gameplay
         private bool _revivePending;
         private readonly List<string> _sessionDiscoveries = new List<string>();
         private long _bestBeforeSession;
+        private long _shownBest;
+        private string _sessionId = string.Empty;
+        private int _sessionDiamonds;
+
+        /// <summary>Points per diamond earned at the end of a game.</summary>
+        public const int PointsPerDiamond = 50;
         private int _sessionAchievements;
         private int _sessionMissions;
         private string _sessionRank;
@@ -58,9 +64,10 @@ namespace DesiMerge.Gameplay
             Session = new GameSession();
             Queue = new SpawnQueue(_progression.SpawnableLevelCount, config.SpawnSeed);
             PowerUps = new PowerUpController(config, board, services.PowerUps,
-                new System.Random(config.SpawnSeed != 0 ? config.SpawnSeed : Environment.TickCount));
+                new System.Random(config.SpawnSeed != 0 ? config.SpawnSeed : Environment.TickCount), services.Progress);
 
             Session.ScoreChanged += _view.SetScore;
+            Session.ScoreChanged += OnScoreChanged;
             _board.ItemMerged += OnItemMerged;
             _board.FinalLevelCleared += OnFinalLevelCleared;
             _board.DangerTimeExceeded += OnDangerTimeExceeded;
@@ -75,6 +82,7 @@ namespace DesiMerge.Gameplay
             _services.Milestones.Reached += OnMilestoneReached;
             _view.RestartRequested += OnRestartRequested;
             _view.PauseRequested += OnPauseRequested;
+            _view.MenuRequested += OnMenuRequested;
             _view.ResumeRequested += OnResumeRequested;
             _view.MainMenuRequested += OnMainMenuRequested;
             _view.PowerUpRequested += OnPowerUpRequested;
@@ -97,6 +105,8 @@ namespace DesiMerge.Gameplay
         {
             _sessionGeneration++;
             _bestBeforeSession = _services.Progress.HighScore;
+            _sessionId = Guid.NewGuid().ToString("N");
+            _sessionDiamonds = 0;
             _sessionDiscoveries.Clear();
             _sessionAchievements = 0;
             _sessionMissions = 0;
@@ -106,10 +116,13 @@ namespace DesiMerge.Gameplay
             _nextDropAllowedAt = _clock();
             _hasDroppedThisSession = false;
             _view.HidePause();
+            _view.HideMenu();
+            MenuOpen = false;
             _view.HideGameOver();
             _view.SetReviveOffer(ReviveOfferState.Hidden);
             _view.SetScore(Session.Score);
-            _view.SetBestScore(_services.Progress.HighScore);
+            _shownBest = _services.Progress.HighScore;
+            _view.SetBestScore(_shownBest);
             _view.SetNextItem(_progression.Get(Queue.Next));
             _view.SetInstructionsVisible(true);
             _drop.InputEnabled = true;
@@ -134,6 +147,7 @@ namespace DesiMerge.Gameplay
             var x = DropRules.ClampX(localX, _config.HalfWidth, _progression.Get(level).Radius);
             _board.SpawnLocal(level, new Vector2(x, _config.DropHeight));
             _services.Progress.RecordSeen(_progression.Get(level));
+            _services.Cosmetics.RecordDiscovery(SkinId, level);
             _nextDropAllowedAt = now + _config.DropCooldownSeconds;
 
             _drop.ShowPreviewAfterCooldown(_progression.Get(Queue.Current));
@@ -149,7 +163,14 @@ namespace DesiMerge.Gameplay
         }
 
         /// <summary>Pauses play: time stops (physics, merges, game-over timer), drops are disabled, music pauses.</summary>
-        public bool Pause()
+        public bool Pause() => PauseWith(showMenu: false);
+
+        /// <summary>Pauses and shows the in-game menu instead of the pause card. Resume closes it.</summary>
+        public bool OpenMenu() => PauseWith(showMenu: true);
+
+        public bool MenuOpen { get; private set; }
+
+        private bool PauseWith(bool showMenu)
         {
             if (_leaving || Session.IsOver || !_services.GameState.TryTransitionTo(GameState.Paused))
             {
@@ -161,7 +182,16 @@ namespace DesiMerge.Gameplay
             _drop.InputEnabled = false;
             _services.Audio.SetMusicPaused(true);
             _services.Audio.PlaySfx(SfxCue.Pause);
-            _view.ShowPause();
+            MenuOpen = showMenu;
+            if (showMenu)
+            {
+                _view.ShowMenu();
+            }
+            else
+            {
+                _view.ShowPause();
+            }
+
             RefreshPowerUps();
             return true;
         }
@@ -178,6 +208,8 @@ namespace DesiMerge.Gameplay
             _services.Audio.SetMusicPaused(false);
             _services.Audio.PlaySfx(SfxCue.Resume);
             _view.HidePause();
+            _view.HideMenu();
+            MenuOpen = false;
             RefreshPowerUps();
             return true;
         }
@@ -204,7 +236,8 @@ namespace DesiMerge.Gameplay
                     OnPowerUpUsed(id);
                     break;
                 case PowerUpResult.NoCharges:
-                    _view.ShowToast("No uses left this game");
+                    var price = PowerUps.PriceOf(id);
+                    _view.ShowToast(price > 0 ? $"Need {price} diamonds. Play and claim rewards to earn more." : "No uses left this game");
                     break;
                 case PowerUpResult.NothingToTarget:
                     _view.ShowToast("Nothing to use it on yet");
@@ -284,6 +317,7 @@ namespace DesiMerge.Gameplay
             var progress = _services.Progress;
             // A revived game was already counted at its first game over; only its best score can still change.
             var isNewBest = Session.RevivesUsed > 0 ? progress.SubmitRevivedFinalScore(Session.Score) : progress.SubmitFinalScore(Session.Score);
+            AwardGameDiamonds();
             // Session completion is a save point for everything it touched: stats, achievements, daily challenge.
             _services.FlushAll();
 
@@ -298,7 +332,7 @@ namespace DesiMerge.Gameplay
             _services.GameState.TryTransitionTo(GameState.GameOver);
             _view.ShowGameOver(Session.Score, progress.HighScore, isNewBest);
             _view.ShowSessionSummary(new SessionSummary(Session.Score, _bestBeforeSession, Session.MergeCount, _sessionDiscoveries.ToArray(),
-                _sessionAchievements, _sessionMissions, _services.Missions.ClaimableCount, _sessionRank));
+                _sessionAchievements, _sessionMissions, _services.Missions.ClaimableCount, _sessionRank, _sessionDiamonds));
             _view.SetReviveOffer(CurrentReviveOffer());
             RefreshPowerUps();
             return true;
@@ -385,6 +419,7 @@ namespace DesiMerge.Gameplay
             // Never leave the game frozen if this scene is unloaded while paused.
             _setTimeScale(1f);
             Session.ScoreChanged -= _view.SetScore;
+            Session.ScoreChanged -= OnScoreChanged;
             _board.ItemMerged -= OnItemMerged;
             _board.FinalLevelCleared -= OnFinalLevelCleared;
             _board.DangerTimeExceeded -= OnDangerTimeExceeded;
@@ -394,6 +429,7 @@ namespace DesiMerge.Gameplay
             _drop.PointerFilter = null;
             _view.RestartRequested -= OnRestartRequested;
             _view.PauseRequested -= OnPauseRequested;
+            _view.MenuRequested -= OnMenuRequested;
             _view.ResumeRequested -= OnResumeRequested;
             _view.MainMenuRequested -= OnMainMenuRequested;
             _view.PowerUpRequested -= OnPowerUpRequested;
@@ -416,6 +452,47 @@ namespace DesiMerge.Gameplay
 
         private void OnPauseRequested() => Pause();
 
+        private void OnMenuRequested() => OpenMenu();
+
+        /// <summary>1 diamond per <see cref="PointsPerDiamond"/> points. A revived game that ends higher is topped up, never paid twice.</summary>
+        private void AwardGameDiamonds()
+        {
+            var total = (int)(Session.Score / PointsPerDiamond);
+            if (total <= _sessionDiamonds)
+            {
+                return;
+            }
+
+            if (_services.Progress.TryGrantCoins($"game:{_sessionId}:{total}", total - _sessionDiamonds))
+            {
+                _sessionDiamonds = total;
+            }
+        }
+
+        public int SessionDiamonds => _sessionDiamonds;
+
+        /// <summary>Shows the current and next items again (after the player changes skin).</summary>
+        public void RefreshItemPreviews()
+        {
+            _view.SetNextItem(_progression.Get(Queue.Next));
+            if (_drop.InputEnabled)
+            {
+                _drop.ShowPreview(_progression.Get(Queue.Current));
+            }
+        }
+
+        private string SkinId => _services.Cosmetics.Selected(DesiMerge.Cosmetics.CosmeticKind.ItemSkin)?.id ?? string.Empty;
+
+        /// <summary>BEST follows the score live once it is beaten; the saved best still only changes at game over.</summary>
+        private void OnScoreChanged(long score)
+        {
+            if (score > _shownBest)
+            {
+                _shownBest = score;
+                _view.SetBestScore(score);
+            }
+        }
+
         private void OnResumeRequested() => Resume();
 
         private void OnMainMenuRequested() => ReturnToMainMenu();
@@ -434,6 +511,7 @@ namespace DesiMerge.Gameplay
             }
 
             var created = _progression.Get(resultLevel);
+            _services.Cosmetics.RecordDiscovery(SkinId, resultLevel);
             var points = ScoreRules.ForUpgrade(_progression, resultLevel);
             Session.AddMergeScore(points);
             // The board raises this exactly once per merge (see MergeResolver), so it is recorded exactly once.
@@ -529,8 +607,11 @@ namespace DesiMerge.Gameplay
             {
                 var available = service.Available(definition.id);
                 var selected = PowerUps.TargetingId == definition.id;
-                var interactable = selected || (canUse && !PowerUps.IsTargeting && available > 0);
-                _powerUpStates.Add(new PowerUpButtonState(definition.id, definition.title, available, interactable, selected));
+                var price = available > 0 ? 0 : definition.diamondPrice;
+                var canAfford = price > 0 && PowerUps.CanBuy(definition);
+                // A priced button stays tappable so the player learns what it costs.
+                var interactable = selected || (canUse && !PowerUps.IsTargeting && (available > 0 || price > 0));
+                _powerUpStates.Add(new PowerUpButtonState(definition.id, definition.title, available, interactable, selected, price, canAfford));
             }
 
             _view.SetPowerUps(_powerUpStates);

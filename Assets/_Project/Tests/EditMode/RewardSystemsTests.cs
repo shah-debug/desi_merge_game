@@ -530,8 +530,9 @@ namespace DesiMerge.Tests.EditMode
 
             void CheckReward(RewardDefinition reward, string owner)
             {
-                Assert.AreEqual(RewardType.PowerUpCharges, reward.type, owner + ": only power-up charges are real rewards (no coin economy).");
-                Assert.IsTrue(ids.Contains(reward.powerUpId), owner);
+                // Real rewards only: power-up charges, or Diamonds (the saved balance players can spend on power-ups).
+                Assert.That(reward.type, Is.EqualTo(RewardType.PowerUpCharges).Or.EqualTo(RewardType.Coins), owner);
+                Assert.IsTrue(reward.type == RewardType.Coins || ids.Contains(reward.powerUpId), owner);
                 Assert.Greater(reward.amount, 0, owner);
             }
 

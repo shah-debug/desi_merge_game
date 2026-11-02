@@ -13,6 +13,9 @@ namespace DesiMerge.Gameplay
     {
         event Action RestartRequested;
         event Action PauseRequested;
+
+        /// <summary>The player opened the in-game menu (it pauses the game like Pause, but shows the menu).</summary>
+        event Action MenuRequested;
         event Action ResumeRequested;
         event Action MainMenuRequested;
 
@@ -42,6 +45,10 @@ namespace DesiMerge.Gameplay
         void ShowPause();
 
         void HidePause();
+
+        void ShowMenu();
+
+        void HideMenu();
 
         void ShowGameOver(long finalScore, long bestScore, bool isNewBest);
 

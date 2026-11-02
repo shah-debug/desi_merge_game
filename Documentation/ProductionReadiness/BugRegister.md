@@ -4,8 +4,8 @@ Severity uses the brief's scale (P0 critical … P3 low). "Reproduced" means a t
 
 | ID | Sev | Area | Status |
 |---|---|---|---|
-| PR-00 | **P1** | Physics: merged items can escape through the container walls | **Fixed for the observed cause** (no escape in two 5-minute runs afterwards); the 15-minute verification is **not completed** |
-| PR-13 | P2 | Under heavy stacks an item can still be squeezed up to 0.40 units into a wall (2 of 6,593 samples in 5 minutes, after the solver change) | **Open**: reduced, not eliminated |
+| PR-00 | **P1** | Physics: merged items can escape through the container walls | **Fixed and verified in the Editor**: no escape in two 5-minute runs or the full 15-minute session (15 games) on 2026-11-01. That run is formally marked failed by the runner's wall-clock timeout, not by any gameplay check (see `PerformanceReport.md`). |
+| PR-13 | P2 | Under heavy stacks an item can still be squeezed up to 0.40 units into a wall (5 min: 2 of 6,593 samples; 15 min: max 0.32, 3 of 20,653 samples) | **Open**: reduced, not eliminated; brief and rare |
 | PR-01 | **P1** | Persistence: a temporary read failure can wipe progress | **Fixed** + regression test |
 | PR-02 | P2 | Daily systems locked for years after a wrong future date | **Fixed** + regression test |
 | PR-03 | P2 | Impossible power-up counts accepted from the save file | **Fixed** + regression test |

@@ -10,7 +10,11 @@
 | 6 — QA hardening & RC validation | Audit, bug fixes, tests, builds, measurements | Complete (committed `8ae6060`; see `Phase6-QA-Report.md`) |
 | 6.5 — Visual redesign & polish | Original item art, design system, HUD, screens, playfield, game feel, icon | Complete (committed `e2d162a`; see `VisualRedesignTestReport.md`) |
 | 6.6 — Player experience, rewards, audio | Audio fix, splash, tutorial, menu, daily rewards, missions, ranks, reward popup, results, icons, SFX | **Complete — awaiting review** (see `Phase66_TestReport.md`) |
-| 6.7 — Production readiness audit | Crash hunting, failure injection, stress, fixes, release gate | **Done — decision: NOT READY (high-priority issues remain)**; see `ProductionReadiness/FinalProductionAudit.md` |
+| 6.7 — Production readiness audit | Crash hunting, failure injection, stress, fixes, release gate | **Done — decision updated 2026-11-01: CONDITIONALLY READY** (15-min stress: no escape; device testing, app ID and signing remain); see `ProductionReadiness/FinalProductionAudit.md` |
+| Preview APK | Cleanup of template content, release-config APK for phone testing | **Built 2026-11-01** (0 errors, 0 warnings, 31.0 MB, debug-signed; not tested on a phone yet); see `AndroidPreviewBuildReport.md` |
+| UI enhancement (nav/records/profile/icon) | Hamburger menu, Records (Achievements/Score), profile badge, score history, adaptive launcher icon, "Desi Merge" label | **Complete — awaiting review** (2026-11-02; EditMode 222/222, PlayMode 121/121, APK built; not tested on a phone); see `Phase66_UI_Enhancement_Report.md` |
+| Diamonds & gameplay polish | Live BEST, centred labels, Poppins body font, rounded progress bars, Hammer/Shuffle zoom + effects, Diamonds currency (earn, spend, counters) | **Complete — awaiting review** (2026-11-02; EditMode 226/226, PlayMode 128/128, APK built; not tested on a phone); see `DiamondsAndGameplayPolish.md` |
+| Skins, collection & 3D art | Skin tag + Skins screen (4 skins for Diamonds), 40 new items, collection pages (50 items), 3D lighting for all art | **Complete — awaiting review** (2026-11-02; EditMode 230/230, PlayMode 129/129, APK built, 0 warnings; not tested on a phone); see `SkinsAndArtUpgrade.md` |
 | 7 | Not defined yet | Not started |
 
 ## Phase 6.6 — Production-Grade Player Experience (2026-10-30)

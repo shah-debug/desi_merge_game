@@ -37,8 +37,12 @@ namespace DesiMerge.Gameplay
         private readonly IPowerUpService _service;
         private readonly System.Random _random;
 
-        public PowerUpController(GameplayConfig config, MergeBoard board, IPowerUpService service, System.Random random)
+        private readonly DesiMerge.Progression.IPlayerProgressService _wallet;
+
+        public PowerUpController(GameplayConfig config, MergeBoard board, IPowerUpService service, System.Random random,
+            DesiMerge.Progression.IPlayerProgressService wallet = null)
         {
+            _wallet = wallet;
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _board = board ?? throw new ArgumentNullException(nameof(board));
             _service = service ?? throw new ArgumentNullException(nameof(service));
@@ -78,7 +82,7 @@ namespace DesiMerge.Gameplay
                 return PowerUpResult.UnknownPowerUp;
             }
 
-            if (_service.Available(id) <= 0)
+            if (_service.Available(id) <= 0 && !CanBuy(definition))
             {
                 return PowerUpResult.NoCharges;
             }
@@ -143,8 +147,22 @@ namespace DesiMerge.Gameplay
             return true;
         }
 
+        /// <summary>Diamond price of one use of a power-up (0 = not for sale).</summary>
+        public int PriceOf(string id) => _service.Find(id)?.diamondPrice ?? 0;
+
+        /// <summary>True when the power-up has no uses left but the player can buy one with diamonds.</summary>
+        public bool CanBuy(PowerUpDefinition definition) =>
+            _wallet != null && definition != null && definition.diamondPrice > 0 && _wallet.Coins >= definition.diamondPrice;
+
         private PowerUpResult Consume(string id)
         {
+            if (_service.Available(id) <= 0 && CanBuy(_service.Find(id)))
+            {
+                // Bought: diamonds are spent only now, after the effect has worked.
+                _wallet.TrySpendCoins(_service.Find(id).diamondPrice);
+                return PowerUpResult.Used;
+            }
+
             if (!_service.TryConsume(id))
             {
                 // Availability was checked before the effect; this would mean the charges changed meanwhile.

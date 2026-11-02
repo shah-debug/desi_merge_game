@@ -15,6 +15,9 @@ namespace DesiMerge.UI
         [SerializeField] private GameObject selectedHighlight;
         [SerializeField] private CanvasGroup contentGroup;
         [SerializeField, Range(0f, 1f)] private float unavailableAlpha = 0.5f;
+        [SerializeField] private GameObject countBadge;
+        [SerializeField] private GameObject priceBadge;
+        [SerializeField] private Text priceText;
 
         public event Action<string> Clicked;
 
@@ -22,6 +25,8 @@ namespace DesiMerge.UI
         public bool Interactable => button != null && button.interactable;
         public string CountText => countText != null ? countText.text : string.Empty;
         public bool ShowsSelected => selectedHighlight != null && selectedHighlight.activeSelf;
+        public bool ShowsPrice => priceBadge != null && priceBadge.activeSelf;
+        public string PriceLabel => priceText != null ? priceText.text : string.Empty;
         public bool ShowsUnavailable => contentGroup != null && contentGroup.alpha < 1f;
 
         private void Awake()
@@ -54,6 +59,22 @@ namespace DesiMerge.UI
                 countText.text = state.Available.ToString();
             }
 
+            var priced = state.Price > 0;
+            if (countBadge != null)
+            {
+                countBadge.SetActive(!priced);
+            }
+
+            if (priceBadge != null)
+            {
+                priceBadge.SetActive(priced);
+            }
+
+            if (priceText != null)
+            {
+                priceText.text = state.Price.ToString();
+            }
+
             if (button != null)
             {
                 button.interactable = state.Interactable;
@@ -66,7 +87,8 @@ namespace DesiMerge.UI
 
             if (contentGroup != null)
             {
-                contentGroup.alpha = state.Interactable || state.Selected ? 1f : unavailableAlpha;
+                var usable = state.Selected || (state.Interactable && (state.Price == 0 || state.CanAfford));
+                contentGroup.alpha = usable ? 1f : unavailableAlpha;
             }
         }
 

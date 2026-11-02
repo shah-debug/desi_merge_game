@@ -19,6 +19,9 @@ namespace DesiMerge.Progression
 
         long TotalMerges { get; }
 
+        /// <summary>The last finished games (local history), oldest first. A revived game updates its own entry.</summary>
+        IReadOnlyList<ScoreRecord> RecentGames { get; }
+
         /// <summary>Stable ID of the highest-level item ever discovered (empty if none, or if its content was removed).</summary>
         string HighestItemId { get; }
 
@@ -71,6 +74,14 @@ namespace DesiMerge.Progression
         void RecordSeen(MergeItemDefinition item);
 
         void AddCoins(long amount);
+
+        /// <summary>
+        /// Adds diamonds for the reward <paramref name="grantId"/> at most once, ever, and saves immediately (like
+        /// power-up grants), so an interrupted claim is never paid twice. Repeats return true without paying.
+        /// </summary>
+        bool TryGrantCoins(string grantId, long amount);
+
+        bool HasAppliedCoinGrant(string grantId);
 
         /// <summary>Spends coins if the balance allows it. Returns false and changes nothing otherwise.</summary>
         bool TrySpendCoins(long amount);

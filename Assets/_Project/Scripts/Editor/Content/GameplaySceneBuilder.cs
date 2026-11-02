@@ -67,6 +67,7 @@ namespace DesiMerge.Editor.Content
             var effects = BuildMergeEffects();
 
             var hud = BuildHud(factory, camera, effects);
+            EditorRefs.Set(hud, ("powerUpEffects", BuildPowerUpEffects(camera, board, effects)));
             UiFactory.EventSystem();
 
             var entry = new GameObject("GameplayEntryPoint").AddComponent<GameplayEntryPoint>();
@@ -88,6 +89,28 @@ namespace DesiMerge.Editor.Content
             ornament.sortingOrder = -25;
             ornament.transform.position = position;
             ornament.transform.localScale = Vector3.one * (size / theme.ornament.bounds.size.x);
+        }
+
+        /// <summary>Hammer swing, smash stand-in and camera zoom (visual only, no colliders).</summary>
+        private static PowerUpEffects BuildPowerUpEffects(Camera camera, MergeBoard board, MergeEffects effects)
+        {
+            var root = new GameObject("PowerUpEffects");
+            SpriteRenderer Renderer(string name, Sprite sprite, Color color, int order)
+            {
+                var renderer = new GameObject(name).AddComponent<SpriteRenderer>();
+                renderer.transform.SetParent(root.transform, false);
+                renderer.sprite = sprite;
+                renderer.color = color;
+                renderer.sortingOrder = order;
+                renderer.enabled = false;
+                return renderer;
+            }
+
+            var ghost = Renderer("SmashGhost", null, Color.white, 9);
+            var hammer = Renderer("Hammer", GameArtGenerator.Load(GameArtGenerator.IconPath("HammerArt")) ?? GameArtGenerator.Icon("Hammer"), Color.white, 12);
+            var fx = root.AddComponent<PowerUpEffects>();
+            EditorRefs.Set(fx, ("worldCamera", camera), ("board", board), ("mergeEffects", effects), ("hammer", hammer), ("ghost", ghost));
+            return fx;
         }
 
         private static MergeEffects BuildMergeEffects()
@@ -211,18 +234,18 @@ namespace DesiMerge.Editor.Content
             strip.offsetMax = new Vector2(-130f, 40f);
 
             var scoreCaption = factory.Text(bar, "ScoreCaption", "SCORE", 34, theme.accent, TextAnchor.MiddleLeft);
-            UiFactory.Place(scoreCaption.rectTransform, new Vector2(0f, 1f), new Vector2(44f, -22f), new Vector2(300f, 40f));
+            UiFactory.Place(scoreCaption.rectTransform, new Vector2(0f, 1f), new Vector2(176f, -22f), new Vector2(260f, 40f));
             var scoreText = factory.Text(bar, "ScoreText", "0", 96, theme.textLight, TextAnchor.MiddleLeft);
             AddShadow(scoreText.gameObject, theme, 0.45f, 5f);
-            UiFactory.Place(scoreText.rectTransform, new Vector2(0f, 1f), new Vector2(40f, -60f), new Vector2(360f, 112f));
+            UiFactory.Place(scoreText.rectTransform, new Vector2(0f, 1f), new Vector2(172f, -60f), new Vector2(300f, 112f));
             var scorePunch = UiFactory.Punch(scoreText.gameObject, 0.12f, theme.punchDuration, false);
 
             var crown = factory.Image(bar, "BestIcon", GameArtGenerator.Icon("Crown"), theme.accent);
-            UiFactory.Place(crown.rectTransform, new Vector2(0f, 1f), new Vector2(410f, -22f), new Vector2(46f, 46f));
+            UiFactory.Place(crown.rectTransform, new Vector2(0f, 1f), new Vector2(482f, -22f), new Vector2(46f, 46f));
             var bestCaption = factory.Text(bar, "BestCaption", "BEST", 32, theme.accent, TextAnchor.MiddleLeft);
-            UiFactory.Place(bestCaption.rectTransform, new Vector2(0f, 1f), new Vector2(466f, -24f), new Vector2(160f, 42f));
+            UiFactory.Place(bestCaption.rectTransform, new Vector2(0f, 1f), new Vector2(538f, -24f), new Vector2(140f, 42f));
             var bestText = factory.Text(bar, "BestText", "0", 60, theme.textLight, TextAnchor.MiddleLeft);
-            UiFactory.Place(bestText.rectTransform, new Vector2(0f, 1f), new Vector2(410f, -76f), new Vector2(250f, 80f));
+            UiFactory.Place(bestText.rectTransform, new Vector2(0f, 1f), new Vector2(482f, -76f), new Vector2(190f, 80f));
 
             var well = UiFactory.Place(UiFactory.Rect("NextWell", bar), new Vector2(1f, 0.5f), new Vector2(-198f, 8f), new Vector2(160f, 160f));
             var glow = factory.Image(well, "Glow", theme.glow, new Color(theme.accent.r, theme.accent.g, theme.accent.b, 0.45f));
@@ -241,19 +264,27 @@ namespace DesiMerge.Editor.Content
             var pause = factory.Button(bar, "PauseButton", string.Empty, theme.accent, new Vector2(124f, 124f), icon: theme.pauseIcon, iconColor: theme.deep);
             UiFactory.Place((RectTransform)pause.transform, new Vector2(1f, 0.5f), new Vector2(-30f, 4f), new Vector2(124f, 124f));
             UiFactory.Record(pause.transform);
+            var menuButton = factory.Button(bar, "MenuButton", string.Empty, theme.secondary, new Vector2(124f, 124f), icon: GameArtGenerator.Icon("Menu"), iconColor: Color.white);
+            UiFactory.Place((RectTransform)menuButton.transform, new Vector2(0f, 0.5f), new Vector2(26f, 4f), new Vector2(124f, 124f));
+            UiFactory.Record(menuButton.transform);
 
             var instructions = factory.Image(topHud, "Instructions", theme.pill, new Color(1f, 1f, 1f, 0.94f));
-            UiFactory.Place(instructions.rectTransform, new Vector2(0.5f, 1f), new Vector2(-170f, -262f), new Vector2(640f, 92f));
+            UiFactory.Place(instructions.rectTransform, new Vector2(0.5f, 1f), new Vector2(-170f, -334f), new Vector2(640f, 92f));
             AddShadow(instructions.gameObject, theme, 0.18f, 6f);
             var instructionText = factory.Text(instructions.transform, "Text", "Drag to aim  •  Lift to drop", 36, theme.deep, body: true);
             UiFactory.Stretch(instructionText.rectTransform);
 
-            var powerBar = UiFactory.Place(UiFactory.Rect("PowerUpBar", topHud), new Vector2(1f, 1f), new Vector2(-24f, -250f), new Vector2(338f, 156f));
+            var diamondCounter = MainMenuSceneBuilder.DiamondPill(factory, topHud, new Vector2(0f, 1f), new Vector2(30f, -244f), new Vector2(200f, 72f));
+            var skinTag = factory.Button(topHud, "SkinTag", "SKIN", theme.accent, new Vector2(150f, 78f), 32, GameArtGenerator.Icon("Gift"), theme.deep);
+            GameplaySceneBuilder.SetLabelColor(skinTag, theme.deep);
+            UiFactory.Place((RectTransform)skinTag.transform, new Vector2(1f, 1f), new Vector2(-250f, -232f), new Vector2(150f, 78f));
+            UiFactory.Record(skinTag.transform);
+            var powerBar = UiFactory.Place(UiFactory.Rect("PowerUpBar", topHud), new Vector2(1f, 1f), new Vector2(-24f, -326f), new Vector2(338f, 156f));
             var hammer = BuildPowerUpButton(factory, powerBar, "HammerSlot", theme.primary, 0f, "Hammer");
             var shuffle = BuildPowerUpButton(factory, powerBar, "ShuffleSlot", theme.secondary, 182f, "Shuffle");
 
             var banner = factory.Image(topHud, "TargetingBanner", theme.pill, theme.primary);
-            UiFactory.Place(banner.rectTransform, new Vector2(0.5f, 1f), new Vector2(-170f, -256f), new Vector2(640f, 108f));
+            UiFactory.Place(banner.rectTransform, new Vector2(0.5f, 1f), new Vector2(-170f, -328f), new Vector2(640f, 108f));
             AddShadow(banner.gameObject, theme, 0.25f, 6f);
             var bannerIcon = factory.Image(banner.transform, "Icon", GameArtGenerator.Icon("Hammer"), Color.white);
             UiFactory.Place(bannerIcon.rectTransform, new Vector2(0f, 0.5f), new Vector2(30f, 0f), new Vector2(56f, 56f));
@@ -374,8 +405,9 @@ namespace DesiMerge.Editor.Content
                 ("continueButton", continueButton), ("reviveStatusText", reviveStatus),
                 ("powerUpButtons", new Object[] { hammer, shuffle }), ("targetingBanner", banner.gameObject),
                 ("targetingText", bannerText), ("targetingCancelButton", cancelTargeting),
-                ("pointerBlockers", new Object[] { topBar, powerBar, banner.rectTransform }), ("errorText", errorText),
+                ("pointerBlockers", new Object[] { topBar, powerBar, banner.rectTransform, (RectTransform)skinTag.transform }), ("errorText", errorText),
                 ("summaryText", summary), ("improvementText", improvement),
+                ("menuButton", menuButton), ("diamondCounter", diamondCounter), ("skinTagButton", skinTag), ("gameMenu", NavigationScreensBuilder.BuildGameplayMenu(factory, root, safe, responsive)),
                 ("tutorial", TutorialBuilder.Build(factory, root)));
             responsive.Add(gameOverCard);
             responsive.Add(pausePanel.transform.Find("Card"));
@@ -411,8 +443,17 @@ namespace DesiMerge.Editor.Content
             var count = factory.Text(badge.transform, "Count", "0", 34, theme.deep);
             UiFactory.Stretch(count.rectTransform, 0f, 0f, 0f, 2f);
 
+            var price = factory.Image(slot, "PriceBadge", theme.pill, theme.deep);
+            UiFactory.Place(price.rectTransform, new Vector2(1f, 1f), new Vector2(26f, 18f), new Vector2(112f, 56f));
+            var gem = factory.Image(price.transform, "Gem", GameArtGenerator.Load(GameArtGenerator.IconPath("DiamondArt")), Color.white);
+            gem.preserveAspect = true;
+            UiFactory.Place(gem.rectTransform, new Vector2(0f, 0.5f), new Vector2(6f, 1f), new Vector2(44f, 44f));
+            var priceText = factory.Text(price.transform, "Price", "0", 32, Color.white);
+            UiFactory.Stretch(priceText.rectTransform, 48f, 8f, 0f, 2f);
+            price.gameObject.SetActive(false);
             var component = slot.gameObject.AddComponent<PowerUpButton>();
-            EditorRefs.Set(component, ("button", button), ("titleText", title), ("countText", count), ("selectedHighlight", highlight.gameObject), ("contentGroup", group));
+            EditorRefs.Set(component, ("button", button), ("titleText", title), ("countText", count), ("selectedHighlight", highlight.gameObject), ("contentGroup", group),
+                ("countBadge", badge.gameObject), ("priceBadge", price.gameObject), ("priceText", priceText));
             return component;
         }
 

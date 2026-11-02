@@ -65,6 +65,14 @@ namespace DesiMerge.Gameplay
             board.Initialize(gameplayConfig, () => Time.time);
             dropController.Configure(gameplayConfig, board.transform);
             hud.BindAudio(services.Audio);
+            hud.BindMenu(services);
+            Sprite Skin(MergeItemDefinition definition) =>
+                services.Cosmetics.Selected(DesiMerge.Cosmetics.CosmeticKind.ItemSkin)?.SpriteFor(gameplayConfig.Progression.IndexOf(definition.Id));
+            board.SkinSprite = Skin;
+            dropController.SkinSprite = Skin;
+            hud.SkinSprite = Skin;
+            _cosmetics = services.Cosmetics;
+            _cosmetics.Changed += OnSkinChanged;
             Loop = new GameplayLoop(gameplayConfig, board, dropController, hud, services, () => Time.time);
             Loop.Begin();
             ShowTutorialIfNeeded(services);
@@ -113,9 +121,18 @@ namespace DesiMerge.Gameplay
             _backButton = null;
         }
 
+        private DesiMerge.Cosmetics.ICosmeticService _cosmetics;
+
+        /// <summary>A new skin applies at once: items on the board, the drop preview and NEXT all switch.</summary>
+        private void OnSkinChanged()
+        {
+            board.RefreshSkins();
+            Loop?.RefreshItemPreviews();
+        }
+
         private void OnBackPressed()
         {
-            if (hud != null && hud.CloseTutorial())
+            if (hud != null && (hud.CloseTutorial() || hud.CloseMenuScreen()))
             {
                 return;
             }
@@ -142,6 +159,11 @@ namespace DesiMerge.Gameplay
 
         private void OnDestroy()
         {
+            if (_cosmetics != null)
+            {
+                _cosmetics.Changed -= OnSkinChanged;
+            }
+
             Loop?.Dispose();
             Loop = null;
             _ownedServices?.Dispose();

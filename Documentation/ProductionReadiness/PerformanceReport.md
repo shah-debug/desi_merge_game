@@ -18,7 +18,8 @@
 | 15 min | clamp + thick colliders | — | 3+ | — | — | — | — | — | — | — | **FAIL** after 120 s: item 0.15 inside the wall (x = −3.40) |
 | 40 s | + solver 10/6 iterations | 2,376 | 1 | 79 | 39 | 200 / 280 | 16.7 / 18.8 / 25.4 / 128.9 | 12 | 37.6 → 38.1 | 0.019 | Pass |
 | 5 min | + solver 10/6 iterations | 197,808 | 6 | 600 | 41 | 200 / 284 | 1.4 / 2.5 / 4.6 / 961.0 | 166 | 34.3 → 38.6 | **0.402** (2 of 6,593 samples > 0.1) | Pass |
-| 15 min | + solver 10/6 iterations | — | — | — | — | — | — | — | — | — | **NOT COMPLETED**: stopped by Claude Code because the PC ran low on memory, not by the test |
+| 15 min | + solver 10/6 iterations (1st attempt, 2026-10-30) | — | — | — | — | — | — | — | — | — | **NOT COMPLETED**: stopped by Claude Code because the PC ran low on memory, not by the test |
+| 15 min | + solver 10/6 iterations (2nd attempt, 2026-11-01) | 619,614 | 15 | 1,465 | 46 | 200 / 294 | 0.9 / 2.5 / 4.9 / 1640.9 | 615 | 32.2 → 36.3 | **0.322** (3 of 20,653 samples > 0.1) | **All gameplay checks passed** for the full 900 s (113 pauses, 15 restarts, no escape, score and merge counts exact). Formally reported **Failed** by the test runner's 40-minute wall-clock timeout: the run took 57 wall-clock minutes because the PC was under memory pressure (Claude Code later stopped the job for low memory) |
 | 30 min | — | — | — | — | — | — | — | — | — | — | **NOT RUN** (time and memory on this PC) |
 
 ## Reading the numbers

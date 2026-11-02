@@ -18,8 +18,10 @@ MonoBehaviour:
     kind: 0
     freeUsesPerGame: 1
     maxSavedCharges: 9
+    diamondPrice: 30
   - id: shuffle
     title: Shuffle
     kind: 1
     freeUsesPerGame: 1
     maxSavedCharges: 9
+    diamondPrice: 20

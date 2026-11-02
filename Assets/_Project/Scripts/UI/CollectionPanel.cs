@@ -22,6 +22,9 @@ namespace DesiMerge.UI
         [SerializeField] private RectTransform grid;
         [SerializeField] private CollectionSlot slotTemplate;
         [SerializeField] private Text counterText;
+        [SerializeField] private Text skinTitle;
+        [SerializeField] private Button previousSkinButton;
+        [SerializeField] private Button nextSkinButton;
         [SerializeField] private Text emptyText;
         [SerializeField] private Button closeButton;
         [Tooltip("Used when an item has no sprite.")]
@@ -30,6 +33,48 @@ namespace DesiMerge.UI
         private readonly List<CollectionSlot> _slots = new List<CollectionSlot>();
         private IPlayerProgressService _progress;
         private MergeProgression _content;
+        private DesiMerge.Cosmetics.ICosmeticService _cosmetics;
+        private readonly List<DesiMerge.Cosmetics.CosmeticDefinition> _skins = new List<DesiMerge.Cosmetics.CosmeticDefinition>();
+        private int _page;
+
+        /// <summary>The skin page shown (null = the default items only, when there is no skin catalog).</summary>
+        public DesiMerge.Cosmetics.CosmeticDefinition Page => _page >= 0 && _page < _skins.Count ? _skins[_page] : null;
+        public int PageCount => Mathf.Max(1, _skins.Count);
+        public string SkinTitle => skinTitle != null ? skinTitle.text : string.Empty;
+
+        /// <summary>Adds one page per item skin (each skin's 10 items are collected separately).</summary>
+        public void BindSkins(DesiMerge.Cosmetics.ICosmeticService cosmetics)
+        {
+            _cosmetics = cosmetics;
+            _skins.Clear();
+            if (cosmetics != null)
+            {
+                foreach (var definition in cosmetics.Definitions)
+                {
+                    if (definition.kind == DesiMerge.Cosmetics.CosmeticKind.ItemSkin)
+                    {
+                        _skins.Add(definition);
+                    }
+                }
+            }
+
+            previousSkinButton?.onClick.RemoveListener(PreviousPage);
+            nextSkinButton?.onClick.RemoveListener(NextPage);
+            previousSkinButton?.onClick.AddListener(PreviousPage);
+            nextSkinButton?.onClick.AddListener(NextPage);
+            _page = 0;
+            Refresh();
+        }
+
+        public void ShowPage(int page)
+        {
+            _page = (page % PageCount + PageCount) % PageCount;
+            Refresh();
+        }
+
+        private void PreviousPage() => ShowPage(_page - 1);
+
+        private void NextPage() => ShowPage(_page + 1);
         private bool _opening;
 
         public IReadOnlyList<CollectionSlot> Slots => _slots;
@@ -107,11 +152,14 @@ namespace DesiMerge.UI
                     continue;
                 }
 
-                var sprite = definition.Sprite != null ? definition.Sprite : placeholderSprite;
-                if (_progress.IsDiscovered(definition.Id))
+                var skin = Page;
+                var skinSprite = skin?.SpriteFor(level);
+                var sprite = skinSprite != null ? skinSprite : definition.Sprite != null ? definition.Sprite : placeholderSprite;
+                var name = skin?.NameFor(level) ?? definition.DisplayName;
+                if (IsFound(level))
                 {
                     discovered++;
-                    slot.Show(sprite, definition.SpriteColor, definition.DisplayName, true);
+                    slot.Show(sprite, skinSprite != null ? Color.white : definition.SpriteColor, name, true);
                 }
                 else
                 {
@@ -119,7 +167,16 @@ namespace DesiMerge.UI
                 }
             }
 
-            SetCounter($"{discovered} / {count} discovered");
+            var page = Page;
+            if (skinTitle != null)
+            {
+                skinTitle.text = page != null ? page.title.ToUpperInvariant() : string.Empty;
+            }
+
+            previousSkinButton?.gameObject.SetActive(_skins.Count > 1);
+            nextSkinButton?.gameObject.SetActive(_skins.Count > 1);
+            var locked = page != null && _cosmetics != null && !_cosmetics.IsOwned(page.id);
+            SetCounter(locked ? $"Unlock {page.title} in Skins ({page.price} diamonds)" : $"{discovered} / {count} discovered" + (_skins.Count > 1 ? $"   •   {TotalFound()} / {count * _skins.Count} in all" : string.Empty));
         }
 
         /// <summary>Names only the already-discovered item that makes this one, so future items stay a surprise.</summary>
@@ -131,7 +188,37 @@ namespace DesiMerge.UI
             }
 
             var previous = _content.Get(level - 1);
-            return previous != null && _progress.IsDiscovered(previous.Id) ? $"2× {previous.DisplayName}" : "???";
+            var name = Page?.NameFor(level - 1) ?? previous?.DisplayName;
+            return previous != null && IsFound(level - 1) ? $"2× {name}" : "???";
+        }
+
+        /// <summary>Default items use the saved discoveries; skin items count once made or dropped with that skin.</summary>
+        private bool IsFound(int level)
+        {
+            var page = Page;
+            if (page == null || page.unlock == DesiMerge.Cosmetics.CosmeticUnlock.Default)
+            {
+                return _progress.IsDiscovered(_content.Get(level).Id);
+            }
+
+            return _cosmetics != null && _cosmetics.IsDiscovered(page.id, level);
+        }
+
+        private int TotalFound()
+        {
+            var total = 0;
+            var current = _page;
+            for (var page = 0; page < _skins.Count; page++)
+            {
+                _page = page;
+                for (var level = 0; level < _content.Count; level++)
+                {
+                    total += IsFound(level) ? 1 : 0;
+                }
+            }
+
+            _page = current;
+            return total;
         }
 
         private void EnsureSlots(int count)

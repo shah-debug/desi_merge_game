@@ -88,7 +88,35 @@ namespace DesiMerge.Editor.Content
         public void Body(Func<Vector2, float> sdf, float outline, Color ink, Color light, Color dark, float rim = 0.22f)
         {
             Fill(p => sdf(p) - outline, ink);
-            Fill(sdf, p => Shade(p, sdf(p), light, dark, rim));
+            Fill(sdf, p => Shade3D(sdf, p, light, dark, rim));
+        }
+
+        private static readonly Vector3 LightDirection = new Vector3(-0.45f, 0.62f, 0.64f).normalized;
+        private static readonly Vector3 HalfVector = (LightDirection + Vector3.forward).normalized;
+
+        /// <summary>
+        /// Volume lighting from the shape itself: the SDF gives a rounded "dome" height (flat in the middle, curving
+        /// down to the outline) and a surface normal. That normal is lit from the upper left (diffuse), gets a glossy
+        /// specular highlight, and blends with the flat gradient so colours stay true. Every Body gets real 3D form.
+        /// </summary>
+        public static Color Shade3D(Func<Vector2, float> sdf, Vector2 p, Color light, Color dark, float rim)
+        {
+            const float e = 0.004f;
+            var d = sdf(p);
+            var gradient = new Vector2(sdf(p + new Vector2(e, 0f)) - sdf(p - new Vector2(e, 0f)), sdf(p + new Vector2(0f, e)) - sdf(p - new Vector2(0f, e)));
+            gradient = gradient.sqrMagnitude > 1e-12f ? gradient.normalized : Vector2.zero;
+            var bevel = Mathf.Max(0.14f, rim * 1.7f);
+            var t = Mathf.Clamp01(-d / bevel);
+            var height = Mathf.Sqrt(1f - (1f - t) * (1f - t));
+            var normal = new Vector3(gradient.x * (1f - height), gradient.y * (1f - height), height + 0.25f).normalized;
+            var diffuse = Mathf.Clamp01(Vector3.Dot(normal, LightDirection));
+            var flat = Shade(p, d, light, dark, rim);
+            var lit = Color.Lerp(dark, light, Mathf.SmoothStep(0f, 1f, 0.15f + diffuse * 0.95f));
+            var color = Color.Lerp(flat, lit, 0.62f);
+            var specular = Mathf.Pow(Mathf.Clamp01(Vector3.Dot(normal, HalfVector)), 36f) * 0.5f * (1f - t * 0.35f);
+            color = Color.Lerp(color, Color.white, specular);
+            color.a = light.a;
+            return color;
         }
 
         public static Color Shade(Vector2 p, float d, Color light, Color dark, float rim)

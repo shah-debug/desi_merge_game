@@ -43,11 +43,19 @@ namespace DesiMerge.UI
         [SerializeField] private MissionsPanel missionsPanel;
         [SerializeField] private RanksPanel ranksPanel;
         [SerializeField] private RewardPresenter rewardPresenter;
+        [SerializeField] private RecordsPanel recordsPanel;
+
+        [Header("Profile")]
+        [SerializeField] private Image profileAvatar;
+        [SerializeField] private Sprite defaultAvatar;
+        [SerializeField] private GameObject newPlayerBadge;
+        [SerializeField] private DiamondCounter diamondCounter;
 
         [Tooltip("Editor/development only: config used when this scene is played without Bootstrap.")]
         [SerializeField] private GameConfig developmentConfig;
 
         private GameServices _services;
+        private Color? _defaultAvatarColor;
         private GameServices _ownedServices;
         private BackButton _backButton;
         private bool _initializeAttempted;
@@ -68,6 +76,11 @@ namespace DesiMerge.UI
         public MissionsPanel Missions => missionsPanel;
         public RanksPanel Ranks => ranksPanel;
         public RewardPresenter Rewards => rewardPresenter;
+        public RecordsPanel Records => recordsPanel;
+        public Sprite ProfileAvatar => profileAvatar != null ? profileAvatar.sprite : null;
+        public Color ProfileAvatarColor => profileAvatar != null ? profileAvatar.color : Color.clear;
+        public DiamondCounter Diamonds => diamondCounter;
+        public bool NewPlayerBadgeVisible => newPlayerBadge != null && newPlayerBadge.activeSelf;
         public bool DailyRewardsDotVisible => dailyRewardsDot != null && dailyRewardsDot.activeSelf;
         public bool MissionsDotVisible => missionsDot != null && missionsDot.activeSelf;
         public string RankTitle => rankTitleText != null ? rankTitleText.text : string.Empty;
@@ -80,7 +93,8 @@ namespace DesiMerge.UI
             (achievementsPanel != null && achievementsPanel.IsOpen) ||
             (dailyRewardsPanel != null && dailyRewardsPanel.IsOpen) ||
             (missionsPanel != null && missionsPanel.IsOpen) ||
-            (ranksPanel != null && ranksPanel.IsOpen);
+            (ranksPanel != null && ranksPanel.IsOpen) ||
+            (recordsPanel != null && recordsPanel.IsOpen);
         public GameServices Services => _services;
 
         public void Initialize(GameServices services)
@@ -127,6 +141,7 @@ namespace DesiMerge.UI
             if (collectionPanel != null)
             {
                 collectionPanel.Bind(services.Progress, content, services.Audio);
+                collectionPanel.BindSkins(services.Cosmetics);
             }
 
             if (achievementsPanel != null)
@@ -155,15 +170,26 @@ namespace DesiMerge.UI
                 dailyChallengeCard.Bind(services.DailyChallenges, services.Progress, services.PowerUps);
             }
 
+            if (recordsPanel != null)
+            {
+                recordsPanel.Bind(services.Achievements, services.Progress, services.Milestones, content, services.Clock, services.Audio);
+            }
+
             if (ranksPanel != null)
             {
                 ranksPanel.Bind(services.Milestones, services.Progress, services.PowerUps, rewardPresenter, services.Audio);
+            }
+
+            if (diamondCounter != null)
+            {
+                diamondCounter.Bind(services.Progress);
             }
 
             services.DailyRewards.Changed += RefreshBadges;
             services.Missions.Changed += RefreshBadges;
             services.Milestones.Changed += RefreshBadges;
             services.DailyChallenges.Changed += RefreshBadges;
+            services.Progress.Changed += RefreshBadges;
             RefreshBadges();
             AddListener(dailyRewardsButton, OnDailyRewardsClicked);
             AddListener(missionsButton, OnMissionsClicked);
@@ -235,6 +261,12 @@ namespace DesiMerge.UI
                 return true;
             }
 
+            if (recordsPanel != null && recordsPanel.IsOpen)
+            {
+                recordsPanel.Close();
+                return true;
+            }
+
             if (settingsPanel != null && settingsPanel.IsOpen)
             {
                 settingsPanel.Close();
@@ -271,6 +303,7 @@ namespace DesiMerge.UI
                 _services.Missions.Changed -= RefreshBadges;
                 _services.Milestones.Changed -= RefreshBadges;
                 _services.DailyChallenges.Changed -= RefreshBadges;
+                _services.Progress.Changed -= RefreshBadges;
             }
 
             _ownedServices?.Dispose();
@@ -329,7 +362,17 @@ namespace DesiMerge.UI
 
         private void OnAchievementsClicked()
         {
-            if (achievementsPanel != null && CanOpenPanel())
+            if (!CanOpenPanel())
+            {
+                return;
+            }
+
+            // Records (Achievements + Score tabs) replaced the old Awards panel; the old one is used only if a scene still has it.
+            if (recordsPanel != null)
+            {
+                recordsPanel.Open(RecordsTab.Achievements);
+            }
+            else if (achievementsPanel != null)
             {
                 achievementsPanel.Open();
             }
@@ -388,6 +431,19 @@ namespace DesiMerge.UI
             {
                 rankProgressFill.fillAmount = milestones.ProgressToNext;
             }
+
+            // Avatar: the highest item this player has made (real progress); a default face for new players.
+            var content = _services.ItemContent;
+            var highestIndex = content != null && !string.IsNullOrEmpty(_services.Progress.HighestItemId) ? content.IndexOf(_services.Progress.HighestItemId) : -1;
+            var highest = highestIndex >= 0 ? content.Get(highestIndex).Sprite : null;
+            if (profileAvatar != null)
+            {
+                _defaultAvatarColor ??= profileAvatar.color;
+                profileAvatar.sprite = highest != null ? highest : defaultAvatar;
+                profileAvatar.color = highest != null ? Color.white : _defaultAvatarColor.Value;
+            }
+
+            SetActive(newPlayerBadge, current == null);
         }
 
         private static void SetActive(GameObject target, bool active)

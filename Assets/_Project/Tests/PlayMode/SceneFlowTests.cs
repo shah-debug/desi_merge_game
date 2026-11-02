@@ -78,17 +78,19 @@ namespace DesiMerge.Tests.PlayMode
             menu.CollectionButton.onClick.Invoke();
             yield return new WaitForSecondsRealtime(0.4f);
             Assert.IsTrue(menu.Collection.IsOpen);
-            Assert.AreEqual($"6 / {items.Count} discovered", menu.Collection.CounterText);
+            StringAssert.StartsWith($"6 / {items.Count} discovered", menu.Collection.CounterText, "The default skin page counts the saved discoveries (the total across all skins follows).");
             yield return SceneCapture.Capture(SceneManager.GetSceneByName(MenuScene), "menu-collection-9x16.png", 540, 960);
             menu.Collection.Close();
             yield return new WaitForSecondsRealtime(0.3f);
 
             menu.AchievementsButton.onClick.Invoke();
             yield return new WaitForSecondsRealtime(0.4f);
-            Assert.IsTrue(menu.Achievements.IsOpen);
-            StringAssert.StartsWith("420\n1\n6\n", menu.Achievements.StatsText);
-            yield return SceneCapture.Capture(SceneManager.GetSceneByName(MenuScene), "menu-achievements-9x16.png", 540, 960);
-            menu.Achievements.Close();
+            Assert.IsTrue(menu.Records.IsOpen, "The Records tile (formerly Awards) opens Records on the Achievements tab.");
+            Assert.AreEqual(RecordsTab.Achievements, menu.Records.Tab);
+            menu.Records.SelectTab(RecordsTab.Score);
+            Assert.AreEqual("420", menu.Records.BestLabel);
+            yield return SceneCapture.Capture(SceneManager.GetSceneByName(MenuScene), "menu-records-9x16.png", 540, 960);
+            menu.Records.Close();
             yield return new WaitForSecondsRealtime(0.3f);
 
             // --- Play (double tap) ---

@@ -21,6 +21,7 @@ namespace DesiMerge.Editor.Content
     {
         private const string MainMenuSceneName = "MainMenu";
         private const string DisplayFontPath = "Assets/_Project/Art/Fonts/LilitaOne-Regular.ttf";
+        private const string BodyFontPath = "Assets/_Project/Art/Fonts/Poppins-SemiBold.ttf";
 
         [MenuItem("Desi Merge/Setup/Create All Content")]
         public static void CreateAllContent()
@@ -121,7 +122,7 @@ namespace DesiMerge.Editor.Content
             theme.backgroundGradient = GameArtGenerator.Load(GameArtGenerator.BackgroundPath);
             theme.pauseIcon = GameArtGenerator.Icon("Pause");
             theme.font = AssetDatabase.LoadAssetAtPath<Font>(DisplayFontPath);
-            theme.bodyFont = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            theme.bodyFont = AssetDatabase.LoadAssetAtPath<Font>(BodyFontPath) ?? Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             EditorUtility.SetDirty(theme);
         }
 

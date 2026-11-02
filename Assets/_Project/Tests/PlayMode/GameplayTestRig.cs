@@ -227,6 +227,12 @@ namespace DesiMerge.Tests.PlayMode
         public readonly List<string> Toasts = new List<string>();
         public void ShowToast(string message) => Toasts.Add(message);
         public void ShowPause() => PauseShown++;
+        public int MenuShown;
+        public int MenuHidden;
+        public event Action MenuRequested;
+        public void ShowMenu() => MenuShown++;
+        public void HideMenu() => MenuHidden++;
+        public void RequestMenu() => MenuRequested?.Invoke();
         public void HidePause() => PauseHidden++;
 
         public void ShowGameOver(long finalScore, long bestScore, bool isNewBest)

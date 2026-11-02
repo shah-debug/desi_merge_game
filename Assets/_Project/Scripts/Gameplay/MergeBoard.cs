@@ -57,6 +57,24 @@ namespace DesiMerge.Gameplay
         /// <summary>An item stayed above the danger line too long. Raised once until <see cref="Clear"/>.</summary>
         public event Action DangerTimeExceeded;
 
+        /// <summary>Raised just before an item is removed by a power-up (Hammer), while it is still in place.</summary>
+        public event Action<MergeItem> ItemRemoving;
+
+        /// <summary>Raised after a successful Shuffle.</summary>
+        public event Action Shuffled;
+
+        /// <summary>Selected item skin: the sprite for a definition, or null for the default art. Visual only.</summary>
+        public Func<MergeItemDefinition, Sprite> SkinSprite { get; set; }
+
+        /// <summary>Re-applies the skin to every item on the board (after the player changes skin).</summary>
+        public void RefreshSkins()
+        {
+            foreach (var item in _active)
+            {
+                item.ApplySkin(SkinSprite?.Invoke(item.Definition));
+            }
+        }
+
         public bool IsInitialized => _config != null;
         public int ActiveCount => _active.Count;
         public IReadOnlyList<MergeItem> ActiveItems => _active;
@@ -144,6 +162,7 @@ namespace DesiMerge.Gameplay
                 return false;
             }
 
+            ItemRemoving?.Invoke(item);
             _resolver.Forget(item);
             Release(item);
             return true;
@@ -174,9 +193,12 @@ namespace DesiMerge.Gameplay
             _resolver.Clear();
             for (var i = 0; i < _active.Count; i++)
             {
+                var from = _active[i].transform.position;
                 _active[i].Teleport(LocalToWorld(positions[i]));
+                _active[i].PlayTravelFrom(from);
             }
 
+            Shuffled?.Invoke();
             return true;
         }
 
@@ -309,6 +331,11 @@ namespace DesiMerge.Gameplay
         {
             var item = _pool.Get();
             item.Activate(this, _config.Progression.Get(level), level, worldPosition, velocity, spawnTime, _config);
+            if (SkinSprite != null)
+            {
+                item.ApplySkin(SkinSprite(item.Definition));
+            }
+
             _active.Add(item);
             return item;
         }

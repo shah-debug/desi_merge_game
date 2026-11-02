@@ -42,6 +42,40 @@ namespace DesiMerge.Gameplay
         public MergeItemDefinition Definition { get; private set; }
         public bool IsConsumed { get; private set; }
         public float Radius { get; private set; }
+
+        public Sprite VisualSprite => spriteRenderer != null ? spriteRenderer.sprite : null;
+        public Color VisualColor => spriteRenderer != null ? spriteRenderer.color : Color.white;
+        public Vector3 VisualScale => spriteRenderer != null ? spriteRenderer.transform.lossyScale : Vector3.one;
+        public Quaternion VisualRotation => spriteRenderer != null ? spriteRenderer.transform.rotation : Quaternion.identity;
+
+        /// <summary>Visual-only: shows a skin's sprite (full colour), or the definition's own art when null.</summary>
+        public void ApplySkin(Sprite skinSprite)
+        {
+            if (spriteRenderer == null || Definition == null)
+            {
+                return;
+            }
+
+            spriteRenderer.sprite = skinSprite != null ? skinSprite : Definition.Sprite;
+            spriteRenderer.color = skinSprite != null ? Color.white : Definition.SpriteColor;
+        }
+
+        /// <summary>Visual-only: the art glides from a previous world position to the body (Shuffle).</summary>
+        public void PlayTravelFrom(Vector3 worldFrom)
+        {
+            if (spriteRenderer == null || spriteRenderer.transform == transform)
+            {
+                return;
+            }
+
+            var travel = spriteRenderer.GetComponent<ItemTravel>();
+            if (travel == null)
+            {
+                travel = spriteRenderer.gameObject.AddComponent<ItemTravel>();
+            }
+
+            travel.Play(worldFrom);
+        }
         public float SpawnTime { get; private set; }
         public Rigidbody2D Body => body;
 

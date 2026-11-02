@@ -63,7 +63,7 @@ namespace DesiMerge.Editor.Content
             EditorRefs.Set(presenter,
                 ("transition", transition), ("titleText", title), ("subtitleText", subtitle), ("rewardSlots", slotObjects), ("rewardIcons", icons), ("rewardLabels", labels),
                 ("rays", rays), ("iconPunch", punch), ("collectButton", collect),
-                ("hammerIcon", GameArtGenerator.Icon("Hammer")), ("shuffleIcon", GameArtGenerator.Icon("Shuffle")), ("giftIcon", GameArtGenerator.Icon("Gift")));
+                ("hammerIcon", GameArtGenerator.Icon("Hammer")), ("shuffleIcon", GameArtGenerator.Icon("Shuffle")), ("giftIcon", GameArtGenerator.Icon("Gift")), ("diamondIcon", GameArtGenerator.Load(GameArtGenerator.IconPath("DiamondArt"))));
             return presenter;
         }
 
@@ -245,7 +245,7 @@ namespace DesiMerge.Editor.Content
             return tile;
         }
 
-        private static ProgressCard ProgressRow(UiFactory factory, RectTransform list, string name, float y)
+        internal static ProgressCard ProgressRow(UiFactory factory, RectTransform list, string name, float y, bool leadingIcon = false)
         {
             var theme = factory.Theme;
             var root = UiFactory.Rect(name, list);
@@ -259,20 +259,29 @@ namespace DesiMerge.Editor.Content
             GameplaySceneBuilder.AddShadow(background.gameObject, theme, 0.15f, 6f);
 
             var title = factory.Text(root, "Title", string.Empty, 40, theme.deep, TextAnchor.MiddleLeft);
-            UiFactory.Place(title.rectTransform, new Vector2(0f, 1f), new Vector2(30f, -14f), new Vector2(500f, 50f));
+            var left = leadingIcon ? 126f : 30f;
+            var textWidth = leadingIcon ? 410f : 500f;
+            UiFactory.Place(title.rectTransform, new Vector2(0f, 1f), new Vector2(left, -14f), new Vector2(textWidth, 50f));
             var description = factory.Text(root, "Description", string.Empty, 27, theme.mutedText, TextAnchor.MiddleLeft, body: true);
             description.fontStyle = FontStyle.Normal;
-            UiFactory.Place(description.rectTransform, new Vector2(0f, 1f), new Vector2(30f, -64f), new Vector2(500f, 36f));
+            UiFactory.Place(description.rectTransform, new Vector2(0f, 1f), new Vector2(left, -64f), new Vector2(textWidth, 36f));
             var track = factory.Image(root, "Track", theme.pill, new Color(theme.deep.r, theme.deep.g, theme.deep.b, 0.12f));
-            UiFactory.Place(track.rectTransform, new Vector2(0f, 0f), new Vector2(30f, 22f), new Vector2(360f, 26f));
+            UiFactory.Place(track.rectTransform, new Vector2(0f, 0f), new Vector2(left, 22f), new Vector2(leadingIcon ? 280f : 360f, 26f));
             var fill = factory.Image(track.transform, "Fill", theme.pill, theme.accent);
-            fill.type = Image.Type.Filled;
-            fill.fillMethod = Image.FillMethod.Horizontal;
-            fill.fillOrigin = (int)Image.OriginHorizontal.Left;
-            fill.fillAmount = 0f;
+            UiFactory.ProgressFill(fill);
             UiFactory.Stretch(fill.rectTransform);
             var progress = factory.Text(root, "Progress", string.Empty, 28, theme.textDark, TextAnchor.MiddleLeft);
-            UiFactory.Place(progress.rectTransform, new Vector2(0f, 0f), new Vector2(404f, 15f), new Vector2(150f, 40f));
+            UiFactory.Place(progress.rectTransform, new Vector2(0f, 0f), new Vector2(left + (leadingIcon ? 294f : 374f), 15f), new Vector2(150f, 40f));
+            Image icon = null;
+            if (leadingIcon)
+            {
+                var iconDisc = factory.Image(root, "IconDisc", theme.disc, new Color(theme.deep.r, theme.deep.g, theme.deep.b, 0.9f));
+                UiFactory.Place(iconDisc.rectTransform, new Vector2(0f, 0.5f), new Vector2(22f, 0f), new Vector2(90f, 90f));
+                icon = factory.Image(iconDisc.transform, "Icon", null, Color.white);
+                icon.preserveAspect = true;
+                UiFactory.Stretch(icon.rectTransform, 16f, 16f, 16f, 16f);
+            }
+
 
             var rewardIcon = factory.Image(root, "RewardIcon", null, theme.primary);
             rewardIcon.preserveAspect = true;
@@ -290,7 +299,7 @@ namespace DesiMerge.Editor.Content
 
             var card = root.gameObject.AddComponent<ProgressCard>();
             EditorRefs.Set(card, ("titleText", title), ("descriptionText", description), ("progressFill", fill), ("progressText", progress),
-                ("rewardIcon", rewardIcon), ("rewardText", rewardText), ("claimButton", claim), ("doneMark", done.gameObject), ("background", background),
+                ("rewardIcon", rewardIcon), ("rewardText", rewardText), ("claimButton", claim), ("doneMark", done.gameObject), ("background", background), ("leadingIcon", icon),
                 ("normalColor", Color.white), ("claimableColor", ArtCanvas.Hex("#FFF1C9")), ("doneColor", ArtCanvas.Hex("#E8F4EF")));
             return card;
         }

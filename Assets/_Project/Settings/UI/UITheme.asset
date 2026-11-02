@@ -38,7 +38,7 @@ MonoBehaviour:
   borderStrip: {fileID: 21300000, guid: 49ac41c4ade8b844595620333ca9c452, type: 3}
   backgroundGradient: {fileID: 21300000, guid: fde066358f05ca34e943c8dd0248ebfb, type: 3}
   font: {fileID: 12800000, guid: 97c58214a9cb5f146a949f5b5da0fed7, type: 3}
-  bodyFont: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
+  bodyFont: {fileID: 12800000, guid: 0061bf92753d48046a70d87b27126524, type: 3}
   titleSize: 150
   headingSize: 84
   buttonSize: 64

@@ -15,6 +15,16 @@ namespace DesiMerge.Cosmetics
         public List<string> ownedIds = new List<string>();
         public string selectedContainerTheme = string.Empty;
         public string selectedItemSkin = string.Empty;
+        /// <summary>"skinId:level" for every skin item the player has made or dropped (collection per skin).</summary>
+        public List<string> discovered = new List<string>();
+    }
+
+    public enum CosmeticPurchase
+    {
+        Bought = 0,
+        AlreadyOwned = 1,
+        NotEnoughDiamonds = 2,
+        NotForSale = 3,
     }
 
     public interface ICosmeticService
@@ -32,6 +42,13 @@ namespace DesiMerge.Cosmetics
         bool TrySelect(string id);
 
         bool Flush();
+
+        /// <summary>Buys a Diamonds cosmetic: spends the price once and owns it (saved at once). Nothing changes otherwise.</summary>
+        CosmeticPurchase TryBuy(string id, IPlayerProgressService wallet);
+
+        void RecordDiscovery(string skinId, int level);
+
+        bool IsDiscovered(string skinId, int level);
     }
 
     /// <summary>
@@ -53,6 +70,8 @@ namespace DesiMerge.Cosmetics
             _repository = new JsonRepository<CosmeticSaveData>(store, SaveKey.Cosmetics);
             _data = _repository.Load();
             _data.schemaVersion = CosmeticSaveData.CurrentSchemaVersion;
+            _data.discovered = _data.discovered ?? new List<string>();
+            _data.discovered.RemoveAll(string.IsNullOrEmpty);
             _owned = new HashSet<string>(_data.ownedIds ?? new List<string>());
             _owned.RemoveWhere(string.IsNullOrWhiteSpace);
             _achievements = achievements;
@@ -79,6 +98,51 @@ namespace DesiMerge.Cosmetics
         public IReadOnlyList<CosmeticDefinition> Definitions => _definitions;
 
         public event Action Changed;
+
+        public CosmeticPurchase TryBuy(string id, IPlayerProgressService wallet)
+        {
+            var definition = Find(id);
+            if (definition == null || definition.unlock != CosmeticUnlock.Diamonds || definition.price <= 0 || wallet == null)
+            {
+                return definition != null && IsOwned(id) ? CosmeticPurchase.AlreadyOwned : CosmeticPurchase.NotForSale;
+            }
+
+            if (IsOwned(id))
+            {
+                return CosmeticPurchase.AlreadyOwned;
+            }
+
+            if (!wallet.TrySpendCoins(definition.price))
+            {
+                return CosmeticPurchase.NotEnoughDiamonds;
+            }
+
+            // Spend, then own and save both at once, so a purchase is never lost or paid twice.
+            _owned.Add(id);
+            _dirty = true;
+            wallet.Flush();
+            Flush();
+            Changed?.Invoke();
+            return CosmeticPurchase.Bought;
+        }
+
+        public void RecordDiscovery(string skinId, int level)
+        {
+            if (string.IsNullOrEmpty(skinId) || level < 0)
+            {
+                return;
+            }
+
+            var key = skinId + ":" + level;
+            if (!_data.discovered.Contains(key))
+            {
+                _data.discovered.Add(key);
+                _dirty = true;
+                Changed?.Invoke();
+            }
+        }
+
+        public bool IsDiscovered(string skinId, int level) => !string.IsNullOrEmpty(skinId) && _data.discovered.Contains(skinId + ":" + level);
 
         public bool IsOwned(string id)
         {

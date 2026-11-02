@@ -17,6 +17,9 @@ namespace DesiMerge.Gameplay
         private const float PreviewAlpha = 0.6f;
 
         [SerializeField] private Camera worldCamera;
+
+        /// <summary>Selected item skin (see MergeBoard.SkinSprite). Visual only.</summary>
+        public System.Func<MergeItemDefinition, Sprite> SkinSprite { get; set; }
         [Tooltip("Visual-only preview: a SpriteRenderer with no Rigidbody2D or Collider2D.")]
         [SerializeField] private SpriteRenderer preview;
 
@@ -77,8 +80,9 @@ namespace DesiMerge.Gameplay
             _previewRadius = definition.Radius;
             if (preview != null)
             {
-                preview.sprite = definition.Sprite;
-                var tint = definition.SpriteColor;
+                var skin = SkinSprite?.Invoke(definition);
+                preview.sprite = skin != null ? skin : definition.Sprite;
+                var tint = skin != null ? Color.white : definition.SpriteColor;
                 tint.a = PreviewAlpha;
                 preview.color = tint;
                 preview.transform.localScale = Vector3.one * (definition.Radius * 2f);

@@ -33,6 +33,12 @@ namespace DesiMerge.Editor.Content
         {
             "Pause", "Play", "Hammer", "Shuffle", "Gear", "Home", "Restart", "Trophy", "Grid", "Close", "Crown", "Star",
             "Music", "Speaker", "Lock", "Check", "Video", "Gift", "Calendar", "Missions", "Medal", "Back", "Unlock",
+            "Menu", "Podium", "Profile", "Help", "Chart", "Diamond",
+        };
+
+        private static readonly Vector2[] GemOutline =
+        {
+            new Vector2(-0.44f, 0.5f), new Vector2(0.44f, 0.5f), new Vector2(0.82f, 0.1f), new Vector2(0f, -0.78f), new Vector2(-0.82f, 0.1f),
         };
 
         public static string IconPath(string name) => $"{IconFolder}/{name}.png";
@@ -60,6 +66,9 @@ namespace DesiMerge.Editor.Content
             {
                 Sprite(overwrite, IconPath(name), 128, 128, a => a.Fill(IconShape(name), Color.white), 100, Vector4.zero);
             }
+
+            Sprite(overwrite, IconPath("HammerArt"), 256, 256, HammerArt, 200, Vector4.zero);
+            Sprite(overwrite, IconPath("DiamondArt"), 128, 128, DiamondArt, 100, Vector4.zero);
 
             EnsureAppIcon(overwrite);
         }
@@ -381,6 +390,38 @@ namespace DesiMerge.Editor.Content
                         var shackle = Sdf.Union(Sdf.Arc(p, new Vector2(0.26f, 0.32f), 0.28f, 0f, Mathf.PI, 0.15f), Sdf.Box(p, new Vector2(0.54f, 0.2f), new Vector2(0.075f, 0.12f), 0f));
                         return Sdf.Subtract(Sdf.Union(body, shackle), Sdf.Union(Sdf.Circle(p, new Vector2(-0.1f, -0.24f), 0.1f), Sdf.Box(p, new Vector2(-0.1f, -0.4f), new Vector2(0.04f, 0.12f), 0f)));
                     };
+                case "Menu":
+                    return p => Sdf.Union(Sdf.Capsule(p, new Vector2(-0.56f, 0.42f), new Vector2(0.56f, 0.42f), 0.12f),
+                        Sdf.Union(Sdf.Capsule(p, new Vector2(-0.56f, 0f), new Vector2(0.56f, 0f), 0.12f), Sdf.Capsule(p, new Vector2(-0.56f, -0.42f), new Vector2(0.56f, -0.42f), 0.12f)));
+                case "Podium":
+                    var podiumStar = ItemArtGenerator.StarVertices(new Vector2(0f, 0.6f), 5, 0.2f, 0.09f, Mathf.PI * 0.5f);
+                    return p =>
+                    {
+                        var blocks = Sdf.Union(Sdf.Box(p, new Vector2(0f, -0.3f), new Vector2(0.24f, 0.46f), 0.05f),
+                            Sdf.Union(Sdf.Box(p, new Vector2(-0.52f, -0.46f), new Vector2(0.24f, 0.3f), 0.05f), Sdf.Box(p, new Vector2(0.52f, -0.54f), new Vector2(0.24f, 0.22f), 0.05f)));
+                        blocks = Sdf.Subtract(blocks, Sdf.Box(p, new Vector2(-0.27f, -0.4f), new Vector2(0.025f, 0.5f), 0f));
+                        blocks = Sdf.Subtract(blocks, Sdf.Box(p, new Vector2(0.27f, -0.4f), new Vector2(0.025f, 0.5f), 0f));
+                        return Sdf.Union(blocks, Sdf.Polygon(p, podiumStar) - 0.03f);
+                    };
+                case "Profile":
+                    return p => Sdf.Union(Sdf.Circle(p, new Vector2(0f, 0.3f), 0.3f),
+                        Sdf.Intersect(Sdf.Ellipse(p, new Vector2(0f, -0.6f), new Vector2(0.62f, 0.56f)), -(p.y + 0.66f)));
+                case "Help":
+                    return p =>
+                    {
+                        var hook = Sdf.Arc(p, new Vector2(0f, 0.28f), 0.3f, -90f * Mathf.Deg2Rad, 180f * Mathf.Deg2Rad, 0.17f);
+                        var stem = Sdf.Capsule(p, new Vector2(0f, -0.02f), new Vector2(0f, -0.2f), 0.085f);
+                        return Sdf.Union(Sdf.Union(hook, stem), Sdf.Circle(p, new Vector2(0f, -0.52f), 0.11f));
+                    };
+                case "Diamond":
+                    return p => Sdf.Polygon(p, GemOutline) - 0.04f;
+                case "Chart":
+                    return p =>
+                    {
+                        var bars = Sdf.Union(Sdf.Box(p, new Vector2(-0.46f, -0.36f), new Vector2(0.14f, 0.24f), 0.04f),
+                            Sdf.Union(Sdf.Box(p, new Vector2(0f, -0.2f), new Vector2(0.14f, 0.4f), 0.04f), Sdf.Box(p, new Vector2(0.46f, -0.02f), new Vector2(0.14f, 0.58f), 0.04f)));
+                        return Sdf.Union(bars, Sdf.Capsule(p, new Vector2(-0.7f, -0.7f), new Vector2(0.7f, -0.7f), 0.06f));
+                    };
                 default:
                     throw new ArgumentException($"Unknown icon {name}");
             }
@@ -423,6 +464,33 @@ namespace DesiMerge.Editor.Content
             {
                 PlayerSettings.SetIcons(NamedBuildTarget.Unknown, new[] { icon }, IconKind.Any);
             }
+        }
+
+        /// <summary>Coloured diamond for counters, prices and rewards: cyan gem with facets, ink outline and a glint.</summary>
+        private static void DiamondArt(ArtCanvas a)
+        {
+            Func<Vector2, float> gem = p => Sdf.Polygon(p, GemOutline) - 0.02f;
+            a.Body(gem, 0.07f, Ink, ArtCanvas.Hex("#8FF0FF"), ArtCanvas.Hex("#1F8FE6"), 0.2f);
+            a.FillInside(p => Mathf.Max(gem(p), p.y - 0.12f, -(p.y - 0.5f)), ArtCanvas.Hex("#C9FAFF"));
+            a.FillInside(p => Mathf.Max(gem(p), Sdf.Polygon(p, new[] { new Vector2(-0.2f, 0.1f), new Vector2(0.2f, 0.1f), new Vector2(0f, -0.7f) })), ArtCanvas.Hex("#5CD2F7"));
+            a.Stroke(p => Mathf.Max(gem(p) + 0.03f, Mathf.Abs(p.y - 0.12f)), 0.045f, ArtCanvas.WithAlpha(Ink, 0.55f));
+            a.Stroke(gem, 0.07f, Ink);
+            a.Fill(p => Sdf.Circle(p, new Vector2(-0.3f, 0.3f), 0.08f), ArtCanvas.WithAlpha(Color.white, 0.9f));
+        }
+
+        /// <summary>Illustrated hammer for the in-game smash (wooden handle, saffron head with a truck-art band).</summary>
+        private static void HammerArt(ArtCanvas a)
+        {
+            Func<Vector2, Vector2> tilt = p => Sdf.Rotate(p, Vector2.zero, 35f);
+            Func<Vector2, float> handle = p => Sdf.Capsule(tilt(p), new Vector2(0f, -0.82f), new Vector2(0f, 0.25f), 0.11f);
+            Func<Vector2, float> head = p => Sdf.Box(tilt(p), new Vector2(0f, 0.42f), new Vector2(0.5f, 0.22f), 0.08f);
+            a.Body(handle, 0.05f, Ink, ArtCanvas.Hex("#C98A4B"), ArtCanvas.Hex("#8A5528"));
+            a.Body(head, 0.05f, Ink, ArtCanvas.Hex("#FFC94D"), ArtCanvas.Hex("#E08A00"));
+            a.FillInside(head, Magenta);
+            a.FillInside(p => Mathf.Max(head(p), Mathf.Abs(tilt(p).x) - 0.12f), ArtCanvas.Hex("#FFC94D"));
+            a.FillInside(p => Mathf.Max(head(p), Mathf.Abs(Mathf.Abs(tilt(p).x) - 0.31f) - 0.06f), Teal);
+            a.Stroke(head, 0.05f, Ink);
+            a.Fill(p => Sdf.Circle(tilt(p), new Vector2(-0.3f, 0.52f), 0.05f), ArtCanvas.WithAlpha(Color.white, 0.8f));
         }
 
         private static Vector2 Direction(float degrees) => new Vector2(Mathf.Cos(degrees * Mathf.Deg2Rad), Mathf.Sin(degrees * Mathf.Deg2Rad));

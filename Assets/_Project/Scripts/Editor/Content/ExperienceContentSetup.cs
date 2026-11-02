@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using DesiMerge.Audio;
 using DesiMerge.Configuration;
 using DesiMerge.Core;
@@ -34,12 +35,18 @@ namespace DesiMerge.Editor.Content
             }
 
             GameArtGenerator.EnsureAll(overwrite: false);
+            // Item and skin art are redrawn every time so painter improvements (e.g. the 3D lighting) reach every item.
+            ItemArtGenerator.EnsureAll(overwrite: true);
+            SkinArtGenerator.EnsureAll(overwrite: true);
             AudioSynth.EnsureAll();
             EnsureData();
+            ContentSetup.ApplyDesignSystem(ContentSetup.LoadTheme());
             AssetDatabase.SaveAssets();
             ContentSetup.RebuildGeneratedScenesAndPrefabs();
             BuildSplash();
             PlayerSettings.SplashScreen.show = false;
+            LauncherIconBuilder.Apply(overwrite: true);
+            LauncherIconBuilder.WritePreview("Documentation/Screenshots/launcher-icon-preview.png");
             AssetDatabase.SaveAssets();
             Debug.Log("[Setup] Phase 6.6 experience applied.");
         }
@@ -50,6 +57,8 @@ namespace DesiMerge.Editor.Content
             EnsureMissions();
             EnsureMilestones();
             ExtendAchievements();
+            EnsureDiamondEconomy();
+            EnsureSkins();
             EnsureAudioCues();
             ConfigureGameConfig();
         }
@@ -201,6 +210,89 @@ namespace DesiMerge.Editor.Content
 
             serialized.ApplyModifiedPropertiesWithoutUndo();
             EditorUtility.SetDirty(catalog);
+        }
+
+        /// <summary>Diamonds (the saved coin balance): power-up prices and a diamond gift on every calendar day.</summary>
+        private static void EnsureDiamondEconomy()
+        {
+            var powerUps = AssetDatabase.LoadAssetAtPath<DesiMerge.PowerUps.PowerUpCatalog>(ContentPaths.PowerUpsPath);
+            if (powerUps != null)
+            {
+                var serialized = new SerializedObject(powerUps);
+                var list = serialized.FindProperty("powerUps");
+                for (var i = 0; i < list.arraySize; i++)
+                {
+                    var element = list.GetArrayElementAtIndex(i);
+                    var price = element.FindPropertyRelative("diamondPrice");
+                    if (price.intValue == 0)
+                    {
+                        price.intValue = element.FindPropertyRelative("id").stringValue == "hammer" ? 30 : 20;
+                    }
+                }
+
+                serialized.ApplyModifiedPropertiesWithoutUndo();
+                EditorUtility.SetDirty(powerUps);
+            }
+
+            var calendar = AssetDatabase.LoadAssetAtPath<DailyRewardCatalog>(DailyRewardsPath);
+            if (calendar == null || calendar.Days.Any(day => day.rewards.Any(reward => reward.type == RewardType.Coins)))
+            {
+                return;
+            }
+
+            var gems = new[] { 20, 25, 30, 35, 40, 50, 100 };
+            for (var i = 0; i < calendar.Days.Count && i < gems.Length; i++)
+            {
+                var day = calendar.Days[i];
+                day.rewards = day.rewards.Concat(new[] { new RewardDefinition { type = RewardType.Coins, amount = gems[i] } }).ToArray();
+            }
+
+            EditorUtility.SetDirty(calendar);
+        }
+
+        public const string CosmeticsPath = ContentPaths.ProgressionFolder + "/Cosmetics.asset";
+
+        /// <summary>Item skins bought with Diamonds. Existing entries (and a designer's prices) are kept; missing skins are added.</summary>
+        private static void EnsureSkins()
+        {
+            var catalog = AssetDatabase.LoadAssetAtPath<DesiMerge.Cosmetics.CosmeticCatalog>(CosmeticsPath);
+            if (catalog == null)
+            {
+                catalog = ScriptableObject.CreateInstance<DesiMerge.Cosmetics.CosmeticCatalog>();
+                catalog.Set(new DesiMerge.Cosmetics.CosmeticDefinition[0]);
+                AssetDatabase.CreateAsset(catalog, CosmeticsPath);
+            }
+
+            var list = catalog.Cosmetics.ToList();
+            if (list.All(c => c.id != "desi_bazaar"))
+            {
+                list.Insert(0, new DesiMerge.Cosmetics.CosmeticDefinition { id = "desi_bazaar", title = "Desi Bazaar", kind = DesiMerge.Cosmetics.CosmeticKind.ItemSkin, unlock = DesiMerge.Cosmetics.CosmeticUnlock.Default });
+            }
+
+            var prices = new Dictionary<string, int> { { "numbers", 250 }, { "mithai", 400 }, { "street_food", 500 }, { "truck_art", 600 } };
+            foreach (var skin in SkinArtGenerator.Skins.OrderBy(s => prices[s.Id]))
+            {
+                var definition = list.FirstOrDefault(c => c.id == skin.Id);
+                if (definition == null)
+                {
+                    definition = new DesiMerge.Cosmetics.CosmeticDefinition { id = skin.Id, title = skin.Title, kind = DesiMerge.Cosmetics.CosmeticKind.ItemSkin, unlock = DesiMerge.Cosmetics.CosmeticUnlock.Diamonds, price = prices[skin.Id] };
+                    list.Add(definition);
+                }
+
+                definition.itemSprites = Enumerable.Range(0, 10).Select(level => SkinArtGenerator.Load(skin, level)).ToArray();
+                definition.itemNames = skin.Names;
+            }
+
+            catalog.Set(list);
+            EditorUtility.SetDirty(catalog);
+            var config = AssetDatabase.LoadAssetAtPath<GameConfig>(FoundationSetup.GameConfigPath);
+            var serialized = new SerializedObject(config);
+            var field = serialized.FindProperty("cosmetics");
+            if (field.objectReferenceValue == null)
+            {
+                field.objectReferenceValue = catalog;
+                serialized.ApplyModifiedPropertiesWithoutUndo();
+            }
         }
 
         private static void WriteReward(SerializedProperty reward, RewardDefinition value)

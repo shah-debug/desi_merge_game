@@ -33,6 +33,38 @@ namespace DesiMerge.Progression
         public long Coins => _data.coins;
         public int GamesPlayed => _data.gamesPlayed;
         public long TotalMerges => _data.totalMerges;
+        public IReadOnlyList<ScoreRecord> RecentGames => _data.recentGames;
+
+        public bool HasAppliedCoinGrant(string grantId) => !string.IsNullOrEmpty(grantId) && _data.appliedCoinGrants.Contains(grantId);
+
+        public bool TryGrantCoins(string grantId, long amount)
+        {
+            if (string.IsNullOrEmpty(grantId))
+            {
+                throw new ArgumentException("A diamond grant needs a stable ID.", nameof(grantId));
+            }
+
+            if (HasAppliedCoinGrant(grantId))
+            {
+                return true;
+            }
+
+            if (amount <= 0)
+            {
+                return false;
+            }
+
+            _data.coins += amount;
+            _data.appliedCoinGrants.Add(grantId);
+            if (_data.appliedCoinGrants.Count > PlayerProgressData.MaxRememberedCoinGrants)
+            {
+                _data.appliedCoinGrants.RemoveRange(0, _data.appliedCoinGrants.Count - PlayerProgressData.MaxRememberedCoinGrants);
+            }
+
+            MarkChanged();
+            Flush();
+            return true;
+        }
         public string HighestItemId => _data.highestItemId;
         public int CurrentStreak => _data.currentStreak;
         public int BestStreak => _data.bestStreak;
@@ -65,6 +97,12 @@ namespace DesiMerge.Progression
             }
 
             StreakRules.RecordCompletedGame(ref _data.currentStreak, ref _data.bestStreak, ref _data.lastPlayedDay, DayKey.Today(_clock));
+            _data.recentGames.Add(new ScoreRecord { score = score, day = DayKey.Today(_clock), newBest = isHighScore });
+            if (_data.recentGames.Count > PlayerProgressData.MaxRecentGames)
+            {
+                _data.recentGames.RemoveRange(0, _data.recentGames.Count - PlayerProgressData.MaxRecentGames);
+            }
+
             MarkChanged();
             GameCompleted?.Invoke(score);
             FinalScoreRecorded?.Invoke(score);
@@ -82,6 +120,18 @@ namespace DesiMerge.Progression
             if (isHighScore)
             {
                 _data.highScore = score;
+            }
+
+            // The revived game is the same game: its history entry takes the higher final score.
+            var last = _data.recentGames.Count > 0 ? _data.recentGames[_data.recentGames.Count - 1] : null;
+            if (last != null && score > last.score)
+            {
+                last.score = score;
+                last.newBest |= isHighScore;
+            }
+
+            if (isHighScore || last != null)
+            {
                 MarkChanged();
             }
 
@@ -199,6 +249,21 @@ namespace DesiMerge.Progression
             data.coins = Math.Max(0, data.coins);
             data.gamesPlayed = Math.Max(0, data.gamesPlayed);
             data.totalMerges = Math.Max(0, data.totalMerges);
+            // v3 → v4: no diamond grants existed before.
+            data.appliedCoinGrants = data.appliedCoinGrants ?? new List<string>();
+            data.appliedCoinGrants.RemoveAll(string.IsNullOrEmpty);
+            // v2 → v3: no history existed before; older saves simply start with an empty list.
+            data.recentGames = data.recentGames ?? new List<ScoreRecord>();
+            data.recentGames.RemoveAll(record => record == null);
+            foreach (var record in data.recentGames)
+            {
+                record.score = Math.Max(0, record.score);
+            }
+
+            if (data.recentGames.Count > PlayerProgressData.MaxRecentGames)
+            {
+                data.recentGames.RemoveRange(0, data.recentGames.Count - PlayerProgressData.MaxRecentGames);
+            }
             data.currentStreak = Math.Max(0, data.currentStreak);
             data.bestStreak = Math.Max(data.bestStreak, data.currentStreak);
             if (data.lastPlayedDay < -1)

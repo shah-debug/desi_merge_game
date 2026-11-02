@@ -29,7 +29,7 @@ MonoBehaviour:
   achievements: {fileID: 11400000, guid: 34fc65deec6fa2a4eb1576067465092f, type: 2}
   dailyChallenges: {fileID: 11400000, guid: 09fdbf81a95cc7f4db579da24b44eb95, type: 2}
   powerUps: {fileID: 11400000, guid: 176a2b29fb1c10b4db408ed824e22418, type: 2}
-  cosmetics: {fileID: 0}
+  cosmetics: {fileID: 11400000, guid: a329052adc868604583a0f24c533d40f, type: 2}
   dailyRewards: {fileID: 11400000, guid: 38447d6118fb7554fbffdb57a7027e47, type: 2}
   missions: {fileID: 11400000, guid: e08b6e6ba0554d04f8ddaabfd6153bc6, type: 2}
   milestones: {fileID: 11400000, guid: 2b27985ad21a00a4f82ca9de6d46f064, type: 2}

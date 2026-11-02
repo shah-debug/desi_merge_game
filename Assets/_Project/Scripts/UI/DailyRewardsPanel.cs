@@ -77,7 +77,8 @@ namespace DesiMerge.UI
                 if (i < days.Count)
                 {
                     var rewards = days[i].rewards;
-                    tiles[i].Show(i, rewards.Length > 0 && _presenter != null ? _presenter.IconFor(rewards[0]) : null, Amount(rewards), _rewards.StateOf(i));
+                    var main = Main(rewards);
+                    tiles[i].Show(i, rewards.Length > 0 && _presenter != null ? _presenter.IconFor(main) : null, Amount(rewards), _rewards.StateOf(i));
                 }
             }
 
@@ -140,8 +141,34 @@ namespace DesiMerge.UI
             return "Storage is full. Use a power-up in a game, then claim.";
         }
 
+        /// <summary>The tile shows the diamonds first when a day has them.</summary>
+        private static RewardDefinition Main(IReadOnlyList<RewardDefinition> rewards)
+        {
+            foreach (var reward in rewards)
+            {
+                if (reward.type == RewardType.Coins)
+                {
+                    return reward;
+                }
+            }
+
+            return rewards.Count > 0 ? rewards[0] : default;
+        }
+
         private string Amount(IReadOnlyList<RewardDefinition> rewards)
         {
+            var main = Main(rewards);
+            if (main.type == RewardType.Coins)
+            {
+                var extras = 0;
+                foreach (var reward in rewards)
+                {
+                    extras += reward.type == RewardType.Coins ? 0 : reward.amount;
+                }
+
+                return extras > 0 ? $"{main.amount} +{extras}" : main.amount.ToString();
+            }
+
             if (rewards.Count == 1)
             {
                 return "×" + rewards[0].amount;

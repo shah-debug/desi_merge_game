@@ -75,7 +75,7 @@ namespace DesiMerge.Editor.Content
             }
         }
 
-        private static void WriteSprite(string path, Texture2D texture, int pixelsPerUnit)
+        internal static void WriteSprite(string path, Texture2D texture, int pixelsPerUnit)
         {
             File.WriteAllBytes(path, texture.EncodeToPNG());
             UnityEngine.Object.DestroyImmediate(texture);
@@ -102,7 +102,7 @@ namespace DesiMerge.Editor.Content
 
         private static Color C(string hex) => ArtCanvas.Hex(hex);
 
-        private static void Face(ArtCanvas a, Vector2 centre, float scale, float spacing = 0.22f)
+        internal static void Face(ArtCanvas a, Vector2 centre, float scale, float spacing = 0.22f)
         {
             foreach (var side in new[] { -1f, 1f })
             {
@@ -115,7 +115,7 @@ namespace DesiMerge.Editor.Content
             a.Fill(p => Sdf.Arc(p, centre + V(0f, -0.01f * scale), 0.08f * scale, 205f * Mathf.Deg2Rad, 335f * Mathf.Deg2Rad, 0.03f * scale), Ink);
         }
 
-        private static void Gloss(ArtCanvas a, Vector2 centre, Vector2 radii, float degrees, float alpha = 0.55f)
+        internal static void Gloss(ArtCanvas a, Vector2 centre, Vector2 radii, float degrees, float alpha = 0.55f)
         {
             a.FillInside(p => Sdf.Ellipse(Sdf.Rotate(p, centre, -degrees), centre, radii), ArtCanvas.WithAlpha(White, alpha), 0.01f);
         }

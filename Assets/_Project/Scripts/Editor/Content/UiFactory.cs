@@ -134,7 +134,7 @@ namespace DesiMerge.Editor.Content
             text.font = display ? _theme.font : _theme.bodyFont != null ? _theme.bodyFont : _theme.font;
             text.text = content;
             text.fontSize = size;
-            text.fontStyle = display ? FontStyle.Normal : FontStyle.Bold;
+            text.fontStyle = display || _theme.bodyFont != null ? FontStyle.Normal : FontStyle.Bold;
             text.color = color;
             text.alignment = alignment;
             text.raycastTarget = false;
@@ -188,6 +188,19 @@ namespace DesiMerge.Editor.Content
                     Stretch(text.rectTransform, size.x * 0.5f + left + iconSize + gap, 10f, 6f, 6f + _theme.buttonLip);
                 }
 
+                if (!string.IsNullOrEmpty(label))
+                {
+                    var layout = instance.GetComponent<IconLabelLayout>();
+                    if (layout == null)
+                    {
+                        layout = instance.AddComponent<IconLabelLayout>();
+                    }
+
+                    layout.Configure(iconImage.rectTransform, text, iconSize, 20f, 22f, lift);
+                    layout.Apply();
+                    Record(layout);
+                }
+
                 Record(iconImage.gameObject, iconImage, iconImage.rectTransform, text, text.rectTransform);
             }
 
@@ -199,6 +212,15 @@ namespace DesiMerge.Editor.Content
             var caption = Text(parent, name, content, size, color);
             Place(caption.rectTransform, new Vector2(0.5f, 0.5f), position, new Vector2(320f, 50f));
             return caption;
+        }
+
+        /// <summary>Turns an Image into a rounded progress fill driven by fillAmount (see SlicedFill).</summary>
+        public static Image ProgressFill(Image fill)
+        {
+            fill.type = UnityEngine.UI.Image.Type.Sliced;
+            fill.fillAmount = 0f;
+            fill.gameObject.AddComponent<SlicedFill>();
+            return fill;
         }
 
         public static void Record(params Object[] modified)

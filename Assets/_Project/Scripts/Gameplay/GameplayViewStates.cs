@@ -3,8 +3,10 @@ namespace DesiMerge.Gameplay
     /// <summary>What the HUD shows for one power-up button.</summary>
     public readonly struct PowerUpButtonState
     {
-        public PowerUpButtonState(string id, string title, int available, bool interactable, bool selected)
+        public PowerUpButtonState(string id, string title, int available, bool interactable, bool selected, int price = 0, bool canAfford = false)
         {
+            Price = price;
+            CanAfford = canAfford;
             Id = id;
             Title = title;
             Available = available;
@@ -19,6 +21,11 @@ namespace DesiMerge.Gameplay
         public bool Interactable { get; }
         /// <summary>Waiting for a target (Hammer).</summary>
         public bool Selected { get; }
+
+        /// <summary>Diamond price shown instead of the count when no uses are left (0 = none).</summary>
+        public int Price { get; }
+
+        public bool CanAfford { get; }
     }
 
     /// <summary>The Continue (rewarded-ad revive) offer on the game-over panel.</summary>
@@ -44,8 +51,9 @@ namespace DesiMerge.Gameplay
     public readonly struct SessionSummary
     {
         public SessionSummary(long score, long previousBest, int merges, System.Collections.Generic.IReadOnlyList<string> discoveries,
-            int achievementsUnlocked, int missionsCompleted, int missionsToClaim, string newRank)
+            int achievementsUnlocked, int missionsCompleted, int missionsToClaim, string newRank, int diamondsEarned = 0)
         {
+            DiamondsEarned = diamondsEarned;
             Score = score;
             PreviousBest = previousBest;
             Merges = merges;
@@ -64,6 +72,7 @@ namespace DesiMerge.Gameplay
         public int MissionsCompleted { get; }
         public int MissionsToClaim { get; }
         public string NewRank { get; }
+        public int DiamondsEarned { get; }
         public long Improvement => Score > PreviousBest ? Score - PreviousBest : 0;
     }
 }

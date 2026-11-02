@@ -24,6 +24,13 @@ namespace DesiMerge.UI
         [SerializeField] private Text nextLabel;
         [SerializeField] private ScalePunch nextPunch;
         [SerializeField] private Button pauseButton;
+        [SerializeField] private Button menuButton;
+        [SerializeField] private Button skinTagButton;
+
+        private bool _openSkinsNext;
+        [SerializeField] private GameplayMenu gameMenu;
+        [SerializeField] private PowerUpEffects powerUpEffects;
+        [SerializeField] private DiamondCounter diamondCounter;
         [SerializeField] private GameObject instructions;
 
         [Header("Pause")]
@@ -73,6 +80,7 @@ namespace DesiMerge.UI
 
         public event Action RestartRequested;
         public event Action PauseRequested;
+        public event Action MenuRequested;
         public event Action ResumeRequested;
         public event Action MainMenuRequested;
         public event Action<string> PowerUpRequested;
@@ -88,13 +96,31 @@ namespace DesiMerge.UI
         public bool RestartConfirmVisible => restartConfirm != null && restartConfirm.activeSelf;
         public Sprite NextItemSprite => nextImage != null ? nextImage.sprite : null;
         internal Button PauseRestartButton => pauseRestartButton;
+        internal Button MenuButton => menuButton;
+        public GameplayMenu Menu => gameMenu;
+        public PowerUpEffects Effects => powerUpEffects;
+
+        /// <summary>Selected item skin for the NEXT preview and discovery toasts.</summary>
+        public Func<MergeItemDefinition, Sprite> SkinSprite { get; set; }
+        public DiamondCounter Diamonds => diamondCounter;
+        public string BestLabel => bestText != null ? bestText.text : string.Empty;
+        public bool MenuVisible => gameMenu != null && (gameMenu.IsOpen || gameMenu.AnyScreenOpen);
         internal Button ConfirmRestartButton => confirmRestartButton;
         internal Button CancelRestartButton => cancelRestartButton;
 
         private void Awake()
         {
             AddListener(pauseButton, OnPauseClicked);
+            AddListener(menuButton, OnMenuClicked);
+            AddListener(skinTagButton, OnSkinTagClicked);
             AddListener(resumeButton, OnResumeClicked);
+            if (gameMenu != null)
+            {
+                gameMenu.ResumeRequested += OnResumeClicked;
+                gameMenu.HomeRequested += OnMainMenuClicked;
+                gameMenu.HelpRequested += OnHelpRequested;
+            }
+
             AddListener(pauseMenuButton, OnMainMenuClicked);
             AddListener(pauseRestartButton, OnPauseRestartClicked);
             AddListener(confirmRestartButton, OnConfirmRestartClicked);
@@ -134,7 +160,16 @@ namespace DesiMerge.UI
         private void OnDestroy()
         {
             RemoveListener(pauseButton, OnPauseClicked);
+            RemoveListener(menuButton, OnMenuClicked);
+            RemoveListener(skinTagButton, OnSkinTagClicked);
             RemoveListener(resumeButton, OnResumeClicked);
+            if (gameMenu != null)
+            {
+                gameMenu.ResumeRequested -= OnResumeClicked;
+                gameMenu.HomeRequested -= OnMainMenuClicked;
+                gameMenu.HelpRequested -= OnHelpRequested;
+            }
+
             RemoveListener(pauseMenuButton, OnMainMenuClicked);
             RemoveListener(pauseRestartButton, OnPauseRestartClicked);
             RemoveListener(confirmRestartButton, OnConfirmRestartClicked);
@@ -193,8 +228,9 @@ namespace DesiMerge.UI
         {
             if (nextImage != null)
             {
-                nextImage.sprite = definition.Sprite;
-                nextImage.color = definition.SpriteColor;
+                var skin = SkinSprite?.Invoke(definition);
+                nextImage.sprite = skin != null ? skin : definition.Sprite;
+                nextImage.color = skin != null ? Color.white : definition.SpriteColor;
             }
 
             if (nextLabel != null)
@@ -242,7 +278,8 @@ namespace DesiMerge.UI
         {
             if (toast != null && item != null)
             {
-                toast.Show($"New discovery: {item.DisplayName}!", item.Sprite);
+                var skin = SkinSprite?.Invoke(item);
+                toast.Show($"New discovery: {item.DisplayName}!", skin != null ? skin : item.Sprite);
             }
         }
 
@@ -263,6 +300,11 @@ namespace DesiMerge.UI
 
             var lines = new System.Text.StringBuilder();
             lines.Append(summary.Merges == 1 ? "1 merge" : $"{summary.Merges} merges");
+            if (summary.DiamondsEarned > 0)
+            {
+                lines.Append($"   •   +{summary.DiamondsEarned} diamonds");
+            }
+
             if (summary.Discoveries.Count > 0)
             {
                 lines.Append("   •   New: ").Append(string.Join(", ", summary.Discoveries));
@@ -289,6 +331,58 @@ namespace DesiMerge.UI
 
             summaryText.text = lines.ToString();
         }
+
+        /// <summary>Connects the in-game menu's screens to the real services (called once by the entry point).</summary>
+        public void BindMenu(DesiMerge.Core.GameServices services)
+        {
+            if (gameMenu != null)
+            {
+                gameMenu.Bind(services);
+            }
+
+            if (diamondCounter != null)
+            {
+                diamondCounter.Bind(services.Progress);
+            }
+        }
+
+        public void ShowMenu()
+        {
+            if (gameMenu == null)
+            {
+                return;
+            }
+
+            if (_openSkinsNext)
+            {
+                _openSkinsNext = false;
+                gameMenu.OpenSkinsOnly();
+                return;
+            }
+
+            gameMenu.Open();
+        }
+
+        internal Button SkinTagButton => skinTagButton;
+
+        /// <summary>The Skin tag under NEXT: pause like the menu, but open the Skins screen directly.</summary>
+        private void OnSkinTagClicked()
+        {
+            _openSkinsNext = true;
+            MenuRequested?.Invoke();
+            _openSkinsNext = false;
+        }
+
+        public void HideMenu()
+        {
+            if (gameMenu != null && (gameMenu.IsOpen || gameMenu.AnyScreenOpen))
+            {
+                gameMenu.Close();
+            }
+        }
+
+        /// <summary>Android back: closes the topmost screen opened from the menu. False if none was open.</summary>
+        public bool CloseMenuScreen() => gameMenu != null && gameMenu.IsOpen && gameMenu.CloseTopScreen();
 
         public void ShowPause()
         {
@@ -376,6 +470,11 @@ namespace DesiMerge.UI
 
         public void SetTargeting(bool active, string hint)
         {
+            if (powerUpEffects != null)
+            {
+                powerUpEffects.SetFocus(active);
+            }
+
             if (targetingText != null)
             {
                 targetingText.text = hint;
@@ -477,6 +576,16 @@ namespace DesiMerge.UI
         }
 
         private void OnPauseClicked() => PauseRequested?.Invoke();
+
+        private void OnMenuClicked() => MenuRequested?.Invoke();
+
+        private void OnHelpRequested()
+        {
+            if (tutorial != null && !tutorial.IsShowing)
+            {
+                tutorial.Show();
+            }
+        }
 
         private void OnResumeClicked() => ResumeRequested?.Invoke();
 

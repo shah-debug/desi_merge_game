@@ -2,15 +2,19 @@
 
 Date: 2026-10-30. Environment: Windows 11 development PC (8 GB RAM), Unity 6000.6.7f1 batch mode. **No Android device or emulator.**
 
-## Release decision: **NOT READY — high-priority issues remain**
+## Release decision (updated 2026-11-01): **CONDITIONALLY READY**
 
-Why not "Conditionally ready":
-1. **PR-00 (P1, walls) is not proven closed.** It was found and fixed in three steps. A 5-minute session passes, but the 15-minute session after the final fix never completed (stopped because the PC ran low on memory), and a rare 0.40-unit wall overlap remains (PR-13).
-2. **Release prerequisites missing:** placeholder application ID (PR-06) and no release signing key (PR-07). Both need the owner.
-3. **Zero real-device testing** (gate M), including audible audio and Android lifecycle.
+No known critical or high-priority defects remain open, but important validation is incomplete.
 
-What would move it to **CONDITIONALLY READY**: the 15-minute stress session passes with the current physics settings, and a rebuilt APK.
-What would move it to **RELEASE CANDIDATE**: also the owner's app ID and upload key, a signed AAB, and the device test plan passed on at least one modest phone.
+- The original decision (2026-10-30) was **NOT READY** because PR-00 (walls, P1) was unverified.
+- On 2026-11-01 the full 15-minute session with the final physics ran 15 games with **no escape** and all score and merge checks exact. The test runner still marks it failed, because the PC's memory pressure stretched it to 57 wall-clock minutes, past the 40-minute harness timeout.
+- The release APK was rebuilt with all fixes: 0 errors, 0 warnings.
+
+Still required before **RELEASE CANDIDATE**:
+1. **Real-device testing** (gate M): nothing has run on a phone yet; checklist in `AndroidPreviewBuildReport.md`.
+2. **The owner's permanent application ID** (PR-06) and **upload key / signed AAB** (PR-07).
+3. Data Safety declarations (PR-11).
+4. Optional: a clean re-run of the 15/30-minute sessions on a PC with more free memory, and a fix for the rare wall overlap (PR-13, P2).
 
 ## Totals
 

@@ -105,8 +105,7 @@ namespace DesiMerge.Progression
             switch (reward.type)
             {
                 case RewardType.Coins:
-                    _progress.AddCoins(reward.amount);
-                    return true;
+                    return _progress.TryGrantCoins(grantId, reward.amount);
                 case RewardType.PowerUpCharges:
                     return _powerUps != null && _powerUps.TryGrant(grantId, reward.powerUpId, reward.amount);
                 default:
