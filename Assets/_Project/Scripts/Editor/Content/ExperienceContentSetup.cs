@@ -48,7 +48,6 @@ namespace DesiMerge.Editor.Content
             BuildSplash();
             PlayerSettings.SplashScreen.show = false;
             LauncherIconBuilder.Apply(overwrite: true);
-            LauncherIconBuilder.WritePreview("Documentation/Screenshots/launcher-icon-preview.png");
             AssetDatabase.SaveAssets();
             Debug.Log("[Setup] Phase 6.6 experience applied.");
         }

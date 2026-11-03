@@ -30,7 +30,7 @@ namespace DesiMerge.Editor.Content
         public static void Regenerate()
         {
             Apply(overwrite: true);
-            WritePreview("Documentation/Screenshots/launcher-icon-preview.png");
+            WritePreview("Temp/launcher-icon-preview.png");
         }
 
         public static void Apply(bool overwrite)
@@ -109,6 +109,47 @@ namespace DesiMerge.Editor.Content
             PlayerSettings.SetPlatformIcons(target, AndroidPlatformIconKind.Adaptive, adaptive);
 
             AssetDatabase.SaveAssets();
+        }
+
+        public const string StoreIconPath = "Documentation/StoreListing/icon-512.png";
+
+        /// <summary>
+        /// Google Play store icon: the same artwork drawn natively at 512 × 512 (not an upscale), opaque and full-bleed,
+        /// because Play Console applies its own rounded mask.
+        /// </summary>
+        [MenuItem("Desi Merge/Release/Write Play Store Icon")]
+        public static void WriteStoreIcon() => WriteStoreIcon(StoreIconPath);
+
+        internal static void WriteStoreIcon(string path)
+        {
+            // Launchers show the centre ~2/3 of an adaptive icon (72 of 108 dp); draw larger and keep that centre so
+            // the store icon matches what players see on their home screen.
+            const int size = 512;
+            const int full = 768;
+            var canvas = new ArtCanvas(full, full);
+            DrawBackground(canvas);
+            DrawForeground(canvas);
+            var source = canvas.ToTexture();
+            var texture = new Texture2D(size, size, TextureFormat.RGBA32, false);
+            var offset = (full - size) / 2;
+            var pixels = source.GetPixels32();
+            var cropped = new Color32[size * size];
+            for (var y = 0; y < size; y++)
+            {
+                for (var x = 0; x < size; x++)
+                {
+                    var p = pixels[(y + offset) * full + x + offset];
+                    p.a = 255;
+                    cropped[y * size + x] = p;
+                }
+            }
+
+            Object.DestroyImmediate(source);
+            texture.SetPixels32(cropped);
+            Directory.CreateDirectory(Path.GetDirectoryName(path));
+            File.WriteAllBytes(path, texture.EncodeToPNG());
+            Object.DestroyImmediate(texture);
+            Debug.Log($"[Release] Play Store icon written: {path}");
         }
 
         /// <summary>Writes a preview of the icon as launchers show it (circle and rounded square) to the given PNG.</summary>

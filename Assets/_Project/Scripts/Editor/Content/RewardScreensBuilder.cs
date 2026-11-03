@@ -85,7 +85,7 @@ namespace DesiMerge.Editor.Content
                 tiles[i] = Tile(factory, card, i, new Vector2(x, -280f - row * 310f), size, special);
             }
 
-            var info = factory.Text(card, "Info", "Rewards are added to your power-ups. Missing a day starts again from Day 1.", 28, theme.mutedText, body: true);
+            var info = factory.Text(card, "Info", "Rewards add Diamonds and power-ups. Missing a day starts again from Day 1.", 28, theme.mutedText, body: true);
             info.horizontalOverflow = HorizontalWrapMode.Wrap;
             info.fontStyle = FontStyle.Normal;
             UiFactory.Place(info.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -900f), new Vector2(820f, 80f));
