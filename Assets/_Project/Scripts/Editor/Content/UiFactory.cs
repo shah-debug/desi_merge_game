@@ -278,6 +278,7 @@ namespace DesiMerge.Editor.Content
             root.gameObject.AddComponent<CanvasGroup>();
             var dim = Image(root, "Dim", null, _theme.overlay, raycast: true);
             Stretch(dim.rectTransform);
+            dim.gameObject.AddComponent<OutsideTapClose>();
             var cardImage = Panel(root, "Card", _theme.card, _theme.accent, 10f);
             var card = cardImage.rectTransform;
             Place(card, new Vector2(0.5f, 0.5f), Vector2.zero, cardSize);

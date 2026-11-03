@@ -281,7 +281,7 @@ namespace DesiMerge.Editor.Content
             Image icon = null;
             if (leadingIcon)
             {
-                var iconDisc = factory.Image(root, "IconDisc", theme.disc, new Color(theme.deep.r, theme.deep.g, theme.deep.b, 0.9f));
+                var iconDisc = factory.Image(root, "IconDisc", theme.disc, theme.secondary);
                 UiFactory.Place(iconDisc.rectTransform, new Vector2(0f, 0.5f), new Vector2(22f, 0f), new Vector2(90f, 90f));
                 icon = factory.Image(iconDisc.transform, "Icon", null, Color.white);
                 icon.preserveAspect = true;

@@ -406,31 +406,77 @@ namespace DesiMerge.Editor.Content
             var canvasRoot = canvas.transform;
             MainMenuSceneBuilder.BuildBackground(factory, canvasRoot);
             var logo = UiFactory.Place(UiFactory.Rect("Logo", canvasRoot), new Vector2(0.5f, 0.5f), new Vector2(0f, 80f), new Vector2(900f, 900f));
-            var group = logo.gameObject.AddComponent<CanvasGroup>();
-            var glow = factory.Image(logo, "Glow", theme.glow, theme.accent);
-            UiFactory.Place(glow.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0f, 160f), new Vector2(560f, 560f));
-            var flower = factory.Ornament(logo, "Flower", new Vector2(0.5f, 0.5f), new Vector2(0f, 160f), 460f, 0.9f);
-            flower.transform.SetSiblingIndex(1);
+            var group = canvas.gameObject.AddComponent<CanvasGroup>();
+            var glow = factory.Image(logo, "Glow", theme.glow, new Color(theme.accent.r, theme.accent.g, theme.accent.b, 0.85f));
+            UiFactory.Place(glow.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0f, 170f), new Vector2(640f, 640f));
+            glow.rectTransform.pivot = new Vector2(0.5f, 0.5f);
+            var flower = factory.Ornament(logo, "Flower", new Vector2(0.5f, 0.5f), new Vector2(0f, 170f), 480f, 0.9f);
+
+            // Items floating around the logo (they pop in one by one and bob).
             var progression = AssetDatabase.LoadAssetAtPath<MergeProgression>(ContentPaths.MergeProgressionPath);
-            var mango = progression != null && progression.IndexOf("aam") >= 0 ? progression.Get(progression.IndexOf("aam")).Sprite : null;
+            Sprite ItemSprite(string id) => progression != null && progression.IndexOf(id) >= 0 ? progression.Get(progression.IndexOf(id)).Sprite : null;
+            var floaters = new System.Collections.Generic.List<Object>();
+            void Floater(string id, Vector2 position, float size)
+            {
+                var sprite = ItemSprite(id);
+                if (sprite == null)
+                {
+                    return;
+                }
+
+                var item = factory.Image(canvasRoot, "Float_" + id, sprite, Color.white);
+                item.preserveAspect = true;
+                UiFactory.Place(item.rectTransform, new Vector2(0.5f, 0.5f), position, new Vector2(size, size));
+                item.transform.SetSiblingIndex(logo.GetSiblingIndex());
+                floaters.Add(item.rectTransform);
+            }
+
+            Floater("chai", new Vector2(-330f, 620f), 150f);
+            Floater("nimbu", new Vector2(340f, 660f), 110f);
+            Floater("rickshaw", new Vector2(-340f, -560f), 170f);
+            Floater("mango_shake", new Vector2(350f, -520f), 150f);
+            Floater("tamatar", new Vector2(390f, 330f), 100f);
+
+            var mango = ItemSprite("aam");
+            RectTransform hero = null;
             if (mango != null)
             {
                 var art = factory.Image(logo, "Mango", mango, Color.white);
                 art.preserveAspect = true;
-                UiFactory.Place(art.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0f, 170f), new Vector2(330f, 330f));
+                UiFactory.Place(art.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0f, 175f), new Vector2(340f, 340f));
+                hero = art.rectTransform;
+                hero.pivot = new Vector2(0.5f, 0f);
+                hero.anchoredPosition = new Vector2(0f, 5f);
             }
 
-            var plate = factory.Panel(logo, "Plate", theme.deep, theme.accent, 8f).rectTransform;
+            var plate = factory.Panel(logo, "Plate", Color.white, theme.accent, 8f).rectTransform;
             UiFactory.Place(plate, new Vector2(0.5f, 0.5f), new Vector2(0f, -170f), new Vector2(820f, 220f));
-            var title = factory.Text(plate, "Title", "<color=#FFB627>Desi</color> Merge", theme.titleSize, theme.textLight, outline: true);
-            GameplaySceneBuilder.AddShadow(title.gameObject, theme, 0.5f, 10f);
-            UiFactory.Stretch(title.rectTransform, 20f, 20f, 10f, 20f);
-            var tagline = factory.Text(logo, "Tagline", "Milao  •  Barhao  •  Jeeto", theme.bodySize + 4, theme.deep, body: true);
-            UiFactory.Place(tagline.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0f, -320f), new Vector2(800f, 60f));
+            GameplaySceneBuilder.AddShadow(plate.gameObject, theme, 0.18f, 12f);
+            var strip = factory.Strip(plate, "Strip", 26f).rectTransform;
+            strip.anchorMin = new Vector2(0f, 0f);
+            strip.anchorMax = new Vector2(1f, 0f);
+            strip.pivot = new Vector2(0.5f, 0.5f);
+            strip.offsetMin = new Vector2(60f, -13f);
+            strip.offsetMax = new Vector2(-60f, 13f);
+            var title = factory.Text(plate, "Title", "<color=#FFB627>Desi</color> Merge", theme.titleSize, theme.deep);
+            UiFactory.Stretch(title.rectTransform, 20f, 20f, 10f, 24f);
+            var taglineText = factory.Text(logo, "Tagline", "Milao  •  Barhao  •  Jeeto", theme.bodySize + 6, theme.accentText, body: true);
+            UiFactory.Place(taglineText.rectTransform, new Vector2(0.5f, 0.5f), new Vector2(0f, -330f), new Vector2(800f, 64f));
+            var tagline = taglineText.gameObject.AddComponent<CanvasGroup>();
 
-            var spinner = factory.Ornament(canvasRoot, "Spinner", new Vector2(0.5f, 0f), new Vector2(0f, 220f), 110f, 0.9f).rectTransform;
+            var track = factory.Image(canvasRoot, "LoadingTrack", theme.pill, new Color(theme.deep.r, theme.deep.g, theme.deep.b, 0.12f));
+            UiFactory.Place(track.rectTransform, new Vector2(0.5f, 0f), new Vector2(0f, 230f), new Vector2(520f, 26f));
+            var fill = factory.Image(track.rectTransform, "Fill", theme.pill, theme.primary);
+            fill.rectTransform.anchorMin = Vector2.zero;
+            fill.rectTransform.anchorMax = new Vector2(0.06f, 1f);
+            fill.rectTransform.pivot = new Vector2(0f, 0.5f);
+            fill.rectTransform.offsetMin = Vector2.zero;
+            fill.rectTransform.offsetMax = Vector2.zero;
+
             var splash = canvas.gameObject.AddComponent<SplashScreen>();
-            EditorRefs.Set(splash, ("group", group), ("logo", logo), ("spinner", spinner));
+            EditorRefs.Set(splash, ("group", group), ("logo", logo), ("spinner", null), ("glow", glow.rectTransform), ("flower", flower.rectTransform),
+                ("hero", hero), ("plate", plate), ("tagline", tagline), ("loadingFill", fill.rectTransform), ("floaters", floaters.ToArray()),
+                ("introSeconds", 2f));
             if (bootstrapper != null)
             {
                 EditorRefs.Set(bootstrapper, ("splash", splash));

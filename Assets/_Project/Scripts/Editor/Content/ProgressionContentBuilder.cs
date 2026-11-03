@@ -66,10 +66,10 @@ namespace DesiMerge.Editor.Content
 
             var skinTitle = factory.Text(card, "SkinTitle", string.Empty, 48, theme.deep);
             UiFactory.Place(skinTitle.rectTransform, new Vector2(0.5f, 1f), new Vector2(0f, -186f), new Vector2(520f, 70f));
-            var previous = factory.Button(card, "PreviousSkin", string.Empty, theme.deep, new Vector2(96f, 84f), icon: GameArtGenerator.Icon("Back"));
-            UiFactory.Place((RectTransform)previous.transform, new Vector2(0.5f, 1f), new Vector2(-330f, -180f), new Vector2(96f, 84f));
-            var next = factory.Button(card, "NextSkin", string.Empty, theme.deep, new Vector2(96f, 84f), icon: GameArtGenerator.Icon("Back"));
-            UiFactory.Place((RectTransform)next.transform, new Vector2(0.5f, 1f), new Vector2(330f, -180f), new Vector2(96f, 84f));
+            var previous = factory.Button(card, "PreviousSkin", string.Empty, theme.secondary, new Vector2(96f, 96f), icon: GameArtGenerator.Icon("Back"));
+            UiFactory.Place((RectTransform)previous.transform, new Vector2(0.5f, 1f), new Vector2(-330f, -174f), new Vector2(96f, 96f));
+            var next = factory.Button(card, "NextSkin", string.Empty, theme.secondary, new Vector2(96f, 96f), icon: GameArtGenerator.Icon("Back"));
+            UiFactory.Place((RectTransform)next.transform, new Vector2(0.5f, 1f), new Vector2(330f, -174f), new Vector2(96f, 96f));
             next.transform.Find("Icon").localRotation = Quaternion.Euler(0f, 0f, 180f);
             UiFactory.Record(previous.transform, next.transform);
             var counter = factory.Text(card, "Counter", "0 / 0 discovered", 30, theme.mutedText, body: true);

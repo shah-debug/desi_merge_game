@@ -325,9 +325,12 @@ namespace DesiMerge.Editor.Content
             var languageLabel = factory.Text(languageBox.transform, "Language", string.Empty, 44, theme.textDark, TextAnchor.MiddleLeft);
             languageLabel.text = "English";
             UiFactory.Stretch(languageLabel.rectTransform, 36f, 100f, 0f, 4f + theme.buttonLip);
-            var chevron = factory.Image(languageBox.transform, "Chevron", GameArtGenerator.Icon("Back"), theme.primary);
-            UiFactory.Place(chevron.rectTransform, new Vector2(1f, 0.5f), new Vector2(-30f, theme.buttonLip * 0.5f), new Vector2(52f, 52f));
-            chevron.rectTransform.localRotation = Quaternion.Euler(0f, 0f, 90f);
+            // Chevron in a round chip at the right end, vertically centred on the box face (above the button lip).
+            var chip = factory.Image(languageBox.transform, "ChevronChip", theme.disc, theme.primary);
+            UiFactory.Place(chip.rectTransform, new Vector2(1f, 0.5f), new Vector2(-18f, theme.buttonLip * 0.5f), new Vector2(64f, 64f));
+            var chevron = factory.Image(chip.transform, "Chevron", GameArtGenerator.Icon("ChevronDown"), Color.white);
+            chevron.preserveAspect = true;
+            UiFactory.Stretch(chevron.rectTransform, 16f, 16f, 18f, 14f);
 
             var languageList = UiFactory.Stretch(UiFactory.Rect("LanguageList", card));
             var blockerImage = factory.Image(languageList, "Blocker", null, new Color(1f, 1f, 1f, 0.01f), raycast: true);

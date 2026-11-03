@@ -43,6 +43,29 @@ namespace DesiMerge.Editor.Content
                 image.color = new Color(theme.glass.r, theme.glass.g, theme.glass.b, theme.glass.a);
                 converted.Add(image.transform);
                 UiFactory.Record(image);
+
+                // A thin navy edge so glass cards stand apart from the cream background and from each other
+                // (panels that already have a coloured Rim keep just that).
+                var hasRim = image.name == "Fill" && image.transform.parent != null && image.transform.parent.Find("Rim") != null;
+                if (!hasRim && image.GetComponent<Outline>() == null)
+                {
+                    var edge = image.gameObject.AddComponent<Outline>();
+                    edge.effectColor = new Color(theme.deep.r, theme.deep.g, theme.deep.b, 0.12f);
+                    edge.effectDistance = new Vector2(2.5f, -2.5f);
+                }
+            }
+
+            // Faint white tracks and wells (drawn for a navy surface) would vanish on glass: tint them navy instead.
+            foreach (var image in root.GetComponentsInChildren<Image>(true))
+            {
+                var c = image.color;
+                if (converted.Contains(image.transform) || c.a < 0.04f || c.a >= 0.5f || Luminance(c) < 0.85f || !converted.Contains(BackgroundOf(image.transform)))
+                {
+                    continue;
+                }
+
+                image.color = new Color(theme.deep.r, theme.deep.g, theme.deep.b, Mathf.Clamp(c.a * 0.8f, 0.08f, 0.2f));
+                UiFactory.Record(image);
             }
 
             foreach (var text in root.GetComponentsInChildren<Text>(true))

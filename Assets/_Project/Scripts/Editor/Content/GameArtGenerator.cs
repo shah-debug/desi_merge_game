@@ -33,7 +33,7 @@ namespace DesiMerge.Editor.Content
         {
             "Pause", "Play", "Hammer", "Shuffle", "Gear", "Home", "Restart", "Trophy", "Grid", "Close", "Crown", "Star",
             "Music", "Speaker", "Lock", "Check", "Video", "Gift", "Calendar", "Missions", "Medal", "Back", "Unlock",
-            "Menu", "Podium", "Profile", "Help", "Chart", "Diamond", "Globe",
+            "Menu", "Podium", "Profile", "Help", "Chart", "Diamond", "Globe", "ChevronDown",
         };
 
         private static readonly Vector2[] GemOutline =
@@ -287,6 +287,8 @@ namespace DesiMerge.Editor.Content
 
                         return d;
                     };
+                case "ChevronDown":
+                    return p => Sdf.Union(Sdf.Capsule(p, new Vector2(-0.5f, 0.22f), new Vector2(0f, -0.26f), 0.12f), Sdf.Capsule(p, new Vector2(0.5f, 0.22f), new Vector2(0f, -0.26f), 0.12f));
                 case "Close":
                     return p => Sdf.Union(Sdf.Capsule(p, new Vector2(-0.45f, -0.45f), new Vector2(0.45f, 0.45f), 0.13f), Sdf.Capsule(p, new Vector2(-0.45f, 0.45f), new Vector2(0.45f, -0.45f), 0.13f));
                 case "Crown":
