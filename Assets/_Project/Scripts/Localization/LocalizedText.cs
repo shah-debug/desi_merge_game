@@ -7,6 +7,8 @@ namespace DesiMerge.Localization
     /// On every Text: keeps the right font and alignment for the current language, and translates the Text's fixed
     /// English content (its key). Texts whose content is set by code have an empty key; code translates them through
     /// <see cref="Loc"/>, and this component only switches their font and mirrors their alignment for Urdu.
+    /// A keyed label that code later fills with something else (e.g. a reward title) is left alone from then on:
+    /// the key only replaces text that is still the fixed text (the key itself or the translation written last).
     /// </summary>
     [RequireComponent(typeof(Text))]
     public sealed class LocalizedText : MonoBehaviour
@@ -17,6 +19,7 @@ namespace DesiMerge.Localization
         private Font _baseFont;
         private TextAnchor _baseAlignment;
         private bool _captured;
+        private string _lastWritten;
 
         public string Key => key;
 
@@ -49,10 +52,17 @@ namespace DesiMerge.Localization
             Capture();
             _text.font = Loc.FontFor(_baseFont);
             _text.alignment = Loc.IsRightToLeft ? Mirror(_baseAlignment) : _baseAlignment;
-            if (!string.IsNullOrEmpty(key))
+            if (!string.IsNullOrEmpty(key) && ShowsFixedText())
             {
                 Loc.Set(_text, key);
+                _lastWritten = _text.text;
             }
+        }
+
+        private bool ShowsFixedText()
+        {
+            var current = _text.text;
+            return current == key || (_lastWritten != null && current == _lastWritten) || string.IsNullOrEmpty(current);
         }
 
         private static TextAnchor Mirror(TextAnchor anchor)

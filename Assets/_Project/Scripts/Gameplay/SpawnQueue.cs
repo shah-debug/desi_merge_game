@@ -25,6 +25,13 @@ namespace DesiMerge.Gameplay
         public int Current { get; private set; }
         public int Next { get; private set; }
 
+        /// <summary>Puts back the current and next items of a saved game (clamped to the spawnable range).</summary>
+        public void Restore(int current, int next)
+        {
+            Current = Math.Max(0, Math.Min(current, _spawnableLevelCount - 1));
+            Next = Math.Max(0, Math.Min(next, _spawnableLevelCount - 1));
+        }
+
         /// <summary>Returns the current level and advances the queue.</summary>
         public int Take()
         {

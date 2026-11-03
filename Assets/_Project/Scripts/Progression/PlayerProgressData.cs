@@ -19,9 +19,12 @@ namespace DesiMerge.Progression
     [Serializable]
     public sealed class PlayerProgressData
     {
-        public const int CurrentSchemaVersion = 4;
+        public const int CurrentSchemaVersion = 5;
         public const int MaxRememberedCoinGrants = 200;
         public const int MaxRecentGames = 10;
+        public const int MaxRememberedGameGrants = 20;
+        /// <summary>Prefix of the per-game Diamond grants; they are remembered in their own short list.</summary>
+        public const string GameGrantPrefix = "game:";
 
         public int schemaVersion = CurrentSchemaVersion;
         public long highScore;
@@ -41,6 +44,12 @@ namespace DesiMerge.Progression
 
         /// <summary>IDs of diamond rewards already paid (newest last, bounded). Makes every diamond grant idempotent.</summary>
         public List<string> appliedCoinGrants = new List<string>();
+
+        /// <summary>
+        /// Per-game Diamond grants (one per finished game). Kept apart from <see cref="appliedCoinGrants"/> so that
+        /// hundreds of games never push reward-claim ids out of that list (added in schema 5).
+        /// </summary>
+        public List<string> appliedGameGrants = new List<string>();
     }
 
     /// <summary>One finished game in the local score history.</summary>

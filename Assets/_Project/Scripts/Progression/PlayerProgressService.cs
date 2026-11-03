@@ -35,7 +35,8 @@ namespace DesiMerge.Progression
         public long TotalMerges => _data.totalMerges;
         public IReadOnlyList<ScoreRecord> RecentGames => _data.recentGames;
 
-        public bool HasAppliedCoinGrant(string grantId) => !string.IsNullOrEmpty(grantId) && _data.appliedCoinGrants.Contains(grantId);
+        public bool HasAppliedCoinGrant(string grantId) =>
+            !string.IsNullOrEmpty(grantId) && (_data.appliedCoinGrants.Contains(grantId) || _data.appliedGameGrants.Contains(grantId));
 
         public bool TryGrantCoins(string grantId, long amount)
         {
@@ -54,11 +55,14 @@ namespace DesiMerge.Progression
                 return false;
             }
 
-            _data.coins += amount;
-            _data.appliedCoinGrants.Add(grantId);
-            if (_data.appliedCoinGrants.Count > PlayerProgressData.MaxRememberedCoinGrants)
+            _data.coins = amount > long.MaxValue - _data.coins ? long.MaxValue : _data.coins + amount;
+            var isGameGrant = grantId.StartsWith(PlayerProgressData.GameGrantPrefix, StringComparison.Ordinal);
+            var list = isGameGrant ? _data.appliedGameGrants : _data.appliedCoinGrants;
+            var cap = isGameGrant ? PlayerProgressData.MaxRememberedGameGrants : PlayerProgressData.MaxRememberedCoinGrants;
+            list.Add(grantId);
+            if (list.Count > cap)
             {
-                _data.appliedCoinGrants.RemoveRange(0, _data.appliedCoinGrants.Count - PlayerProgressData.MaxRememberedCoinGrants);
+                list.RemoveRange(0, list.Count - cap);
             }
 
             MarkChanged();
@@ -252,6 +256,15 @@ namespace DesiMerge.Progression
             // v3 → v4: no diamond grants existed before.
             data.appliedCoinGrants = data.appliedCoinGrants ?? new List<string>();
             data.appliedCoinGrants.RemoveAll(string.IsNullOrEmpty);
+            // v4 → v5: per-game grants move to their own list; reward-claim ids stay.
+            data.appliedGameGrants = data.appliedGameGrants ?? new List<string>();
+            data.appliedGameGrants.RemoveAll(string.IsNullOrEmpty);
+            data.appliedGameGrants.AddRange(data.appliedCoinGrants.FindAll(id => id.StartsWith(PlayerProgressData.GameGrantPrefix, StringComparison.Ordinal)));
+            data.appliedCoinGrants.RemoveAll(id => id.StartsWith(PlayerProgressData.GameGrantPrefix, StringComparison.Ordinal));
+            if (data.appliedGameGrants.Count > PlayerProgressData.MaxRememberedGameGrants)
+            {
+                data.appliedGameGrants.RemoveRange(0, data.appliedGameGrants.Count - PlayerProgressData.MaxRememberedGameGrants);
+            }
             // v2 → v3: no history existed before; older saves simply start with an empty list.
             data.recentGames = data.recentGames ?? new List<ScoreRecord>();
             data.recentGames.RemoveAll(record => record == null);

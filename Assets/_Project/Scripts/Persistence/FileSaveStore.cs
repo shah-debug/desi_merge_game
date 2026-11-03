@@ -60,10 +60,12 @@ namespace DesiMerge.Persistence
             }
             catch (PlatformNotSupportedException)
             {
-                // Fallback for platforms without an atomic replace: keep a backup copy, then swap.
+                // Fallback for platforms without an atomic replace: keep a backup copy, then overwrite in place.
+                // The main file always exists (never deleted first); if the app dies mid-copy the main file may be
+                // incomplete, and loading falls back to the backup written just before.
                 File.Copy(path, backupPath, true);
-                File.Delete(path);
-                File.Move(tempPath, path);
+                File.Copy(tempPath, path, true);
+                File.Delete(tempPath);
             }
         }
 

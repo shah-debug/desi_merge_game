@@ -33,8 +33,10 @@ namespace DesiMerge.Core
             MergeProgression itemContent = null,
             IDailyRewardService dailyRewards = null,
             IMissionService missions = null,
-            IMilestoneService milestones = null)
+            IMilestoneService milestones = null,
+            DesiMerge.Gameplay.RunSnapshotStore runSnapshots = null)
         {
+            RunSnapshots = runSnapshots;
             ItemContent = itemContent;
             GameState = gameState ?? throw new ArgumentNullException(nameof(gameState));
             Progress = progress ?? throw new ArgumentNullException(nameof(progress));
@@ -56,6 +58,9 @@ namespace DesiMerge.Core
         }
 
         public IGameStateService GameState { get; }
+
+        /// <summary>The saved game in progress (null in setups without storage: then games are not resumed).</summary>
+        public DesiMerge.Gameplay.RunSnapshotStore RunSnapshots { get; }
         public IPlayerProgressService Progress { get; }
         public ISettingsService Settings { get; }
         public IAudioService Audio { get; }

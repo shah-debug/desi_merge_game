@@ -106,6 +106,38 @@ namespace DesiMerge.Gameplay
             return SpawnWorld(level, LocalToWorld(localPosition), Vector2.zero, _clock());
         }
 
+        /// <summary>Puts a saved item back at rest (board-local position, rotation in degrees). It gets a fresh grace period.</summary>
+        public MergeItem SpawnRestored(int level, Vector2 localPosition, float rotation)
+        {
+            var item = SpawnWorld(level, LocalToWorld(InsideLocal(localPosition, _config.Progression.Get(level).Radius)), Vector2.zero, _clock());
+            item.SetRestingRotation(rotation);
+            return item;
+        }
+
+        /// <summary>The active items as board-local level/position/rotation records (for saving a game in progress).</summary>
+        public List<RunSnapshotItem> SnapshotItems()
+        {
+            var items = new List<RunSnapshotItem>(_active.Count);
+            foreach (var item in _active)
+            {
+                if (item.IsConsumed)
+                {
+                    continue;
+                }
+
+                var local = WorldToLocal(item.Body.position);
+                items.Add(new RunSnapshotItem { level = item.Level, x = local.x, y = local.y, rotation = item.Body.rotation });
+            }
+
+            return items;
+        }
+
+        private Vector2 InsideLocal(Vector2 local, float radius)
+        {
+            var limit = Mathf.Max(0f, _config.HalfWidth - radius);
+            return new Vector2(Mathf.Clamp(local.x, -limit, limit), Mathf.Max(local.y, radius));
+        }
+
         public void ReportContact(MergeItem self, MergeItem other)
         {
             if (!_frozen)

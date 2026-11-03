@@ -15,6 +15,7 @@
 | UI enhancement (nav/records/profile/icon) | Hamburger menu, Records (Achievements/Score), profile badge, score history, adaptive launcher icon, "Desi Merge" label | **Complete — awaiting review** (2026-11-02; EditMode 222/222, PlayMode 121/121, APK built; not tested on a phone); see `Phase66_UI_Enhancement_Report.md` |
 | Diamonds & gameplay polish | Live BEST, centred labels, Poppins body font, rounded progress bars, Hammer/Shuffle zoom + effects, Diamonds currency (earn, spend, counters) | **Complete — awaiting review** (2026-11-02; EditMode 226/226, PlayMode 128/128, APK built; not tested on a phone); see `DiamondsAndGameplayPolish.md` |
 | Skins, collection & 3D art | Skin tag + Skins screen (4 skins for Diamonds), 40 new items, collection pages (50 items), 3D lighting for all art | **Complete — awaiting review** (2026-11-02; EditMode 230/230, PlayMode 129/129, APK built, 0 warnings; not tested on a phone); see `SkinsAndArtUpgrade.md` |
+| Deep audit (security, exploitability, failure points) | Read-only audit of the whole project at `79abace` | Report delivered 2026-11-03; **fixes done 2026-11-03**: all medium/low findings fixed or mitigated except DM-12 (package id, deferred until Play release) + 1 new bug found by tests (DM-23). EditMode 260/260, PlayMode 136/136, APK built (0 errors); see `SecurityAudit/ExploitabilityRegister.md` → Fix status |
 | 7 | Not defined yet | Not started |
 
 ## Phase 6.6 — Production-Grade Player Experience (2026-10-30)

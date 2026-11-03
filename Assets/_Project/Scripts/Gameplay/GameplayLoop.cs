@@ -45,6 +45,8 @@ namespace DesiMerge.Gameplay
         private int _sessionAchievements;
         private int _sessionMissions;
         private string _sessionRank;
+        /// <summary>True while a game-in-progress snapshot may exist on disk (so ending the game clears it once).</summary>
+        private bool _snapshotSaved;
         /// <summary>Changes on every new session, so a late ad callback can't revive a different game.</summary>
         private int _sessionGeneration;
 
@@ -313,6 +315,7 @@ namespace DesiMerge.Gameplay
             _board.SetFrozen(true);
             _drop.InputEnabled = false;
             _drop.HidePreview();
+            ClearRunSnapshot();
 
             var progress = _services.Progress;
             // A revived game was already counted at its first game over; only its best score can still change.
@@ -372,6 +375,7 @@ namespace DesiMerge.Gameplay
 
             ExitTargeting(restoreInput: false);
             AbandonRevive();
+            ClearRunSnapshot();
             _board.Clear();
             Session.Restart();
             Queue.Reset(_config.SpawnSeed);
@@ -393,6 +397,8 @@ namespace DesiMerge.Gameplay
             _leaving = true;
             ExitTargeting(restoreInput: false);
             AbandonRevive();
+            // Leaving for the menu abandons the run (it is not submitted), so there is nothing to resume.
+            ClearRunSnapshot();
             _setTimeScale(1f);
             _drop.InputEnabled = false;
             _board.SetFrozen(true);
@@ -406,6 +412,113 @@ namespace DesiMerge.Gameplay
 
             RefreshPowerUps();
             return true;
+        }
+
+        /// <summary>
+        /// Saves the game in progress (called when the app goes to the background), so it survives Android closing the
+        /// app. Nothing is saved once the game is over, being left, or waiting for an ad.
+        /// </summary>
+        public bool SaveRunSnapshot()
+        {
+            var store = _services.RunSnapshots;
+            if (store == null || _disposed || _leaving || _revivePending || Session.IsOver)
+            {
+                return false;
+            }
+
+            var data = new RunSnapshotData
+            {
+                active = true,
+                sessionId = _sessionId,
+                score = Session.Score,
+                mergeCount = Session.MergeCount,
+                revivesUsed = Session.RevivesUsed,
+                queueCurrent = Queue.Current,
+                queueNext = Queue.Next,
+                sessionDiamonds = _sessionDiamonds,
+                bestBeforeSession = _bestBeforeSession,
+                hasDropped = _hasDroppedThisSession,
+                powerUpUsed = _services.Missions.PowerUpUsedThisGame,
+                items = _board.SnapshotItems(),
+            };
+            data.pendingPowerUpUses.AddRange(_services.Missions.PendingPowerUpUses);
+            foreach (var definition in _services.PowerUps.Definitions)
+            {
+                data.freeUses.Add(new RunSnapshotFreeUses { id = definition.id, left = _services.PowerUps.FreeUsesLeft(definition.id) });
+            }
+
+            if (!data.hasDropped && data.items.Count == 0)
+            {
+                // Nothing played yet: nothing worth resuming.
+                ClearRunSnapshot();
+                return false;
+            }
+
+            _snapshotSaved = store.Save(data) || _snapshotSaved;
+            return true;
+        }
+
+        /// <summary>
+        /// Starts by resuming a saved game in progress if there is a valid one: same items, score, queue, free uses and
+        /// mission state, then waits on the pause card. Returns false (and nothing changes) if there is none.
+        /// </summary>
+        public bool TryResumeSavedGame()
+        {
+            var store = _services.RunSnapshots;
+            var data = store?.Load();
+            if (data == null || !data.active)
+            {
+                return false;
+            }
+
+            if (!data.IsValidFor(_config))
+            {
+                Debug.LogWarning("[Gameplay] The saved game in progress doesn't fit this board; starting a new game.");
+                store.Clear();
+                return false;
+            }
+
+            Begin();
+            _sessionId = data.sessionId;
+            _sessionDiamonds = data.sessionDiamonds;
+            _bestBeforeSession = data.bestBeforeSession;
+            Session.Restore(data.score, data.mergeCount, data.revivesUsed);
+            Queue.Restore(data.queueCurrent, data.queueNext);
+            foreach (var item in data.items)
+            {
+                _board.SpawnRestored(item.level, new Vector2(item.x, item.y), item.rotation);
+            }
+
+            foreach (var uses in data.freeUses)
+            {
+                _services.PowerUps.RestoreFreeUses(uses.id, uses.left);
+            }
+
+            _services.Missions.RestoreGame(data.powerUpUsed, data.pendingPowerUpUses);
+            _hasDroppedThisSession = data.hasDropped;
+            _view.SetInstructionsVisible(!data.hasDropped);
+            _view.SetNextItem(_progression.Get(Queue.Next));
+            _drop.ShowPreview(_progression.Get(Queue.Current));
+            _snapshotSaved = true;
+            ResumedSavedGame = true;
+            Pause();
+            RefreshPowerUps();
+            return true;
+        }
+
+        public bool ResumedSavedGame { get; private set; }
+
+        private void ClearRunSnapshot()
+        {
+            if (!_snapshotSaved || _services.RunSnapshots == null)
+            {
+                return;
+            }
+
+            if (_services.RunSnapshots.Clear())
+            {
+                _snapshotSaved = false;
+            }
         }
 
         public void Dispose()
@@ -463,7 +576,7 @@ namespace DesiMerge.Gameplay
                 return;
             }
 
-            if (_services.Progress.TryGrantCoins($"game:{_sessionId}:{total}", total - _sessionDiamonds))
+            if (_services.Progress.TryGrantCoins($"{DesiMerge.Progression.PlayerProgressData.GameGrantPrefix}{_sessionId}:{total}", total - _sessionDiamonds))
             {
                 _sessionDiamonds = total;
             }

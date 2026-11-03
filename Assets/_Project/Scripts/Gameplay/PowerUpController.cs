@@ -158,8 +158,14 @@ namespace DesiMerge.Gameplay
         {
             if (_service.Available(id) <= 0 && CanBuy(_service.Find(id)))
             {
-                // Bought: diamonds are spent only now, after the effect has worked.
-                _wallet.TrySpendCoins(_service.Find(id).diamondPrice);
+                // Bought: diamonds are spent only now, after the effect has worked, and saved at once so a crash
+                // can't refund them. Reported as a use so missions treat it like any other power-up.
+                if (_wallet.TrySpendCoins(_service.Find(id).diamondPrice))
+                {
+                    _wallet.Flush();
+                }
+
+                _service.RecordPurchasedUse(id);
                 return PowerUpResult.Used;
             }
 

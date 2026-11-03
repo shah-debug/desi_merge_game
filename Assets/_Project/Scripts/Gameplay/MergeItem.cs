@@ -214,6 +214,13 @@ namespace DesiMerge.Gameplay
         }
 
         /// <summary>Restarts the danger-line grace period, as if just spawned (after a revive).</summary>
+        /// <summary>Sets the resting rotation (restoring a saved board). Velocity stays zero.</summary>
+        internal void SetRestingRotation(float degrees)
+        {
+            transform.rotation = Quaternion.Euler(0f, 0f, degrees);
+            body.rotation = degrees;
+        }
+
         internal void RestartGrace(float now)
         {
             SpawnTime = now;

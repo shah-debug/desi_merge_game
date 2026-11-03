@@ -59,7 +59,8 @@ namespace DesiMerge.Core
                 content,
                 new DailyRewardService(saveStore, config.DailyRewards, clock, rewards),
                 new MissionService(saveStore, config.Missions, progress, powerUps, content, clock, rewards),
-                new MilestoneService(saveStore, config.Milestones, progress, rewards));
+                new MilestoneService(saveStore, config.Milestones, progress, rewards),
+                new DesiMerge.Gameplay.RunSnapshotStore(saveStore));
         }
     }
 }

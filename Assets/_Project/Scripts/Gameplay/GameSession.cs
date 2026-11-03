@@ -63,6 +63,16 @@ namespace DesiMerge.Gameplay
         /// <summary>Revives used in this session (reset by <see cref="Restart"/>).</summary>
         public int RevivesUsed { get; private set; }
 
+        /// <summary>Puts back a saved game in progress (score, merges, revives). The session is not over afterwards.</summary>
+        public void Restore(long score, int mergeCount, int revivesUsed)
+        {
+            Score = Math.Max(0, score);
+            MergeCount = Math.Max(0, mergeCount);
+            RevivesUsed = Math.Max(0, revivesUsed);
+            IsOver = false;
+            ScoreChanged?.Invoke(Score);
+        }
+
         public void Restart()
         {
             Score = 0;

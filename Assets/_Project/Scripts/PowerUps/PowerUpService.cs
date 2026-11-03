@@ -55,6 +55,15 @@ namespace DesiMerge.PowerUps
         void BeginGame();
 
         /// <summary>
+        /// A use paid with Diamonds (no free use or saved charge was left). Nothing is consumed here, but it is reported
+        /// through <see cref="Used"/> like any other use, so missions count it.
+        /// </summary>
+        void RecordPurchasedUse(string id);
+
+        /// <summary>Restores the free uses left in a resumed game (clamped to the allowance). Does not raise <see cref="GameBegan"/>.</summary>
+        void RestoreFreeUses(string id, int left);
+
+        /// <summary>
         /// Uses one charge (free uses first, then saved charges). Call only after the effect has succeeded.
         /// Returns false and changes nothing if none are available.
         /// </summary>
@@ -163,6 +172,29 @@ namespace DesiMerge.PowerUps
 
             Changed?.Invoke();
             GameBegan?.Invoke();
+        }
+
+        public void RecordPurchasedUse(string id)
+        {
+            if (Find(id) == null)
+            {
+                return;
+            }
+
+            Changed?.Invoke();
+            Used?.Invoke(id);
+        }
+
+        public void RestoreFreeUses(string id, int left)
+        {
+            var definition = Find(id);
+            if (definition == null)
+            {
+                return;
+            }
+
+            _freeUsesLeft[id] = Math.Max(0, Math.Min(left, definition.freeUsesPerGame));
+            Changed?.Invoke();
         }
 
         public bool TryConsume(string id)

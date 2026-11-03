@@ -80,6 +80,8 @@ namespace DesiMerge.Tests.PlayMode
 
             yield return Smash(entry, second, PowerUpResult.Used);
             Assert.AreEqual(15, progress.Coins, "Bought: 30 diamonds, paid when the item was smashed.");
+            Assert.AreEqual(2, entry.Services.Missions.PendingPowerUpUses.Count(id => id == "hammer"), "The bought Hammer counts as a use, like the free one.");
+            Assert.IsTrue(entry.Services.Missions.PowerUpUsedThisGame);
             Assert.AreEqual("15", entry.Hud.Diamonds.AmountLabel);
             Assert.IsTrue(hammer.ShowsUnavailable, "15 diamonds can't buy a 30-diamond Hammer.");
             Assert.AreEqual(PowerUpResult.NoCharges, entry.Loop.UsePowerUp("hammer"));

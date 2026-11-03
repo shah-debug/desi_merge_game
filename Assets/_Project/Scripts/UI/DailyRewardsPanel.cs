@@ -145,7 +145,8 @@ namespace DesiMerge.UI
                 streakText.text = _rewards.Streak > 0 ? DesiMerge.Localization.Loc.F(_rewards.Streak == 1 ? "Streak: {0} day" : "Streak: {0} days", _rewards.Streak) : DesiMerge.Localization.Loc.T("Claim every day to build a streak");
             }
 
-            SetStatus(_rewards.ClockMovedBack ? DesiMerge.Localization.Loc.T("Your device date looks earlier than before. Rewards continue when that day comes again.") : string.Empty);
+            SetStatus(_rewards.ClockChanged ? DesiMerge.Localization.Loc.T("The phone clock was changed. Daily rewards continue once a real day has passed.")
+                : _rewards.ClockMovedBack ? DesiMerge.Localization.Loc.T("Your device date looks earlier than before. Rewards continue when that day comes again.") : string.Empty);
         }
 
         private void OnClaim()

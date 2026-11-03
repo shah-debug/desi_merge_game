@@ -28,6 +28,14 @@ namespace DesiMerge.UI
         public float Amount => _shown;
         public bool Visible => _visible;
         public float TopBandHeight => topBand != null ? topBand.sizeDelta.y : 0f;
+        public RectTransform TopBand => topBand;
+        public RectTransform BottomBand => bottomBand;
+
+        /// <summary>World position of the jar top edge the top band stops at.</summary>
+        public Vector2 JarTopWorld => board != null ? board.LocalToWorld(new Vector2(0f, jarTop)) : Vector2.zero;
+
+        /// <summary>World position of the jar bottom edge the bottom band stops at.</summary>
+        public Vector2 JarBottomWorld => board != null ? board.LocalToWorld(new Vector2(0f, jarBottom)) : Vector2.zero;
         public float BottomBandHeight => bottomBand != null ? bottomBand.sizeDelta.y : 0f;
 
         public void SetVisible(bool visible)

@@ -113,7 +113,14 @@ namespace DesiMerge.Tests.PlayMode
             yield return new WaitForSecondsRealtime(0.6f);
             var shade = entry.Hud.FocusShade;
             Assert.IsTrue(shade.Visible && shade.Amount >= 1f, "The focus shade slid in.");
-            Assert.Greater(shade.TopBandHeight, 300f, "The dark band covers the HUD down to the jar.");
+            // The top band runs from the screen top down to the jar's top edge, the bottom band up to its floor.
+            var corners = new Vector3[4];
+            shade.TopBand.GetWorldCorners(corners);
+            var cam = Camera.main;
+            Assert.AreEqual(cam.WorldToScreenPoint(shade.JarTopWorld).y, corners[0].y, Screen.height * 0.02f, "Top band ends at the jar top.");
+            Assert.AreEqual(Screen.height, corners[1].y, 2f, "Top band starts at the screen top.");
+            shade.BottomBand.GetWorldCorners(corners);
+            Assert.AreEqual(Mathf.Max(0f, cam.WorldToScreenPoint(shade.JarBottomWorld).y), corners[1].y, Screen.height * 0.02f, "Bottom band ends at the jar floor.");
             Assert.IsNull(GameObject.Find("TargetingBanner"), "No hint banner.");
             Assert.IsFalse(entry.Hud.Toast.IsShowing, "No hint toast while picking.");
             yield return SceneCapture.Capture(SceneManager.GetSceneByName(GameplayScene), "hammer-focus-9x16.png", 540, 960);

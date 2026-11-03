@@ -76,8 +76,12 @@ namespace DesiMerge.Gameplay
             _cosmetics = services.Cosmetics;
             _cosmetics.Changed += OnSkinChanged;
             Loop = new GameplayLoop(gameplayConfig, board, dropController, hud, services, () => Time.time);
-            Loop.Begin();
-            ShowTutorialIfNeeded(services);
+            // A game left in the background (and closed by Android) continues where it was, on the pause card.
+            if (!Loop.TryResumeSavedGame())
+            {
+                Loop.Begin();
+                ShowTutorialIfNeeded(services);
+            }
         }
 
         /// <summary>Only before the first completed game; players who already finished a game never see it.</summary>
@@ -128,8 +132,9 @@ namespace DesiMerge.Gameplay
         /// <summary>A new skin applies at once: items on the board, the drop preview and NEXT all switch.</summary>
         private void OnSkinChanged()
         {
-            var preview = gameplayConfig.Progression.Get(Mathf.Min(5, gameplayConfig.Progression.Count - 1));
-            hud.SetSkinPreview(_cosmetics.Selected(DesiMerge.Cosmetics.CosmeticKind.ItemSkin)?.SpriteFor(5) ?? preview.Sprite);
+            var previewIndex = Mathf.Min(5, gameplayConfig.Progression.Count - 1);
+            var preview = gameplayConfig.Progression.Get(previewIndex);
+            hud.SetSkinPreview(_cosmetics.Selected(DesiMerge.Cosmetics.CosmeticKind.ItemSkin)?.SpriteFor(previewIndex) ?? preview.Sprite);
             board.RefreshSkins();
             Loop?.RefreshItemPreviews();
         }
@@ -150,6 +155,7 @@ namespace DesiMerge.Gameplay
             if (paused)
             {
                 Loop?.HandleAppInterrupted();
+                Loop?.SaveRunSnapshot();
             }
         }
 
@@ -158,6 +164,7 @@ namespace DesiMerge.Gameplay
             if (!hasFocus && !Application.isEditor)
             {
                 Loop?.HandleAppInterrupted();
+                Loop?.SaveRunSnapshot();
             }
         }
 

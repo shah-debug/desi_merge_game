@@ -48,6 +48,9 @@ namespace DesiMerge.Cosmetics
 
         void RecordDiscovery(string skinId, int level);
 
+        /// <summary>A level seen for the first time with a skin. Separate from <see cref="Changed"/>, which means ownership or selection changed.</summary>
+        event Action<string, int> Discovered;
+
         bool IsDiscovered(string skinId, int level);
     }
 
@@ -99,6 +102,8 @@ namespace DesiMerge.Cosmetics
 
         public event Action Changed;
 
+        public event Action<string, int> Discovered;
+
         public CosmeticPurchase TryBuy(string id, IPlayerProgressService wallet)
         {
             var definition = Find(id);
@@ -112,16 +117,21 @@ namespace DesiMerge.Cosmetics
                 return CosmeticPurchase.AlreadyOwned;
             }
 
-            if (!wallet.TrySpendCoins(definition.price))
+            if (wallet.Coins < definition.price)
             {
                 return CosmeticPurchase.NotEnoughDiamonds;
             }
 
-            // Spend, then own and save both at once, so a purchase is never lost or paid twice.
+            // Own and save first, then spend and save. If the app dies between the two writes the player keeps the
+            // skin without paying (never the other way round), and IsOwned stops a second charge on retry.
             _owned.Add(id);
             _dirty = true;
-            wallet.Flush();
             Flush();
+            if (wallet.TrySpendCoins(definition.price))
+            {
+                wallet.Flush();
+            }
+
             Changed?.Invoke();
             return CosmeticPurchase.Bought;
         }
@@ -136,9 +146,10 @@ namespace DesiMerge.Cosmetics
             var key = skinId + ":" + level;
             if (!_data.discovered.Contains(key))
             {
+                // Not a cosmetic change (selection/ownership): listeners of Changed re-skin the board.
                 _data.discovered.Add(key);
                 _dirty = true;
-                Changed?.Invoke();
+                Discovered?.Invoke(skinId, level);
             }
         }
 

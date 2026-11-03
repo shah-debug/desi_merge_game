@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using DesiMerge.Configuration;
 using DesiMerge.Core;
 using DesiMerge.Persistence;
@@ -65,6 +66,15 @@ namespace DesiMerge.Progression
         ClaimResult TryClaim(string missionId);
 
         bool Flush();
+
+        /// <summary>Whether the current game has used a power-up (saved with an in-progress game).</summary>
+        bool PowerUpUsedThisGame { get; }
+
+        /// <summary>Power-up uses of the current game that count once the game ends (saved with an in-progress game).</summary>
+        IReadOnlyList<string> PendingPowerUpUses { get; }
+
+        /// <summary>Puts back the per-game state of a resumed game.</summary>
+        void RestoreGame(bool powerUpUsed, IEnumerable<string> pendingUses);
     }
 
     /// <summary>
@@ -89,6 +99,23 @@ namespace DesiMerge.Progression
         private readonly int _dailySlots;
         private readonly int _weeklySlots;
         private bool _powerUpUsedThisGame;
+
+        // Uses count only when the game ends, so restarting to refill free power-ups can't farm "use power-ups" missions.
+        private readonly List<string> _pendingPowerUpUses = new List<string>();
+
+        public bool PowerUpUsedThisGame => _powerUpUsedThisGame;
+
+        public IReadOnlyList<string> PendingPowerUpUses => _pendingPowerUpUses;
+
+        public void RestoreGame(bool powerUpUsed, IEnumerable<string> pendingUses)
+        {
+            _powerUpUsedThisGame = powerUpUsed;
+            _pendingPowerUpUses.Clear();
+            if (pendingUses != null)
+            {
+                _pendingPowerUpUses.AddRange(pendingUses.Where(id => !string.IsNullOrEmpty(id)));
+            }
+        }
         private bool _dirty;
 
         public MissionService(ISaveStore store, MissionCatalog catalog, IPlayerProgressService progress, IPowerUpService powerUps,
@@ -309,7 +336,11 @@ namespace DesiMerge.Progression
             return null;
         }
 
-        private void OnGameBegan() => _powerUpUsedThisGame = false;
+        private void OnGameBegan()
+        {
+            _powerUpUsedThisGame = false;
+            _pendingPowerUpUses.Clear();
+        }
 
         private void OnMergeRecorded(MergeItemDefinition created)
         {
@@ -339,14 +370,21 @@ namespace DesiMerge.Progression
         {
             Refresh();
             Advance(MissionType.ScoreInOneGame, state => Math.Max(state.Entry.progress, score));
+
+            // The game ended (also after a revive): its power-up uses count now.
+            foreach (var powerUpId in _pendingPowerUpUses)
+            {
+                Advance(MissionType.UsePowerUps, state =>
+                    string.IsNullOrEmpty(state.Definition.powerUpId) || state.Definition.powerUpId == powerUpId ? state.Entry.progress + 1 : state.Entry.progress);
+            }
+
+            _pendingPowerUpUses.Clear();
         }
 
         private void OnPowerUpUsed(string powerUpId)
         {
             _powerUpUsedThisGame = true;
-            Refresh();
-            Advance(MissionType.UsePowerUps, state =>
-                string.IsNullOrEmpty(state.Definition.powerUpId) || state.Definition.powerUpId == powerUpId ? state.Entry.progress + 1 : state.Entry.progress);
+            _pendingPowerUpUses.Add(powerUpId);
         }
 
         private void Advance(MissionType type, Func<MissionState, long> next)

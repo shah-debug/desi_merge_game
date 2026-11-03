@@ -9,7 +9,7 @@ namespace DesiMerge.Progression
     [Serializable]
     public sealed class DailyRewardSaveData
     {
-        public const int CurrentSchemaVersion = 1;
+        public const int CurrentSchemaVersion = 2;
 
         public int schemaVersion = CurrentSchemaVersion;
         public int lastClaimDay = -1;
@@ -18,6 +18,10 @@ namespace DesiMerge.Progression
         public int bestStreak;
         public int totalClaims;
         public int latestDay = -1;
+
+        // Schema 2: date and phone uptime at the last claim, to notice a hand-changed clock (see DailyRewardService).
+        public long lastClaimUtcTicks;
+        public long lastClaimUptimeMs = -1;
     }
 
     public enum DailyRewardDayState
@@ -45,6 +49,12 @@ namespace DesiMerge.Progression
         /// <summary>The device clock is earlier than a day already seen. Claims wait until that day is reached again.</summary>
         bool ClockMovedBack { get; }
 
+        /// <summary>
+        /// The date moved much more (or less) than real time since the last claim, without a phone restart: the clock was
+        /// changed by hand. Claiming waits until real time catches up.
+        /// </summary>
+        bool ClockChanged { get; }
+
         event Action Changed;
 
         DailyRewardDayState StateOf(int index);
@@ -71,11 +81,18 @@ namespace DesiMerge.Progression
         private readonly List<DailyRewardDay> _days = new List<DailyRewardDay>();
         private readonly IClock _clock;
         private readonly IRewardGranter _rewards;
+        /// <summary>Slack for automatic time sync corrections.</summary>
+        private static readonly TimeSpan ClockSlack = TimeSpan.FromHours(1);
+        /// <summary>Real time that must pass after a claim before a clock moved backwards may open a new claim.</summary>
+        private static readonly TimeSpan BackwardsWait = TimeSpan.FromHours(20);
+        private readonly Func<long> _uptime;
         private int _effectiveDay;
         private bool _dirty;
 
-        public DailyRewardService(ISaveStore store, DailyRewardCatalog catalog, IClock clock, IRewardGranter rewards)
+        /// <param name="uptimeMilliseconds">Phone uptime including sleep, or -1 if unknown. Defaults to <see cref="DeviceUptime"/>.</param>
+        public DailyRewardService(ISaveStore store, DailyRewardCatalog catalog, IClock clock, IRewardGranter rewards, Func<long> uptimeMilliseconds = null)
         {
+            _uptime = uptimeMilliseconds ?? DeviceUptime.ElapsedRealtimeMilliseconds;
             _repository = new JsonRepository<DailyRewardSaveData>(store, SaveKey.DailyRewards);
             _clock = clock ?? new SystemClock();
             _rewards = rewards;
@@ -103,10 +120,11 @@ namespace DesiMerge.Progression
         public IReadOnlyList<DailyRewardDay> Days => _days;
         public int TodayIndex { get; private set; }
         public bool ClaimedToday { get; private set; }
-        public bool CanClaim => _days.Count > 0 && !ClaimedToday;
+        public bool CanClaim => _days.Count > 0 && !ClaimedToday && !ClockChanged;
         public int Streak { get; private set; }
         public int BestStreak => _data.bestStreak;
         public bool ClockMovedBack { get; private set; }
+        public bool ClockChanged { get; private set; }
 
         public event Action Changed;
 
@@ -127,6 +145,13 @@ namespace DesiMerge.Progression
             var today = DayKey.Today(_clock);
             _effectiveDay = DayKey.Effective(today, _data.latestDay);
             ClockMovedBack = today < _effectiveDay;
+            ClockChanged = ClockChangedSinceLastClaim();
+            if (ClockChanged)
+            {
+                // Freeze the calendar where it was: a hand-changed date neither moves the latest day on nor wipes claims.
+                _effectiveDay = Math.Max(_data.latestDay, _data.lastClaimDay);
+            }
+
             if (_data.lastClaimDay > _effectiveDay)
             {
                 _data.lastClaimDay = -1;
@@ -180,6 +205,8 @@ namespace DesiMerge.Progression
             _data.lastClaimDay = _effectiveDay;
             _data.lastClaimIndex = TodayIndex;
             _data.totalClaims++;
+            _data.lastClaimUtcTicks = _clock.UtcNow.Ticks;
+            _data.lastClaimUptimeMs = _uptime();
             _dirty = true;
             Flush();
             Refresh();
@@ -203,6 +230,33 @@ namespace DesiMerge.Progression
             return true;
         }
 
+        /// <summary>
+        /// Same boot as the last claim (uptime kept growing) but the date moved more than an hour ahead of real time, or
+        /// moved back before a real ~day passed. After a restart (uptime reset) or without uptime the date is trusted.
+        /// </summary>
+        private bool ClockChangedSinceLastClaim()
+        {
+            if (_data.lastClaimUptimeMs < 0 || _data.lastClaimUtcTicks <= 0)
+            {
+                return false;
+            }
+
+            var uptime = _uptime();
+            if (uptime < 0 || uptime < _data.lastClaimUptimeMs)
+            {
+                return false;
+            }
+
+            var real = TimeSpan.FromMilliseconds(uptime - _data.lastClaimUptimeMs);
+            var wall = _clock.UtcNow - new DateTime(_data.lastClaimUtcTicks, DateTimeKind.Utc);
+            if (wall - real > ClockSlack)
+            {
+                return true;
+            }
+
+            return wall < -ClockSlack && real < BackwardsWait;
+        }
+
         private void Set(int index, bool claimedToday, int streak)
         {
             TodayIndex = _days.Count == 0 ? 0 : Mathf.Clamp(index, 0, _days.Count - 1);
@@ -216,6 +270,8 @@ namespace DesiMerge.Progression
             _data.streak = Math.Max(0, _data.streak);
             _data.bestStreak = Math.Max(_data.bestStreak, _data.streak);
             _data.totalClaims = Math.Max(0, _data.totalClaims);
+            _data.lastClaimUtcTicks = Math.Max(0, Math.Min(_data.lastClaimUtcTicks, DateTime.MaxValue.Ticks));
+            _data.lastClaimUptimeMs = Math.Max(-1, _data.lastClaimUptimeMs);
             if (_data.lastClaimDay < 0)
             {
                 _data.lastClaimDay = -1;

@@ -310,8 +310,9 @@ namespace DesiMerge.Tests.EditMode
             _powerUps.BeginGame();
             _powerUps.TryConsume("shuffle");
             _powerUps.TryConsume("hammer");
-            Assert.AreEqual(1, State(missions, "hammer").Progress, "Only Hammer uses count.");
+            Assert.AreEqual(0, State(missions, "hammer").Progress, "Uses count when the game ends, not before.");
             _progress.SubmitFinalScore(250);
+            Assert.AreEqual(1, State(missions, "hammer").Progress, "Only Hammer uses count.");
             Assert.AreEqual(250, State(missions, "score").Progress);
             Assert.AreEqual(0, State(missions, "clean").Progress, "That game used power-ups.");
 
@@ -319,6 +320,137 @@ namespace DesiMerge.Tests.EditMode
             _progress.SubmitFinalScore(320);
             Assert.IsTrue(State(missions, "score").Completed);
             Assert.IsTrue(State(missions, "clean").Completed);
+        }
+
+        [Test]
+        public void Missions_PowerUpUsesInARestartedGame_NeverCount()
+        {
+            var missions = MissionsService(Missions(Mission("hammer", MissionType.UsePowerUps, 3, powerUpId: "hammer")));
+            for (var i = 0; i < 5; i++)
+            {
+                // Drop one item, use the free Hammer, restart: the abandoned games never end, so nothing counts.
+                _powerUps.BeginGame();
+                _powerUps.TryConsume("hammer");
+            }
+
+            _powerUps.BeginGame();
+            Assert.AreEqual(0, State(missions, "hammer").Progress);
+            _powerUps.TryConsume("hammer");
+            _progress.SubmitFinalScore(10);
+            Assert.AreEqual(1, State(missions, "hammer").Progress, "A finished game counts its use.");
+        }
+
+        [Test]
+        public void Missions_PowerUpBoughtWithDiamonds_CountsAsAUse_AndBreaksTheNoPowerUpMission()
+        {
+            var missions = MissionsService(Missions(
+                Mission("hammer", MissionType.UsePowerUps, 1, powerUpId: "hammer"),
+                Mission("clean", MissionType.GamesWithoutPowerUps, 1)));
+            _powerUps.BeginGame();
+            _powerUps.RecordPurchasedUse("hammer");
+            Assert.IsTrue(missions.PowerUpUsedThisGame);
+            _progress.SubmitFinalScore(40);
+            Assert.IsTrue(State(missions, "hammer").Completed, "A bought use is a use.");
+            Assert.AreEqual(0, State(missions, "clean").Progress, "A game with a bought power-up is not a game without power-ups.");
+        }
+
+        [Test]
+        public void Missions_RestoredGameState_KeepsPendingUsesAndTheUsedFlag()
+        {
+            var missions = MissionsService(Missions(
+                Mission("hammer", MissionType.UsePowerUps, 2, powerUpId: "hammer"),
+                Mission("clean", MissionType.GamesWithoutPowerUps, 1)));
+            _powerUps.BeginGame();
+            missions.RestoreGame(true, new[] { "hammer", "hammer" });
+            _progress.SubmitFinalScore(40);
+            Assert.IsTrue(State(missions, "hammer").Completed);
+            Assert.AreEqual(0, State(missions, "clean").Progress);
+        }
+
+        [Test]
+        public void DailyReward_ClockMovedForwardWithoutRestart_WaitsForRealTime()
+        {
+            var uptime = 1000000L;
+            var daily = new DailyRewardService(_store, Calendar(), _clock, _granter, () => uptime);
+            Assert.AreEqual(ClaimResult.Claimed, daily.TryClaim());
+
+            // Date +1 day, but only 2 real minutes passed on the same boot: a hand-changed clock.
+            _clock.AdvanceDays(1);
+            uptime += 120000;
+            daily.Refresh();
+            Assert.IsTrue(daily.ClockChanged);
+            Assert.IsFalse(daily.CanClaim);
+            Assert.AreEqual(ClaimResult.NotAvailable, daily.TryClaim());
+
+            // The clock is set right again; a real day later date and real time agree: claiming works.
+            _clock.AdvanceDays(-1);
+            daily.Refresh();
+            Assert.IsFalse(daily.CanClaim, "Back on the real date the claimed day stays claimed.");
+            uptime += (long)TimeSpan.FromDays(1).TotalMilliseconds;
+            _clock.AdvanceDays(1);
+            daily.Refresh();
+            Assert.IsFalse(daily.ClockChanged);
+            Assert.AreEqual(ClaimResult.Claimed, daily.TryClaim());
+        }
+
+        [Test]
+        public void DailyReward_ClockMovedFarBackWithoutRestart_DoesNotOpenANewClaim()
+        {
+            var uptime = 5000000L;
+            var daily = new DailyRewardService(_store, Calendar(), _clock, _granter, () => uptime);
+            Assert.AreEqual(ClaimResult.Claimed, daily.TryClaim());
+            var claimsBefore = _powerUps.SavedCharges("hammer") + _powerUps.SavedCharges("shuffle") + _progress.Coins;
+
+            _clock.AdvanceDays(-10);
+            uptime += 60000;
+            daily.Refresh();
+            Assert.IsTrue(daily.ClockChanged);
+            Assert.AreEqual(ClaimResult.NotAvailable, daily.TryClaim());
+            Assert.AreEqual(claimsBefore, _powerUps.SavedCharges("hammer") + _powerUps.SavedCharges("shuffle") + _progress.Coins, "Nothing granted.");
+        }
+
+        [Test]
+        public void DailyReward_AfterAPhoneRestart_OrWithoutUptime_TrustsTheDate()
+        {
+            var uptime = 9000000L;
+            var daily = new DailyRewardService(_store, Calendar(), _clock, _granter, () => uptime);
+            Assert.AreEqual(ClaimResult.Claimed, daily.TryClaim());
+            _clock.AdvanceDays(1);
+            uptime = 30000; // rebooted: uptime started again
+            daily.Refresh();
+            Assert.IsFalse(daily.ClockChanged);
+            Assert.AreEqual(ClaimResult.Claimed, daily.TryClaim());
+
+            var unknown = new DailyRewardService(new InMemorySaveStore(), Calendar(), _clock, _granter, () => -1);
+            Assert.AreEqual(ClaimResult.Claimed, unknown.TryClaim());
+            _clock.AdvanceDays(1);
+            unknown.Refresh();
+            Assert.IsFalse(unknown.ClockChanged, "Without uptime (Editor) the guard is off.");
+        }
+
+        [Test]
+        public void DiamondGrants_ManyFinishedGames_NeverEvictRewardClaimIds()
+        {
+            Assert.IsTrue(_progress.TryGrantCoins("dailyreward:100:0", 5));
+            for (var i = 0; i < 400; i++)
+            {
+                Assert.IsTrue(_progress.TryGrantCoins(PlayerProgressData.GameGrantPrefix + "s" + i + ":1", 1));
+            }
+
+            Reopen();
+            Assert.IsTrue(_progress.HasAppliedCoinGrant("dailyreward:100:0"), "Reward ids stay remembered.");
+            Assert.AreEqual(405, _progress.Coins);
+            Assert.IsTrue(_progress.TryGrantCoins("dailyreward:100:0", 5));
+            Assert.AreEqual(405, _progress.Coins, "Still paid once.");
+        }
+
+        [Test]
+        public void DiamondGrant_NearTheMaximum_Saturates()
+        {
+            _store.Write(SaveKey.PlayerProgress, "{\"schemaVersion\":4,\"coins\":" + (long.MaxValue - 3) + "}");
+            Reopen();
+            Assert.IsTrue(_progress.TryGrantCoins("big", 10));
+            Assert.AreEqual(long.MaxValue, _progress.Coins);
         }
 
         [Test]
